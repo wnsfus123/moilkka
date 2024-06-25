@@ -3,7 +3,8 @@ import axios from "axios";
 import moment from "moment";
 import { Button, Card, Typography, Row, Col, message, Tooltip } from "antd";
 import ScheduleSelector from "react-schedule-selector";
-import Header from "./Components/MoHeader";
+import { checkKakaoLoginStatus, getUserInfoFromLocalStorage, clearUserInfoFromLocalStorage } from './Components/authUtils';
+import Socialkakao from "./Components/Socialkakao";
 import './App.css';
 
 const { Title, Text } = Typography;
@@ -16,6 +17,28 @@ function EventPage() {
   const [loading, setLoading] = useState(true);
   const [allSchedules, setAllSchedules] = useState([]);
   const [userSchedules, setUserSchedules] = useState({});
+  const [userInfo, setUserInfo] = useState(null);
+  const [userSelectedTimes, setUserSelectedTimes] = useState([]); // 현재 접속한 유저의 이벤트 시간을 저장
+
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      const savedAccessToken = localStorage.getItem('kakaoAccessToken');
+      if (savedAccessToken) {
+        const status = await checkKakaoLoginStatus(savedAccessToken);
+        if (status) {
+          const storedUserInfo = getUserInfoFromLocalStorage();
+          if (storedUserInfo) {
+            setUserInfo(storedUserInfo);
+          }
+        } else {
+          clearUserInfoFromLocalStorage();
+          setUserInfo(null);
+        }
+      }
+    };
+
+    checkLoginStatus();
+  }, []);
 
   useEffect(() => {
     const fetchEventData = async () => {
@@ -44,6 +67,30 @@ function EventPage() {
           userSchedulesMap[time].push(schedule.nickname);
         });
         setUserSchedules(userSchedulesMap);
+
+        console.log('User Info:', userInfo); // 사용자 정보 확인
+        console.log('Schedules Response:', schedulesResponse.data); // 전체 스케줄 확인
+
+        // User's existing schedule
+        if (userInfo) {
+          const userSchedule = schedulesResponse.data.filter(schedule => schedule.kakaoId === userInfo.id.toString() && schedule.event_uuid === uuid);
+          console.log('User Schedule:', userSchedule); // 사용자 스케줄 확인
+
+          const userSelectedTime = userSchedule.map(schedule => moment(schedule.event_datetime).toDate());
+          setSchedule(userSelectedTime);
+          setUserSelectedTimes(userSchedule.map(schedule => moment(schedule.event_datetime).format("YYYY-MM-DD HH:mm"))); // 현재 접속한 유저의 이벤트 시간 설정
+          // Set selectedTime for the handleConfirm function
+          const selectedTimeByDate = {};
+          userSelectedTime.forEach((time) => {
+            const date = moment(time).format("YYYY-MM-DD");
+            if (!selectedTimeByDate[date]) {
+              selectedTimeByDate[date] = [];
+            }
+            selectedTimeByDate[date].push(moment(time).format("HH:mm"));
+          });
+          setSelectedTime(selectedTimeByDate);
+        }
+
       } catch (error) {
         console.error("Error fetching event data:", error);
         message.error("Error fetching event data");
@@ -53,17 +100,26 @@ function EventPage() {
     };
 
     fetchEventData();
-  }, []);
+  }, [userInfo]); // userInfo가 변경될 때마다 fetchEventData를 호출합니다.
 
   const handleConfirm = async () => {
     try {
+      // 기존 일정을 삭제
+      await axios.delete("/api/delete-event-schedule", {
+        data: {
+          kakaoId: userInfo.id.toString(),
+          event_uuid: eventData.uuid,
+        },
+      });
+
+      // 새로운 일정을 저장
       for (const [date, times] of Object.entries(selectedTime)) {
         for (const time of times) {
           const datetime = moment(`${date} ${time}`, "YYYY-MM-DD HH:mm").format();
 
           const requestData = {
-            kakaoId: eventData.kakaoId,
-            nickname: eventData.nickname,
+            kakaoId: userInfo.id.toString(),
+            nickname: userInfo.kakao_account.profile.nickname,
             event_name: eventData.eventname,
             event_uuid: eventData.uuid,
             event_datetime: datetime,
@@ -72,7 +128,7 @@ function EventPage() {
           await axios.post("/api/save-event-schedule", requestData);
         }
       }
-      message.success("Event schedule saved successfully");
+      message.success("일정이 수정되었습니다");
     } catch (error) {
       console.error("Error saving event schedule:", error);
       message.error("Error saving event schedule");
@@ -92,8 +148,24 @@ function EventPage() {
     setSelectedTime(selectedTimeByDate);
   };
 
+  const handleCopyLink = () => {
+    const link = `http://localhost:8080/test/?key=${eventData.uuid}`;
+    navigator.clipboard.writeText(link)
+      .then(() => {
+        message.success('링크가 클립보드에 복사되었습니다!');
+      })
+      .catch(err => {
+        message.error('링크 복사에 실패했습니다.');
+        console.error('Error copying link:', err);
+      });
+  };
+
   if (loading) {
     return <p>Loading...</p>;
+  }
+
+  if (!userInfo) {
+    return <Socialkakao />;
   }
 
   if (!eventData) {
@@ -173,6 +245,13 @@ function EventPage() {
               <Button type="primary" onClick={handleConfirm} style={{ marginTop: "20px" }}>
                 Confirm
               </Button>
+              {/* 선택된 시간 출력 */}
+              <Card style={{ margin: "20px", padding: "20px", overflowX: "auto" }}>
+                <Title level={3}>Selected Schedule Times</Title>
+                {userSelectedTimes.map((time, index) => (
+                  <div key={index}>{time}</div>
+                ))}
+              </Card>
             </Card>
           </Col>
 

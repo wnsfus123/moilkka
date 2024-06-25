@@ -1,10 +1,10 @@
-// src/components/GetUserInfo.js
 import React, { useEffect } from 'react';
 import axios from 'axios';
-import useUserStore from './store/userStore'; // Zustand 스토어 가져오기
+import useUserStore from './store/userStore';
 
 const GetUserInfo = ({ kakaoAccessToken, fnUserInfoCheck }) => {
   const setUserInfo = useUserStore(state => state.setUserInfo);
+  const clearUserInfo = useUserStore(state => state.clearUserInfo);
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -22,17 +22,20 @@ const GetUserInfo = ({ kakaoAccessToken, fnUserInfoCheck }) => {
 
         fnUserInfoCheck(kakaoId, nickname);
 
-        // Zustand 스토어에 사용자 정보 저장
         setUserInfo(res.data);
+        localStorage.setItem('userInfo', JSON.stringify(res.data));
       } catch (e) {
         console.log('e : ', e);
+        clearUserInfo();
+        localStorage.removeItem('kakaoAccessToken');
+        localStorage.removeItem('userInfo');
       }
     };
 
     if (kakaoAccessToken) {
       fetchUserInfo();
     }
-  }, [kakaoAccessToken, fnUserInfoCheck, setUserInfo]);
+  }, [kakaoAccessToken, fnUserInfoCheck, setUserInfo, clearUserInfo]);
 
   return null;
 };
