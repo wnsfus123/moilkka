@@ -1,19 +1,16 @@
-// Layout.js
-
 import React, { useState } from "react";
 import {
   FormOutlined,
   EditOutlined,
   QuestionCircleOutlined
 } from '@ant-design/icons';
-import { Layout, Menu, theme  } from 'antd';
+import { Layout, Menu, theme } from 'antd';
 import { Link } from "react-router-dom";
 import { Outlet } from "react-router-dom";
 import MoHeader from "./MoHeader";
 import MoFooter from "./MoFooter";
 
 const { Header, Content, Footer, Sider } = Layout;
-
 
 const AppLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -22,12 +19,12 @@ const AppLayout = () => {
   } = theme.useToken();
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Header>
+      <Header style={{ padding: 0, zIndex: 1, width: '110%', position: 'fixed', top: 0 }}>
         <MoHeader/>
       </Header>
 
-      <Layout>
-      <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)} style={{ overflow: 'auto', height: '100vh', position: 'fixed', left: 0, zIndex: 1 }}>
+      <Layout style={{ marginTop: 72 }}>
+        <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)} style={{ overflow: 'auto', height: 'calc(100vh - 72px)', position: 'fixed', left: 0, top: 72, zIndex: 1 }}>
           <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline">
             <Menu.Item key="1" icon={<FormOutlined />}>
               <Link exact to="/main" />
@@ -46,14 +43,13 @@ const AppLayout = () => {
 
         <Layout className="site-layout" style={{ marginLeft: collapsed ? 80 : 200 }}>
           <Content style={{ margin: '24px 16px 0', overflow: 'initial' }}>
-
             <div>
-              <Outlet/>
+              <Outlet />
             </div>
           </Content>
 
           <Footer>
-            <MoFooter/>
+            <MoFooter />
           </Footer>
         </Layout>
       </Layout>
