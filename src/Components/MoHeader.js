@@ -1,25 +1,35 @@
 import React from 'react';
-import { Layout, Menu } from 'antd';
-import { UserOutlined } from '@ant-design/icons';
+import { Layout } from 'antd';
 
 const { Header } = Layout;
 
 const MoHeader = ({ colorBgContainer }) => {
   return (
-    <Header style={{ position: 'fixed', zIndex: 1, width: '100%', padding: '0 00px', background: colorBgContainer }}>
-      <div className="logo" />
-      <Menu theme="dark" mode="horizontal" defaultSelectedKeys={['1']} style={{ lineHeight: '4px', background: colorBgContainer }}>
-      <a href="localhost:3000">
-          <img
-            src="/logo.png"
-            width="128"
-            height="64"
-            className="d-inline-block align-top logo"
-            alt="모일까 로고"
-          />
-        </a>
-
-      </Menu>
+    <Header
+      style={{
+        color: "white",
+        width: "100%",
+        height: 72,
+        paddingLeft: 20,
+        paddingRight: 0,
+        position: "fixed",
+        top: 0,
+        zIndex: 1,
+        background: colorBgContainer,
+        display: "flex",
+        alignItems: "center" // 세로 중앙 정렬
+      }}
+    >
+      <a href="http://localhost:8080">
+        <img
+          src="/logo.png"
+          width="128"
+          height="64"
+          className="d-inline-block align-top logo"
+          alt="모일까 로고"
+          style={{ marginTop: '20px',marginLeft: '20px'  }} // 추가: 위쪽으로 약간 밀어주기
+        />
+      </a>
     </Header>
   );
 };
