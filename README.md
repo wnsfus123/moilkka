@@ -7,3 +7,9 @@
 - 네트워킹 (axios, socket.io, socket.io-client)
 - 
 - 날짜 처리 (date-fns, moment, dayjs)
+mysql> CREATE TABLE IF NOT EXISTS notifications (
+    ->   id INT PRIMARY KEY AUTO_INCREMENT,
+    ->   message VARCHAR(255) NOT NULL,
+    ->   kakaoId VARCHAR(20) NOT NULL,
+    ->   createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    -> );
