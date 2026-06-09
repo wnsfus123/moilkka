@@ -1,15 +1,16 @@
 import axios from 'axios';
 
+export const getBaseUrl = () =>
+  process.env.REACT_APP_BASE_URL || window.location.origin;
+
 export const checkKakaoLoginStatus = async (token) => {
   try {
-    const response = await axios.get("https://kapi.kakao.com/v2/user/me", {
-      headers: {
-        "Authorization": `Bearer ${token}`,
-      },
+    const response = await axios.get('https://kapi.kakao.com/v2/user/me', {
+      headers: { Authorization: `Bearer ${token}` },
     });
     return response.status === 200;
   } catch (error) {
-    console.error("로그인 상태 확인 중 오류 발생:", error);
+    console.error('로그인 상태 확인 중 오류 발생:', error);
     return false;
   }
 };

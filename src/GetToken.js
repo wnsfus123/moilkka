@@ -57,7 +57,7 @@ const GetToken = () => {
           const expiresIn = res.data.expires_in; // Kakao API 응답에서 유효 기간 가져오기
           const issuedAt = Math.floor(Date.now() / 1000); // 현재 시간을 초 단위로
 
-          await axios.post('/api/save-token', {
+          await axios.post('/api/tokens/save', {
             kakaoId: userInfo.id,
             accessToken: token,
             refreshToken: refreshToken,
