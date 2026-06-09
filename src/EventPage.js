@@ -59,8 +59,12 @@ function EventPage() {
       const response = await axios.get(`/api/events/${uuid}`);
       setEventData(response.data);
 
-      const diffDays = differenceInDays(new Date(response.data.endday), new Date(response.data.startday)) + 1;
-      setNumDays(diffDays);
+      const startD = new Date(response.data.startday);
+      const endD = new Date(response.data.endday);
+      const diffDays = (!isNaN(startD) && !isNaN(endD))
+        ? differenceInDays(endD, startD) + 1
+        : 1;
+      setNumDays(Math.max(1, isNaN(diffDays) ? 1 : diffDays));
 
       const schedulesResponse = await axios.get(`/api/schedules/${uuid}`);
       const schedules = Array.isArray(schedulesResponse.data) ? schedulesResponse.data : [];

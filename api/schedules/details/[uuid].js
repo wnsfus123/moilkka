@@ -22,9 +22,12 @@ module.exports = async (req, res) => {
     .select('kakao_id, nickname, slot_time')
     .eq('event_uuid', uuid);
 
-  if (e2) return res.status(500).json({ error: e2.message });
+  if (e2) {
+    console.error('[schedules/details] Supabase 오류:', e2.message);
+    return res.status(500).json({ error: e2.message });
+  }
 
-  const participants = schedules.map(s => ({
+  const participants = (schedules || []).map(s => ({
     kakaoId: s.kakao_id,
     nickname: s.nickname,
     event_datetime: s.slot_time,

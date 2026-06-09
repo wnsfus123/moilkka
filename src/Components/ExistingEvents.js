@@ -32,9 +32,10 @@ const ExistingEvents = ({ userInfo }) => {
     axios.get(`/api/schedules/details/${uuid}`)
       .then(res => {
         const { eventDetails, participants, creator } = res.data;
+        const safeParticipants = Array.isArray(participants) ? participants : [];
         setSelectedEventDetails({
           ...eventDetails,
-          participants: participants.length > 0 ? participants : [],
+          participants: safeParticipants,
           creator: creator || { nickname: '알 수 없음' },
         });
       })

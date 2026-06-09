@@ -14,10 +14,13 @@ module.exports = async (req, res) => {
     .select('*')
     .eq('event_uuid', uuid);
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) {
+    console.error('[schedules/uuid] Supabase 오류:', error.message);
+    return res.status(500).json({ error: error.message });
+  }
 
   // 프론트엔드 호환 필드 매핑
-  const mapped = data.map(s => ({
+  const mapped = (data || []).map(s => ({
     ...s,
     kakaoId: s.kakao_id,
     event_datetime: s.slot_time,
