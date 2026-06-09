@@ -37,8 +37,8 @@ module.exports = async (req, res) => {
     eventDetails: {
       ...event,
       eventname: event.name,
-      startday: event.start_at,
-      endday: event.end_at,
+      startday: event.start_at ?? event.startday ?? null,
+      endday: event.end_at ?? event.endday ?? null,
       kakaoId: event.kakao_id,
     },
     participants,

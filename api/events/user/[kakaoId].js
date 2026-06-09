@@ -48,12 +48,12 @@ module.exports = async (req, res) => {
   const unique = {};
   allEvents.forEach(e => { unique[e.uuid] = e; });
 
-  // 프론트엔드 호환 필드 매핑
+  // 컬럼명 start_at 또는 구버전 startday 모두 대응
   const mapped = Object.values(unique).map(e => ({
     ...e,
     eventname: e.name,
-    startday: e.start_at,
-    endday: e.end_at,
+    startday: e.start_at ?? e.startday ?? null,
+    endday: e.end_at ?? e.endday ?? null,
     kakaoId: e.kakao_id,
   }));
 

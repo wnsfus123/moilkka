@@ -17,19 +17,18 @@ module.exports = async (req, res) => {
 
     if (error) return res.status(404).json({ error: '이벤트를 찾을 수 없습니다.' });
 
-    console.log('[events/uuid] Supabase data:', JSON.stringify({
-      uuid: data.uuid,
-      start_at: data.start_at,
-      end_at: data.end_at,
-      name: data.name,
-    }));
+    console.log('[events/uuid] Supabase data keys:', Object.keys(data || {}));
+    console.log('[events/uuid] start_at:', data.start_at, '/ startday:', data.startday);
 
-    // 프론트엔드 호환 필드 매핑
+    // 컬럼명 start_at 또는 구버전 startday 모두 대응
+    const startday = data.start_at ?? data.startday ?? null;
+    const endday = data.end_at ?? data.endday ?? null;
+
     return res.status(200).json({
       ...data,
       eventname: data.name,
-      startday: data.start_at,
-      endday: data.end_at,
+      startday,
+      endday,
       kakaoId: data.kakao_id,
     });
   }

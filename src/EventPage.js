@@ -57,12 +57,7 @@ function EventPage() {
       const uuid = urlParams.get('key');
 
       const response = await axios.get(`/api/events/${uuid}`);
-      console.log('[EventPage] fetchEventData response:', JSON.stringify({
-        uuid: response.data?.uuid,
-        startday: response.data?.startday,
-        endday: response.data?.endday,
-        eventname: response.data?.eventname,
-      }));
+      console.log('[EventPage] fetchEventData full response:', JSON.stringify(response.data));
       setEventData(response.data);
 
       const startD = new Date(response.data.startday);

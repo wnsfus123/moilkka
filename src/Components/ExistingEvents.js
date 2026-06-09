@@ -18,13 +18,14 @@ const ExistingEvents = ({ userInfo }) => {
   }, [userInfo]);
 
   const fetchExistingEvents = (kakaoId) => {
+    console.log('[ExistingEvents] 이벤트 목록 조회 kakaoId:', kakaoId);
     axios.get(`/api/events/user/${kakaoId}`)
       .then(res => {
+        console.log('[ExistingEvents] 응답:', JSON.stringify(res.data));
         const events = Array.isArray(res.data) ? res.data : [];
-        if (events[0]) console.log('[ExistingEvents] 날짜 형식 샘플:', { startday: events[0].startday, endday: events[0].endday });
         setExistingEvents(events);
       })
-      .catch(err => console.error('이벤트 목록 조회 오류:', err));
+      .catch(err => console.error('[ExistingEvents] API 오류:', err.response?.status, err.response?.data || err.message));
   };
 
   const showEventDetails = (uuid) => {
