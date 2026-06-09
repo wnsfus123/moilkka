@@ -9,7 +9,6 @@ import GetToken from "./GetToken";
 import LoginSuccess from "./LoginSuccess";
 import Loginpage from "./Loginpage";
 import GoogleCalendar from "./GoogleCalendar";
-import EventDashboard from "./EventDashboard";
 import CombinedPage from "./CombinedPage";
 
 const App = () => {

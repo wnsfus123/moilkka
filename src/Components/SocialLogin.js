@@ -1,5 +1,5 @@
 import React from "react";
-import { Space, Typography, Card, Image, Row } from 'antd';
+import { Typography, Card, Image } from 'antd';
 import Socialkakao from "./Socialkakao"; // Socialkakao 컴포넌트를 가져옵니다.
 
 const { Title, Text } = Typography;

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ConfigProvider, DatePicker, TimePicker, Button, Form, Input, Card, Modal, message, List, Row, Col } from 'antd';
+import { ConfigProvider, DatePicker, TimePicker, Button, Form, Input, Card, message, Row, Col } from 'antd';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import koKR from 'antd/lib/locale/ko_KR';
@@ -17,8 +17,6 @@ const CreateEvent = () => {
   const [selectedDates, setSelectedDates] = useState([]);
   const [uuid, setUuid] = useState('');
   const [userInfo, setUserInfo] = useState(null);
-  const [existingEvents, setExistingEvents] = useState([]);
-  const [isModalVisible, setIsModalVisible] = useState(false);
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -29,7 +27,6 @@ const CreateEvent = () => {
           const storedUserInfo = getUserInfoFromLocalStorage();
           if (storedUserInfo) {
             setUserInfo(storedUserInfo);
-            fetchExistingEvents(storedUserInfo.id.toString());
           }
         } else {
           clearUserInfoFromLocalStorage();
@@ -40,12 +37,6 @@ const CreateEvent = () => {
     checkLoginStatus();
   }, []);
 
-  const fetchExistingEvents = (kakaoId) => {
-    axios.get(`/api/events/user/${kakaoId}`)
-      .then(res => setExistingEvents(res.data))
-      .catch(err => console.error('이벤트 목록 조회 오류:', err));
-  };
-
   const handleConfirm = () => {
     if (!uuid) { message.warning('UUID를 입력해주세요!'); return; }
     if (!userInfo) { console.error('로그인 정보가 없습니다.'); return; }
@@ -53,8 +44,6 @@ const CreateEvent = () => {
     axios.get(`/api/events/${uuid}`)
       .then(res => {
         if (res.data) {
-          setExistingEvents([res.data]);
-          setIsModalVisible(true);
           window.location.href = `${getBaseUrl()}/test/?key=${uuid}`;
         } else {
           message.warning('해당 UUID에 맞는 모임이 없습니다!');

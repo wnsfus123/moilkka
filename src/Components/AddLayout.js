@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import {
   FormOutlined,
-  EditOutlined,
   QuestionCircleOutlined,
-  LogoutOutlined // 로그아웃 아이콘 추가
+  LogoutOutlined,
 } from '@ant-design/icons';
 import { Layout, Menu, theme } from 'antd';
 import { Link } from "react-router-dom";
@@ -15,9 +14,7 @@ const { Header, Content, Footer, Sider } = Layout;
 
 const AppLayout = () => {
   const [collapsed, setCollapsed] = useState(true);
-  const {
-    token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken();
+  theme.useToken();
 
   // 로그아웃 핸들러
   const handleLogout = () => {

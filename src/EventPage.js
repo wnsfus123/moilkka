@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { format, addMinutes, differenceInDays, isSameMinute, isBefore, isAfter, parse } from 'date-fns';
+import { format, addMinutes, differenceInDays, isBefore, isAfter, parse } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import dayjs from 'dayjs';
 import { Button, Card, Typography, Row, Col, message, Tooltip, TimePicker, Input, DatePicker, Modal } from 'antd';
@@ -247,15 +247,10 @@ function EventPage() {
   if (!userInfo) return <Socialkakao />;
   if (!eventData) return <p>No event data available</p>;
 
-  const startDate = format(new Date(eventData.startday), 'yyyy-MM-dd');
-  const endDate = format(new Date(eventData.endday), 'yyyy-MM-dd');
   const startTimeStr = format(new Date(eventData.startday), 'HH:mm');
   const endTimeStr = format(new Date(eventData.endday), 'HH:mm');
   const Schedule_Start = new Date(eventData.startday);
   const Schedule_End = new Date(eventData.endday);
-
-  const countOccurrences = (time) =>
-    allSchedules.filter(s => isSameMinute(new Date(s.event_datetime), time)).length;
 
   const colors = ['blue', 'red', 'green', 'purple', 'orange', 'pink'];
   const userColorMap = {};
