@@ -52,20 +52,35 @@ const GetToken = () => {
           localStorage.setItem('userInfo', JSON.stringify(userInfo));
 
           // 토큰의 유효 기간 (초 단위로)과 발급 시각을 가져옵니다.
-          const expiresIn = res.data.expires_in; // Kakao API 응답에서 유효 기간 가져오기
-          const issuedAt = Math.floor(Date.now() / 1000); // 현재 시간을 초 단위로
+          const expiresIn = res.data.expires_in;
+          const issuedAt = Math.floor(Date.now() / 1000);
 
-          await axios.post('/api/tokens/save', {
-            kakaoId: userInfo.id,
-            accessToken: token,
-            refreshToken: refreshToken,
-            issuedAt: issuedAt, // 발급 시각 추가
-            expiresIn: expiresIn // 유효 기간 추가
-          });
+          // 유저 저장 (실패해도 로그인 흐름 계속)
+          try {
+            await axios.post('/api/users/save', {
+              kakaoId: userInfo.id.toString(),
+              nickname: userInfo.kakao_account?.profile?.nickname || '',
+            });
+          } catch (err) {
+            console.error('[GetToken] 유저 저장 실패:', err.response?.data || err.message);
+          }
+
+          // 토큰 저장 (실패해도 로그인 흐름 계속)
+          try {
+            await axios.post('/api/tokens/save', {
+              kakaoId: userInfo.id.toString(),
+              accessToken: token,
+              refreshToken,
+              issuedAt,
+              expiresIn,
+            });
+          } catch (err) {
+            console.error('[GetToken] 토큰 저장 실패:', err.response?.data || err.message);
+          }
 
           navigate('/event');
         } catch (err) {
-          console.warn(err);
+          console.error('[GetToken] 카카오 로그인 실패:', err.response?.data || err.message);
         }
       }
     };

@@ -297,21 +297,21 @@ function EventPage() {
               <Row gutter={[16, 16]}>
                 <Col span={12}>
                   <Text strong>📅 시작 날짜: </Text>
-                  <DatePicker value={dayjs(eventData.startday)} format="YYYY-MM-DD" disabled style={{ width: '100%', backgroundColor: 'white' }} />
+                  <DatePicker value={dayjs(Schedule_Start)} format="YYYY-MM-DD" disabled style={{ width: '100%', backgroundColor: 'white' }} />
                 </Col>
                 <Col span={12}>
                   <Text strong>📅 종료 날짜: </Text>
-                  <DatePicker value={dayjs(eventData.endday)} format="YYYY-MM-DD" disabled style={{ width: '100%', backgroundColor: 'white' }} />
+                  <DatePicker value={dayjs(Schedule_End)} format="YYYY-MM-DD" disabled style={{ width: '100%', backgroundColor: 'white' }} />
                 </Col>
               </Row>
               <Row gutter={[16, 16]}>
                 <Col span={12}>
                   <Text strong>🕒 시작 시간: </Text>
-                  <TimePicker value={dayjs(eventData.startday)} format="HH:mm" disabled style={{ width: '100%', backgroundColor: 'white' }} />
+                  <TimePicker value={dayjs(Schedule_Start)} format="HH:mm" disabled style={{ width: '100%', backgroundColor: 'white' }} />
                 </Col>
                 <Col span={12}>
                   <Text strong>🕒 종료 시간: </Text>
-                  <TimePicker value={dayjs(eventData.endday)} format="HH:mm" disabled style={{ width: '100%', backgroundColor: 'white' }} />
+                  <TimePicker value={dayjs(Schedule_End)} format="HH:mm" disabled style={{ width: '100%', backgroundColor: 'white' }} />
                 </Col>
               </Row>
             </Card>

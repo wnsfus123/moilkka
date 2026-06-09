@@ -14,6 +14,10 @@ module.exports = async (req, res) => {
     nickname,
   }, { onConflict: 'kakao_id' });
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) {
+    console.error('[users/save] Supabase upsert 오류:', error.message, error.details);
+    return res.status(500).json({ error: error.message });
+  }
+  console.log('[users/save] 저장 성공 kakaoId:', kakaoId);
   return res.status(200).json({ success: true });
 };
