@@ -57,6 +57,12 @@ function EventPage() {
       const uuid = urlParams.get('key');
 
       const response = await axios.get(`/api/events/${uuid}`);
+      console.log('[EventPage] fetchEventData response:', JSON.stringify({
+        uuid: response.data?.uuid,
+        startday: response.data?.startday,
+        endday: response.data?.endday,
+        eventname: response.data?.eventname,
+      }));
       setEventData(response.data);
 
       const startD = new Date(response.data.startday);
@@ -260,9 +266,18 @@ function EventPage() {
   if (!eventData) return <p>No event data available</p>;
 
   const parseDateSafe = (str) => {
-    if (!str) return new Date();
-    const d = new Date(str);
-    return isNaN(d.getTime()) ? new Date() : d;
+    if (!str) {
+      console.warn('[EventPage] parseDateSafe: null/undefined 값, 현재 시간으로 대체:', str);
+      return new Date();
+    }
+    // PostgreSQL timestamptz가 공백 구분자로 올 수 있음 → ISO 8601로 정규화
+    const normalized = typeof str === 'string' ? str.replace(' ', 'T') : str;
+    const d = new Date(normalized);
+    if (isNaN(d.getTime())) {
+      console.warn('[EventPage] parseDateSafe: 파싱 실패, 현재 시간으로 대체:', str);
+      return new Date();
+    }
+    return d;
   };
   const Schedule_Start = parseDateSafe(eventData.startday);
   const Schedule_End = parseDateSafe(eventData.endday);

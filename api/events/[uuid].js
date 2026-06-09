@@ -17,6 +17,13 @@ module.exports = async (req, res) => {
 
     if (error) return res.status(404).json({ error: '이벤트를 찾을 수 없습니다.' });
 
+    console.log('[events/uuid] Supabase data:', JSON.stringify({
+      uuid: data.uuid,
+      start_at: data.start_at,
+      end_at: data.end_at,
+      name: data.name,
+    }));
+
     // 프론트엔드 호환 필드 매핑
     return res.status(200).json({
       ...data,

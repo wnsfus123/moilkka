@@ -8,7 +8,12 @@ export const checkKakaoLoginStatus = async (token) => {
     const response = await axios.get('https://kapi.kakao.com/v2/user/me', {
       headers: { Authorization: `Bearer ${token}` },
     });
-    return response.status === 200;
+    if (response.status === 200) {
+      // 항상 최신 userInfo를 localStorage에 동기화
+      localStorage.setItem('userInfo', JSON.stringify(response.data));
+      return true;
+    }
+    return false;
   } catch (error) {
     console.error('로그인 상태 확인 중 오류 발생:', error);
     return false;
