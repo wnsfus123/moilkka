@@ -63,10 +63,12 @@ function EventPage() {
       setNumDays(diffDays);
 
       const schedulesResponse = await axios.get(`/api/schedules/${uuid}`);
-      setAllSchedules(schedulesResponse.data);
+      const schedules = Array.isArray(schedulesResponse.data) ? schedulesResponse.data : [];
+      setAllSchedules(schedules);
 
       const userSchedulesMap = {};
-      schedulesResponse.data.forEach(s => {
+      schedules.forEach(s => {
+        if (!s.event_datetime) return;
         const time = format(new Date(s.event_datetime), 'yyyy-MM-dd HH:mm');
         if (!userSchedulesMap[time]) userSchedulesMap[time] = [];
         userSchedulesMap[time].push(s.nickname);
@@ -74,12 +76,16 @@ function EventPage() {
       setUserSchedules(userSchedulesMap);
 
       if (userInfo) {
-        const userSchedule = schedulesResponse.data.filter(
+        const userSchedule = schedules.filter(
           s => s.kakaoId === userInfo.id.toString() && s.event_uuid === uuid
         );
-        const userSelectedTime = userSchedule.map(s => new Date(s.event_datetime));
+        const userSelectedTime = userSchedule
+          .filter(s => s.event_datetime)
+          .map(s => new Date(s.event_datetime));
         setSchedule(userSelectedTime);
-        setUserSelectedTimes(userSchedule.map(s => format(new Date(s.event_datetime), 'yyyy-MM-dd HH:mm')));
+        setUserSelectedTimes(userSchedule
+          .filter(s => s.event_datetime)
+          .map(s => format(new Date(s.event_datetime), 'yyyy-MM-dd HH:mm')));
 
         const selectedTimeByDate = {};
         userSelectedTime.forEach(time => {
@@ -88,7 +94,7 @@ function EventPage() {
           selectedTimeByDate[date].push(format(time, 'HH:mm'));
         });
         setSelectedTime(selectedTimeByDate);
-        setMaxOverlapTimes(findMaxOverlappingTimes(schedulesResponse.data));
+        setMaxOverlapTimes(findMaxOverlappingTimes(schedules));
       }
     } catch (error) {
       console.error('이벤트 데이터 조회 오류:', error);
@@ -218,6 +224,7 @@ function EventPage() {
   const findMaxOverlappingTimes = (schedules) => {
     const timeCounts = {};
     schedules.forEach(s => {
+      if (!s.event_datetime) return;
       const timeDt = new Date(s.event_datetime);
       const endTimeDt = addMinutes(timeDt, 30);
       let m = timeDt;

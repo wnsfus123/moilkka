@@ -46,10 +46,13 @@ const ExistingEvents = ({ userInfo }) => {
   };
 
   const formatDateTime = (dateString) => {
+    if (!dateString) return '-';
     try {
-      return format(new Date(dateString), 'yyyy년 MM월 dd일 HH시', { locale: ko });
+      const d = new Date(dateString);
+      if (isNaN(d.getTime())) return String(dateString);
+      return format(d, 'yyyy년 MM월 dd일 HH시', { locale: ko });
     } catch {
-      return dateString;
+      return String(dateString) || '-';
     }
   };
 

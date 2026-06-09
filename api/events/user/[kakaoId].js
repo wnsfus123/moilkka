@@ -8,6 +8,7 @@ module.exports = async (req, res) => {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
   const { kakaoId } = req.query;
+  if (!kakaoId) return res.status(400).json({ error: 'kakaoId가 필요합니다.' });
 
   const { data: createdRaw, error: e1 } = await supabase
     .from('events')
