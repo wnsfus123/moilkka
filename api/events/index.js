@@ -21,6 +21,9 @@ module.exports = async (req, res) => {
     nickname,
   });
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) {
+    console.error('[events/index] Supabase insert 오류:', error.message, error.details, error.hint);
+    return res.status(500).json({ error: error.message });
+  }
   return res.status(200).json({ success: true });
 };
