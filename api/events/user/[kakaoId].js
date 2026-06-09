@@ -9,17 +9,25 @@ module.exports = async (req, res) => {
 
   const { kakaoId } = req.query;
 
-  const { data: created, error: e1 } = await supabase
+  const { data: createdRaw, error: e1 } = await supabase
     .from('events')
     .select('*')
     .eq('kakao_id', kakaoId);
-  if (e1) return res.status(500).json({ error: e1.message });
+  if (e1) {
+    console.error('[events/user] created 조회 오류:', e1.message);
+    return res.status(500).json({ error: e1.message });
+  }
+  const created = createdRaw || [];
 
-  const { data: schedules, error: e2 } = await supabase
+  const { data: schedulesRaw, error: e2 } = await supabase
     .from('schedules')
     .select('event_uuid')
     .eq('kakao_id', kakaoId);
-  if (e2) return res.status(500).json({ error: e2.message });
+  if (e2) {
+    console.error('[events/user] schedules 조회 오류:', e2.message);
+    return res.status(500).json({ error: e2.message });
+  }
+  const schedules = schedulesRaw || [];
 
   const participatedUuids = [...new Set(schedules.map(s => s.event_uuid))];
   let participated = [];
@@ -28,8 +36,11 @@ module.exports = async (req, res) => {
       .from('events')
       .select('*')
       .in('uuid', participatedUuids);
-    if (e3) return res.status(500).json({ error: e3.message });
-    participated = data;
+    if (e3) {
+      console.error('[events/user] participated 조회 오류:', e3.message);
+      return res.status(500).json({ error: e3.message });
+    }
+    participated = data || [];
   }
 
   const allEvents = [...created, ...participated];

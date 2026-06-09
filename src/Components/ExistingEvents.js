@@ -19,7 +19,7 @@ const ExistingEvents = ({ userInfo }) => {
 
   const fetchExistingEvents = (kakaoId) => {
     axios.get(`/api/events/user/${kakaoId}`)
-      .then(res => setExistingEvents(res.data))
+      .then(res => setExistingEvents(Array.isArray(res.data) ? res.data : []))
       .catch(err => console.error('이벤트 목록 조회 오류:', err));
   };
 
@@ -144,7 +144,7 @@ const ExistingEvents = ({ userInfo }) => {
               {selectedEventDetails.participants.length > 0 ? (
                 selectedEventDetails.participants.map((p, i) => (
                   <li key={i}>
-                    {p.nickname} - {format(new Date(p.event_datetime), 'yyyy년 MM월 dd일 HH시', { locale: ko })}
+                    {p.nickname} - {formatDateTime(p.event_datetime)}
                   </li>
                 ))
               ) : (
