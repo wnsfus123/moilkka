@@ -226,6 +226,7 @@ function EventPage() {
     schedules.forEach(s => {
       if (!s.event_datetime) return;
       const timeDt = new Date(s.event_datetime);
+      if (isNaN(timeDt.getTime())) return;
       const endTimeDt = addMinutes(timeDt, 30);
       let m = timeDt;
       while (isBefore(m, endTimeDt)) {
@@ -254,10 +255,15 @@ function EventPage() {
   if (!userInfo) return <Socialkakao />;
   if (!eventData) return <p>No event data available</p>;
 
-  const startTimeStr = format(new Date(eventData.startday), 'HH:mm');
-  const endTimeStr = format(new Date(eventData.endday), 'HH:mm');
-  const Schedule_Start = new Date(eventData.startday);
-  const Schedule_End = new Date(eventData.endday);
+  const parseDateSafe = (str) => {
+    if (!str) return new Date();
+    const d = new Date(str);
+    return isNaN(d.getTime()) ? new Date() : d;
+  };
+  const Schedule_Start = parseDateSafe(eventData.startday);
+  const Schedule_End = parseDateSafe(eventData.endday);
+  const startTimeStr = format(Schedule_Start, 'HH:mm');
+  const endTimeStr = format(Schedule_End, 'HH:mm');
 
   const colors = ['blue', 'red', 'green', 'purple', 'orange', 'pink'];
   const userColorMap = {};

@@ -57,5 +57,10 @@ module.exports = async (req, res) => {
     kakaoId: e.kakao_id,
   }));
 
+  console.log('[events/user] 날짜 형식 샘플:', JSON.stringify({
+    start_at: mapped[0]?.startday ?? null,
+    end_at: mapped[0]?.endday ?? null,
+    count: mapped.length,
+  }));
   return res.status(200).json(mapped);
 };

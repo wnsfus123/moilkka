@@ -19,7 +19,11 @@ const ExistingEvents = ({ userInfo }) => {
 
   const fetchExistingEvents = (kakaoId) => {
     axios.get(`/api/events/user/${kakaoId}`)
-      .then(res => setExistingEvents(Array.isArray(res.data) ? res.data : []))
+      .then(res => {
+        const events = Array.isArray(res.data) ? res.data : [];
+        if (events[0]) console.log('[ExistingEvents] 날짜 형식 샘플:', { startday: events[0].startday, endday: events[0].endday });
+        setExistingEvents(events);
+      })
       .catch(err => console.error('이벤트 목록 조회 오류:', err));
   };
 
