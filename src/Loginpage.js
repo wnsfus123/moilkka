@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import checkKakaoLoginStatus from './Components/checkKakaoLoginStatus';
 import useUserStore from './store/userStore';
 import { Layout, Typography, Card } from 'antd';
 import SocialLogin from './Components/SocialLogin';
-import { getBaseUrl } from './Components/authUtils';
+import { checkKakaoLoginStatus, getBaseUrl } from './Components/authUtils';
 
 const { Content } = Layout;
 const { Text } = Typography;
