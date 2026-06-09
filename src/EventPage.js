@@ -98,6 +98,7 @@ function EventPage() {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchEventData(); }, [userInfo]);
 
   const handleConfirm = async () => {
@@ -209,7 +210,6 @@ function EventPage() {
     }
   };
 
-  const handleModalClose = () => setIsModalVisible(false);
   const handleGoogleModalClose = () => setIsGoogleModalVisible(false);
   const showModal = () => setIsModalVisible(true);
   const handleOk = () => { setIsModalVisible(false); setIsGoogleModalVisible(false); };
