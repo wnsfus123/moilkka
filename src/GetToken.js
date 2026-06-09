@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
 
 const GetToken = () => {
-  const [accessToken, setAccessToken] = useState('');
   const CLIENT_ID = process.env.REACT_APP_KAKAO_REST_API_KEY;
   const REDIRECT_URI = process.env.REACT_APP_KAKAO_REDIRECT_URI;
 
@@ -38,8 +37,7 @@ const GetToken = () => {
           });
 
           const token = res.data.access_token;
-          const refreshToken = res.data.refresh_token; // 리프레시 토큰 추가
-          setAccessToken(token);         
+          const refreshToken = res.data.refresh_token;
 
           localStorage.setItem('kakaoAccessToken', token);
           localStorage.setItem('kakaoRefreshToken', refreshToken); // 리프레시 토큰 저장

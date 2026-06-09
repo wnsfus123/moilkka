@@ -1,6 +1,5 @@
 // src/components/LoginSuccess.js
 import React from 'react';
-import { useLocation } from 'react-router-dom';
 import useUserStore from './store/userStore'; // Zustand 스토어 가져오기
 
 const LoginSuccess = () => {

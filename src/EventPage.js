@@ -418,7 +418,6 @@ function EventPage() {
                     </div>
                   )}
                   renderDateCell={(time, selected, innerRef) => {
-                    const formattedTime = format(time, 'yyyy-MM-dd HH:mm');
                     const timeEnd = addMinutes(time, 30);
                     const overlapping = overlappingEvents.filter(event => {
                       const eventStart = new Date(event.start);
