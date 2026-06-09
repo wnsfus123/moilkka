@@ -1,27 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { gapi } from 'gapi-script';
-import moment from 'moment'; // moment 라이브러리 사용
-import { Button, List } from 'antd'; // Ant Design의 Button 및 List 컴포넌트 사용
+import { format, isBefore, isAfter } from 'date-fns';
+import { Button, List } from 'antd';
 
-const GoogleCalendar = ({ scheduleStart, scheduleEnd ,setOverlappingEvents}) => {
+const GoogleCalendar = ({ scheduleStart, scheduleEnd, setOverlappingEvents }) => {
   const [events, setEvents] = useState([]);
   const [calendars, setCalendars] = useState([]);
-  
+
   useEffect(() => {
     const listCalendars = () => {
       gapi.client.calendar.calendarList.list().then(response => {
-        const calendars = response.result.items.map(calendar => ({
+        const items = response.result.items.map(calendar => ({
           ...calendar,
           summary: calendar.summary.includes('@gmail.com')
-            ? calendar.summary.split('@')[0]   // @gmail.com 앞부분만 추출
+            ? calendar.summary.split('@')[0]
             : calendar.summary,
         }));
-        setCalendars(calendars);
+        setCalendars(items);
       }).catch(error => {
         console.error('Error fetching calendars:', error);
       });
     };
-
     listCalendars();
   }, []);
 
@@ -30,33 +29,31 @@ const GoogleCalendar = ({ scheduleStart, scheduleEnd ,setOverlappingEvents}) => 
     const oneYearFromNow = new Date(now.getFullYear() + 1, now.getMonth(), now.getDate());
 
     gapi.client.calendar.events.list({
-      'calendarId': calendarId,
-      'timeMin': now.toISOString(),
-      'timeMax': oneYearFromNow.toISOString(),
-      'showDeleted': false,
-      'singleEvents': true,
-      'maxResults': 1000,
-      'orderBy': 'startTime'
+      calendarId,
+      timeMin: now.toISOString(),
+      timeMax: oneYearFromNow.toISOString(),
+      showDeleted: false,
+      singleEvents: true,
+      maxResults: 1000,
+      orderBy: 'startTime',
     }).then(response => {
-      const events = response.result.items.map(event => {
+      const fetched = response.result.items.map(event => {
         const eventDetails = {
           title: event.summary,
-          start: moment(new Date(event.start.dateTime || event.start.date)),
-          end: moment(new Date(event.end.dateTime || event.end.date)),
+          start: new Date(event.start.dateTime || event.start.date),
+          end: new Date(event.end.dateTime || event.end.date),
         };
 
-        // 겹치는 일정 확인
-        if (moment(scheduleStart).isBefore(eventDetails.end) && moment(scheduleEnd).isAfter(eventDetails.start)) {
+        if (isBefore(scheduleStart, eventDetails.end) && isAfter(scheduleEnd, eventDetails.start)) {
           console.log(`겹치는 구글 캘린더 일정: ${eventDetails.title}`);
-          setOverlappingEvents(prev => [...prev, eventDetails]); // 겹치는 일정 추가
+          setOverlappingEvents(prev => [...prev, eventDetails]);
         }
 
         return eventDetails;
       });
-      
-      setEvents(events);
+      setEvents(fetched);
     }).catch(error => {
-      console.error(`Error fetching events from calendar ${calendarId}:`, error);      //캘린더
+      console.error(`Error fetching events from calendar ${calendarId}:`, error);
     });
   };
 
@@ -73,14 +70,13 @@ const GoogleCalendar = ({ scheduleStart, scheduleEnd ,setOverlappingEvents}) => 
           </List.Item>
         )}
       />
-
       <h2>일정</h2>
       <ul>
         {events.length > 0 ? (
           events.map((event, index) => (
             <li key={index}>
-              <strong>{event.title}</strong><br/>
-              {moment(event.start).format('YYYY-MM-DD HH:mm')} - {moment(event.end).format('YYYY-MM-DD HH:mm')}     
+              <strong>{event.title}</strong><br />
+              {format(event.start, 'yyyy-MM-dd HH:mm')} - {format(event.end, 'yyyy-MM-dd HH:mm')}
             </li>
           ))
         ) : (

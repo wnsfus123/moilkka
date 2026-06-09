@@ -1,17 +1,18 @@
 import React from 'react';
 import { Card, Row, Col, Typography, Button, Input } from 'antd';
+import { format } from 'date-fns';
 import KakaoShareButton from './KakaoShareButton';
-import moment from 'moment';
+import { getBaseUrl } from './authUtils';
 
 const { Title, Text } = Typography;
 
 const EventDetails = ({ eventData, userInfo, handleCopyLink }) => {
-  const shareUrl = `http://localhost:8080/test/?key=${eventData.uuid}`;
+  const shareUrl = `${getBaseUrl()}/test/?key=${eventData.uuid}`;
 
   return (
     <Row gutter={16}>
       <Col span={12}>
-        <Card style={{ margin: "20px", padding: "0px" }}>
+        <Card style={{ margin: '20px', padding: '0px' }}>
           <Title level={2}>Event Details</Title>
           <Row gutter={[16, 16]}>
             <Col span={12}>
@@ -26,29 +27,29 @@ const EventDetails = ({ eventData, userInfo, handleCopyLink }) => {
           <Row gutter={[16, 16]}>
             <Col span={12}>
               <Text strong>Start Day: </Text>
-              <Text>{moment(eventData.startday).format("YYYY-MM-DD")}</Text>
+              <Text>{format(new Date(eventData.startday), 'yyyy-MM-dd')}</Text>
             </Col>
             <Col span={12}>
               <Text strong>End Day: </Text>
-              <Text>{moment(eventData.endday).format("YYYY-MM-DD")}</Text>
+              <Text>{format(new Date(eventData.endday), 'yyyy-MM-dd')}</Text>
             </Col>
           </Row>
           <Row gutter={[16, 16]}>
             <Col span={12}>
               <Text strong>Start Time: </Text>
-              <Text>{moment(eventData.startday).format("HH:mm")}</Text>
+              <Text>{format(new Date(eventData.startday), 'HH:mm')}</Text>
             </Col>
             <Col span={12}>
               <Text strong>End Time: </Text>
-              <Text>{moment(eventData.endday).format("HH:mm")}</Text>
+              <Text>{format(new Date(eventData.endday), 'HH:mm')}</Text>
             </Col>
           </Row>
         </Card>
       </Col>
       <Col span={12}>
-        <Card style={{ margin: "20px", padding: "0px", display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <Card style={{ margin: '20px', padding: '0px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <KakaoShareButton userInfo={userInfo} eventData={eventData} />
-          <Input.Group compact style={{ marginTop: "20px" }}>
+          <Input.Group compact style={{ marginTop: '20px' }}>
             <Input
               style={{ width: 'calc(100% - 100px)', cursor: 'not-allowed' }}
               value={shareUrl}
