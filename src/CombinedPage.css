@@ -1,14 +1,17 @@
 .combined-page {
   width: 100%;
   padding: 0;
+  margin: 0;
 }
 
 /* Desktop 2-column grid */
 .combined-desktop {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 12px;
   align-items: stretch;
+  height: calc(100vh - 52px);
+  padding: 8px 0;
 }
 
 .combined-panel {
@@ -19,6 +22,8 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+  height: 100%;
 }
 
 /* Mobile tab layout */

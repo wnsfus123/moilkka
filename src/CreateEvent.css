@@ -1,4 +1,4 @@
-.create-event { width: 100%; }
+.create-event { width: 100%; padding: 0; margin: 0; }
 
 /* ── Tabs ── */
 .ce-tabs {

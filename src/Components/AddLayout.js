@@ -44,6 +44,7 @@ const AppLayout = () => {
       <Header className="app-header">
         <a href="/event" className="header-logo-link">
           <img src="/logo.png" alt="모일까" className="header-logo-img" />
+          <span className="header-logo-text">모일까</span>
         </a>
 
         <Menu
@@ -56,7 +57,7 @@ const AppLayout = () => {
             minWidth: 0,
             background: 'transparent',
             borderBottom: 'none',
-            lineHeight: '64px',
+            lineHeight: '50px',
           }}
         />
 
