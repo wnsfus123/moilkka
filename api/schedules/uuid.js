@@ -19,7 +19,6 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 
-  // 프론트엔드 호환 필드 매핑
   const mapped = (data || []).map(s => ({
     ...s,
     kakaoId: s.kakao_id,

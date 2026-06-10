@@ -48,7 +48,6 @@ module.exports = async (req, res) => {
   const unique = {};
   allEvents.forEach(e => { unique[e.uuid] = e; });
 
-  // 컬럼명 start_at 또는 구버전 startday 모두 대응
   const mapped = Object.values(unique).map(e => ({
     ...e,
     eventname: e.name,

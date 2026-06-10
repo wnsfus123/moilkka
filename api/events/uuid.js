@@ -20,7 +20,6 @@ module.exports = async (req, res) => {
     console.log('[events/uuid] Supabase data keys:', Object.keys(data || {}));
     console.log('[events/uuid] start_at:', data.start_at, '/ startday:', data.startday);
 
-    // 컬럼명 start_at 또는 구버전 startday 모두 대응
     const startday = data.start_at ?? data.startday ?? null;
     const endday = data.end_at ?? data.endday ?? null;
 

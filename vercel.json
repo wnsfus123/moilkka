@@ -2,7 +2,11 @@
   "buildCommand": "npm run build",
   "outputDirectory": "build",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/api/events/user/:kakaoId", "destination": "/api/events/user/kakaoId" },
+    { "source": "/api/events/:uuid",          "destination": "/api/events/uuid" },
+    { "source": "/api/schedules/details/:uuid", "destination": "/api/schedules/details/uuid" },
+    { "source": "/api/schedules/:uuid",        "destination": "/api/schedules/uuid" },
+    { "source": "/(.*)",                       "destination": "/index.html" }
   ],
   "crons": [
     {
