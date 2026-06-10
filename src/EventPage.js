@@ -496,7 +496,6 @@ function EventPage() {
                   <div className="ep-groups-row">
                     {dateGroups.map(group => (
                       <div key={group[0]} className="ep-date-group" style={{ width: `${group.length * 82 + 62}px` }}>
-                        {renderGroupLabel(group)}
                         <ScheduleSelector
                           selection={schedule.filter(d => group.includes(format(d, 'yyyy-MM-dd')))}
                           numDays={group.length}
@@ -560,7 +559,6 @@ function EventPage() {
                   <div className="ep-groups-row">
                     {dateGroups.map(group => (
                       <div key={group[0]} className="ep-date-group" style={{ width: `${group.length * 82 + 62}px` }}>
-                        {renderGroupLabel(group)}
                         <ScheduleSelector
                           selection={schedule.filter(d => group.includes(format(d, 'yyyy-MM-dd')))}
                           numDays={group.length}
@@ -646,7 +644,6 @@ function EventPage() {
                   <div className="ep-groups-row">
                     {dateGroups.map(group => (
                       <div key={group[0]} className="ep-date-group" style={{ width: `${group.length * 82 + 62}px` }}>
-                        {renderGroupLabel(group)}
                         <ScheduleSelector
                           selection={schedule.filter(d => group.includes(format(d, 'yyyy-MM-dd')))}
                           numDays={group.length}
@@ -711,7 +708,6 @@ function EventPage() {
                   <div className="ep-groups-row">
                     {dateGroups.map(group => (
                       <div key={group[0]} className="ep-date-group" style={{ width: `${group.length * 82 + 62}px` }}>
-                        {renderGroupLabel(group)}
                         <ScheduleSelector
                           selection={schedule.filter(d => group.includes(format(d, 'yyyy-MM-dd')))}
                           numDays={group.length}
