@@ -98,23 +98,37 @@
 .ep-tool-btn {
   padding: 9px 14px;
   border-radius: var(--radius-md);
-  border: 0.5px solid var(--color-border);
-  background: var(--color-card);
+  border: 1px solid transparent;
   font-size: 13px;
-  font-weight: 500;
-  color: #444;
+  font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.15s, box-shadow 0.15s;
+  transition: background 0.15s, box-shadow 0.15s, opacity 0.15s;
   box-shadow: var(--shadow-sm);
 }
-.ep-tool-btn:hover { background: #f5f5f3; box-shadow: var(--shadow-md); }
 .ep-tool-btn.kakao {
   background: var(--color-primary);
   color: var(--color-primary-text);
-  border-color: var(--color-primary);
+  border-color: #e6ce00;
 }
 .ep-tool-btn.kakao:hover { opacity: 0.88; }
+
+/* 색상 변형 */
+.ep-tool-btn.btn-blue  { background: #EBF8FF; color: #1a56a0; border-color: #90CDF4; }
+.ep-tool-btn.btn-blue:hover  { background: #BEE3F8; }
+
+.ep-tool-btn.btn-green { background: #F0FFF4; color: #276749; border-color: #9AE6B4; }
+.ep-tool-btn.btn-green:hover { background: #C6F6D5; }
+.ep-tool-btn.btn-green.connected { background: #C6F6D5; color: #1A4731; border-color: #68D391; }
+
+.ep-tool-btn.btn-teal  { background: #E6FFFA; color: #234E52; border-color: #81E6D9; }
+.ep-tool-btn.btn-teal:hover  { background: #B2F5EA; }
+
+.ep-tool-btn.btn-orange { background: #FFFAF0; color: #9C4221; border-color: #FBD38D; }
+.ep-tool-btn.btn-orange:hover { background: #FEEBC8; }
+
+.ep-tool-btn.btn-red   { background: #FFF5F5; color: #C53030; border-color: #FEB2B2; }
+.ep-tool-btn.btn-red:hover   { background: #FED7D7; }
 
 /* ── Tabs ── */
 .ep-tabs {
@@ -144,6 +158,17 @@
   color: var(--color-primary-text);
   font-weight: 700;
 }
+
+/* ── Desktop / Mobile schedule layout ── */
+.ep-schedule-desktop { display: block; }
+.ep-schedule-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.ep-best-panel { margin-top: 0; }
+.ep-schedule-mobile { display: none; }
 
 /* ── Tab Panels ── */
 .ep-panel {
@@ -268,4 +293,7 @@
   .ep-tool-btn { font-size: 12px; padding: 8px 10px; }
   .ep-tab { font-size: 12px; padding: 9px 6px; }
   .ep-panel { padding: 16px; }
+
+  .ep-schedule-desktop { display: none; }
+  .ep-schedule-mobile { display: block; }
 }

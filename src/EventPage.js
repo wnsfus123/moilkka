@@ -354,165 +354,134 @@ function EventPage() {
         {/* Toolbar */}
         <div className="ep-toolbar">
           <KakaoShareButton userInfo={userInfo} eventData={eventData} />
-          <button className="ep-tool-btn" onClick={handleCopyLink}>🔗 링크 복사</button>
-          <button className="ep-tool-btn" onClick={handleGoogleLoginClick}>
+          <button className="ep-tool-btn btn-blue" onClick={handleCopyLink}>🔗 링크 복사</button>
+          <button className={`ep-tool-btn btn-green${isGoogleLoggedIn ? ' connected' : ''}`} onClick={handleGoogleLoginClick}>
             {isGoogleLoggedIn ? '📆 구글 연동됨' : '📆 구글 캘린더 연동'}
           </button>
-          <button className="ep-tool-btn" onClick={handleGoogleCalendarFetch}>📆 일정 불러오기</button>
-          <button className="ep-tool-btn" onClick={handleExportToGoogleCalendar}>📆 내보내기</button>
-          <button className="ep-tool-btn" onClick={handleGoogleLogoutClick}>📆 연동 해제</button>
+          <button className="ep-tool-btn btn-teal" onClick={handleGoogleCalendarFetch}>📆 일정 불러오기</button>
+          <button className="ep-tool-btn btn-orange" onClick={handleExportToGoogleCalendar}>📆 내보내기</button>
+          <button className="ep-tool-btn btn-red" onClick={handleGoogleLogoutClick}>📆 연동 해제</button>
         </div>
 
-        {/* Tabs */}
-        <div className="ep-tabs">
-          <button
-            className={`ep-tab${activeTab === 'my' ? ' active' : ''}`}
-            onClick={() => setActiveTab('my')}
-          >
-            내 일정 등록
-          </button>
-          <button
-            className={`ep-tab${activeTab === 'all' ? ' active' : ''}`}
-            onClick={() => setActiveTab('all')}
-          >
-            전체 현황
-          </button>
-          <button
-            className={`ep-tab${activeTab === 'best' ? ' active' : ''}`}
-            onClick={() => setActiveTab('best')}
-          >
-            최적 시간 추천
-          </button>
-        </div>
-
-        {/* Tab: My schedule */}
-        {activeTab === 'my' && (
-          <div className="ep-panel">
-            <div className="ep-panel-header">
-              <h3 className="ep-panel-title">⌚ 내 일정 등록하기</h3>
-              <button className="ep-btn-outline" onClick={showModal}>
-                등록된 일정 확인
-              </button>
-            </div>
-            <div className="schedule-selector-wrapper">
-              <ScheduleSelector
-                selection={schedule}
-                numDays={numDays}
-                startDate={Schedule_Start}
-                minTime={parseInt(startTimeStr.split(':')[0], 10)}
-                maxTime={parseInt(endTimeStr.split(':')[0], 10)}
-                hourlyChunks={2}
-                rowGap="4px"
-                columnGap="7px"
-                onChange={handleScheduleChange}
-                renderTimeLabel={(time) => (
-                  <div className="time-label">
-                    {format(time, 'HH:mm')} - {format(addMinutes(time, 30), 'HH:mm')}
-                  </div>
-                )}
-                renderDateCell={(time, selected, innerRef) => {
-                  const timeEnd = addMinutes(time, 30);
-                  const overlapping = overlappingEvents.filter(event => {
-                    const eventStart = new Date(event.start);
-                    const eventEnd = new Date(event.end);
-                    return isBefore(eventStart, timeEnd) && isAfter(eventEnd, time);
-                  });
-                  const backgroundColor = selected ? '#1890ff' : '#e6f7ff';
-                  const borderColor = selected ? '1px solid blue' : '1px solid #ccc';
-                  return (
-                    <div
-                      ref={innerRef}
-                      style={{ position: 'relative', padding: '5px', border: borderColor, height: '100%', backgroundColor }}
-                      onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#b3e0ff'; }}
-                      onMouseLeave={e => { e.currentTarget.style.backgroundColor = selected ? '#1890ff' : '#e6f7ff'; }}
-                    >
-                      {overlapping.length > 0 && (
-                        <div style={{ position: 'absolute', top: '50%', right: '5px', transform: 'translateY(-50%)', fontSize: '12px', color: 'red', textAlign: 'right' }}>
-                          {overlapping.map(e => e.title).join(', ')}
-                        </div>
-                      )}
-                    </div>
-                  );
-                }}
-              />
-            </div>
-            <button
-              className="ep-btn-confirm"
-              onClick={handleConfirm}
-              disabled={confirmLoading}
-            >
-              {confirmLoading ? '저장 중...' : '확인'}
-            </button>
-          </div>
-        )}
-
-        {/* Tab: All participants */}
-        {activeTab === 'all' && (
-          <div className="ep-panel">
-            <div className="ep-panel-header">
-              <h3 className="ep-panel-title">📅 전체 참가자 일정</h3>
-            </div>
-            {allUsers.length > 0 && (
-              <div className="ep-legend">
-                {allUsers.map((user, i) => (
-                  <span key={i} className="ep-legend-item">
-                    <span style={{ color: userColorMap[user] }}>●</span> {user}
-                  </span>
-                ))}
+        {/* ── Desktop: 두 셀렉터 나란히 + 최적시간 아래 ── */}
+        <div className="ep-schedule-desktop">
+          <div className="ep-schedule-grid">
+            {/* My schedule */}
+            <div className="ep-panel">
+              <div className="ep-panel-header">
+                <h3 className="ep-panel-title">⌚ 내 일정 등록하기</h3>
+                <button className="ep-btn-outline" onClick={showModal}>등록된 일정 확인</button>
               </div>
-            )}
-            <div className="schedule-selector-wrapper">
-              <ScheduleSelector
-                selection={schedule}
-                numDays={numDays}
-                startDate={Schedule_Start}
-                minTime={parseInt(startTimeStr.split(':')[0], 10)}
-                maxTime={parseInt(endTimeStr.split(':')[0], 10)}
-                hourlyChunks={2}
-                rowGap="4px"
-                columnGap="7px"
-                renderTimeLabel={(time) => (
-                  <div className="time-label">
-                    {format(time, 'HH:mm')} - {format(addMinutes(time, 30), 'HH:mm')}
-                  </div>
-                )}
-                renderDateCell={(time, selected, innerRef) => {
-                  const formattedTime = format(time, 'yyyy-MM-dd HH:mm');
-                  const users = userSchedules[formattedTime] || [];
-                  const uniqueUsers = [...new Set(users)];
-                  const dots = uniqueUsers.map((user, i) => (
-                    <span key={i} style={{ display: 'inline-block', marginLeft: '2px', color: userColorMap[user], fontSize: '14px' }}>
-                      ●
-                    </span>
-                  ));
-                  return (
-                    <Tooltip title={uniqueUsers.join(', ')} placement="top">
+              <div className="schedule-selector-wrapper">
+                <ScheduleSelector
+                  selection={schedule}
+                  numDays={numDays}
+                  startDate={Schedule_Start}
+                  minTime={parseInt(startTimeStr.split(':')[0], 10)}
+                  maxTime={parseInt(endTimeStr.split(':')[0], 10)}
+                  hourlyChunks={2}
+                  rowGap="4px"
+                  columnGap="7px"
+                  onChange={handleScheduleChange}
+                  renderTimeLabel={(time) => (
+                    <div className="time-label">
+                      {format(time, 'HH:mm')} - {format(addMinutes(time, 30), 'HH:mm')}
+                    </div>
+                  )}
+                  renderDateCell={(time, selected, innerRef) => {
+                    const timeEnd = addMinutes(time, 30);
+                    const overlapping = overlappingEvents.filter(event => {
+                      const eventStart = new Date(event.start);
+                      const eventEnd = new Date(event.end);
+                      return isBefore(eventStart, timeEnd) && isAfter(eventEnd, time);
+                    });
+                    const backgroundColor = selected ? '#1890ff' : '#e6f7ff';
+                    const borderColor = selected ? '1px solid blue' : '1px solid #ccc';
+                    return (
                       <div
                         ref={innerRef}
-                        style={{
-                          backgroundColor: `rgba(0, 128, 0, ${Math.min(0.1 + uniqueUsers.length * 0.1, 1)})`,
-                          border: '1px solid #ccc',
-                          height: '100%',
-                          width: '100%',
-                          position: 'relative',
-                          paddingRight: '5px',
-                        }}
+                        style={{ position: 'relative', padding: '5px', border: borderColor, height: '100%', backgroundColor }}
+                        onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#b3e0ff'; }}
+                        onMouseLeave={e => { e.currentTarget.style.backgroundColor = selected ? '#1890ff' : '#e6f7ff'; }}
                       >
-                        <div style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)' }}>
-                          {dots}
-                        </div>
+                        {overlapping.length > 0 && (
+                          <div style={{ position: 'absolute', top: '50%', right: '5px', transform: 'translateY(-50%)', fontSize: '12px', color: 'red', textAlign: 'right' }}>
+                            {overlapping.map(e => e.title).join(', ')}
+                          </div>
+                        )}
                       </div>
-                    </Tooltip>
-                  );
-                }}
-              />
+                    );
+                  }}
+                />
+              </div>
+              <button className="ep-btn-confirm" onClick={handleConfirm} disabled={confirmLoading}>
+                {confirmLoading ? '저장 중...' : '확인'}
+              </button>
+            </div>
+
+            {/* All participants */}
+            <div className="ep-panel">
+              <div className="ep-panel-header">
+                <h3 className="ep-panel-title">📅 전체 참가자 일정</h3>
+              </div>
+              {allUsers.length > 0 && (
+                <div className="ep-legend">
+                  {allUsers.map((user, i) => (
+                    <span key={i} className="ep-legend-item">
+                      <span style={{ color: userColorMap[user] }}>●</span> {user}
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div className="schedule-selector-wrapper">
+                <ScheduleSelector
+                  selection={schedule}
+                  numDays={numDays}
+                  startDate={Schedule_Start}
+                  minTime={parseInt(startTimeStr.split(':')[0], 10)}
+                  maxTime={parseInt(endTimeStr.split(':')[0], 10)}
+                  hourlyChunks={2}
+                  rowGap="4px"
+                  columnGap="7px"
+                  renderTimeLabel={(time) => (
+                    <div className="time-label">
+                      {format(time, 'HH:mm')} - {format(addMinutes(time, 30), 'HH:mm')}
+                    </div>
+                  )}
+                  renderDateCell={(time, selected, innerRef) => {
+                    const formattedTime = format(time, 'yyyy-MM-dd HH:mm');
+                    const users = userSchedules[formattedTime] || [];
+                    const uniqueUsers = [...new Set(users)];
+                    const dots = uniqueUsers.map((user, i) => (
+                      <span key={i} style={{ display: 'inline-block', marginLeft: '2px', color: userColorMap[user], fontSize: '14px' }}>●</span>
+                    ));
+                    return (
+                      <Tooltip title={uniqueUsers.join(', ')} placement="top">
+                        <div
+                          ref={innerRef}
+                          style={{
+                            backgroundColor: `rgba(0, 128, 0, ${Math.min(0.1 + uniqueUsers.length * 0.1, 1)})`,
+                            border: '1px solid #ccc',
+                            height: '100%',
+                            width: '100%',
+                            position: 'relative',
+                            paddingRight: '5px',
+                          }}
+                        >
+                          <div style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)' }}>
+                            {dots}
+                          </div>
+                        </div>
+                      </Tooltip>
+                    );
+                  }}
+                />
+              </div>
             </div>
           </div>
-        )}
 
-        {/* Tab: Optimal times */}
-        {activeTab === 'best' && (
-          <div className="ep-panel">
+          {/* Optimal times — full width below */}
+          <div className="ep-panel ep-best-panel">
             <div className="ep-panel-header">
               <h3 className="ep-panel-title">👍 최적 시간 추천</h3>
             </div>
@@ -538,7 +507,160 @@ function EventPage() {
               <p className="ep-rank-empty">등록된 일정이 없습니다.</p>
             )}
           </div>
-        )}
+        </div>
+
+        {/* ── Mobile: 탭 전환 ── */}
+        <div className="ep-schedule-mobile">
+          <div className="ep-tabs">
+            <button className={`ep-tab${activeTab === 'my' ? ' active' : ''}`} onClick={() => setActiveTab('my')}>내 일정 등록</button>
+            <button className={`ep-tab${activeTab === 'all' ? ' active' : ''}`} onClick={() => setActiveTab('all')}>전체 현황</button>
+            <button className={`ep-tab${activeTab === 'best' ? ' active' : ''}`} onClick={() => setActiveTab('best')}>최적 시간</button>
+          </div>
+
+          {activeTab === 'my' && (
+            <div className="ep-panel">
+              <div className="ep-panel-header">
+                <h3 className="ep-panel-title">⌚ 내 일정 등록하기</h3>
+                <button className="ep-btn-outline" onClick={showModal}>확인</button>
+              </div>
+              <div className="schedule-selector-wrapper">
+                <ScheduleSelector
+                  selection={schedule}
+                  numDays={numDays}
+                  startDate={Schedule_Start}
+                  minTime={parseInt(startTimeStr.split(':')[0], 10)}
+                  maxTime={parseInt(endTimeStr.split(':')[0], 10)}
+                  hourlyChunks={2}
+                  rowGap="4px"
+                  columnGap="7px"
+                  onChange={handleScheduleChange}
+                  renderTimeLabel={(time) => (
+                    <div className="time-label">
+                      {format(time, 'HH:mm')} - {format(addMinutes(time, 30), 'HH:mm')}
+                    </div>
+                  )}
+                  renderDateCell={(time, selected, innerRef) => {
+                    const timeEnd = addMinutes(time, 30);
+                    const overlapping = overlappingEvents.filter(event => {
+                      const eventStart = new Date(event.start);
+                      const eventEnd = new Date(event.end);
+                      return isBefore(eventStart, timeEnd) && isAfter(eventEnd, time);
+                    });
+                    const backgroundColor = selected ? '#1890ff' : '#e6f7ff';
+                    const borderColor = selected ? '1px solid blue' : '1px solid #ccc';
+                    return (
+                      <div
+                        ref={innerRef}
+                        style={{ position: 'relative', padding: '5px', border: borderColor, height: '100%', backgroundColor }}
+                        onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#b3e0ff'; }}
+                        onMouseLeave={e => { e.currentTarget.style.backgroundColor = selected ? '#1890ff' : '#e6f7ff'; }}
+                      >
+                        {overlapping.length > 0 && (
+                          <div style={{ position: 'absolute', top: '50%', right: '5px', transform: 'translateY(-50%)', fontSize: '12px', color: 'red', textAlign: 'right' }}>
+                            {overlapping.map(e => e.title).join(', ')}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }}
+                />
+              </div>
+              <button className="ep-btn-confirm" onClick={handleConfirm} disabled={confirmLoading}>
+                {confirmLoading ? '저장 중...' : '확인'}
+              </button>
+            </div>
+          )}
+
+          {activeTab === 'all' && (
+            <div className="ep-panel">
+              <div className="ep-panel-header">
+                <h3 className="ep-panel-title">📅 전체 참가자 일정</h3>
+              </div>
+              {allUsers.length > 0 && (
+                <div className="ep-legend">
+                  {allUsers.map((user, i) => (
+                    <span key={i} className="ep-legend-item">
+                      <span style={{ color: userColorMap[user] }}>●</span> {user}
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div className="schedule-selector-wrapper">
+                <ScheduleSelector
+                  selection={schedule}
+                  numDays={numDays}
+                  startDate={Schedule_Start}
+                  minTime={parseInt(startTimeStr.split(':')[0], 10)}
+                  maxTime={parseInt(endTimeStr.split(':')[0], 10)}
+                  hourlyChunks={2}
+                  rowGap="4px"
+                  columnGap="7px"
+                  renderTimeLabel={(time) => (
+                    <div className="time-label">
+                      {format(time, 'HH:mm')} - {format(addMinutes(time, 30), 'HH:mm')}
+                    </div>
+                  )}
+                  renderDateCell={(time, selected, innerRef) => {
+                    const formattedTime = format(time, 'yyyy-MM-dd HH:mm');
+                    const users = userSchedules[formattedTime] || [];
+                    const uniqueUsers = [...new Set(users)];
+                    const dots = uniqueUsers.map((user, i) => (
+                      <span key={i} style={{ display: 'inline-block', marginLeft: '2px', color: userColorMap[user], fontSize: '14px' }}>●</span>
+                    ));
+                    return (
+                      <Tooltip title={uniqueUsers.join(', ')} placement="top">
+                        <div
+                          ref={innerRef}
+                          style={{
+                            backgroundColor: `rgba(0, 128, 0, ${Math.min(0.1 + uniqueUsers.length * 0.1, 1)})`,
+                            border: '1px solid #ccc',
+                            height: '100%',
+                            width: '100%',
+                            position: 'relative',
+                            paddingRight: '5px',
+                          }}
+                        >
+                          <div style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)' }}>
+                            {dots}
+                          </div>
+                        </div>
+                      </Tooltip>
+                    );
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'best' && (
+            <div className="ep-panel">
+              <div className="ep-panel-header">
+                <h3 className="ep-panel-title">👍 최적 시간 추천</h3>
+              </div>
+              {rankedTimes.length > 0 ? (
+                <div className="ep-rank-section">
+                  {rankedTimes.map(({ rank, count, slots }) => (
+                    <div key={rank} className={`ep-rank-card${rank === 1 ? ' rank-first' : ''}`}>
+                      <div className="ep-rank-header">
+                        <span className="ep-rank-badge">{rank}위</span>
+                        <span className="ep-rank-count">{count}명 가능</span>
+                      </div>
+                      <div className="ep-rank-times">
+                        {slots.map((s, i) => (
+                          <div key={i} className="ep-rank-time-item">
+                            📅 {s.date} &nbsp; 🕒 {s.start} ~ {s.end}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="ep-rank-empty">등록된 일정이 없습니다.</p>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* My schedule modal */}
         <Modal
