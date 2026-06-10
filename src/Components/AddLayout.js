@@ -92,17 +92,6 @@ const AppLayout = () => {
         모일까 ©{new Date().getFullYear()} Created by 모일까
       </footer>
 
-      <nav className="mobile-bottom-nav">
-        {mobileNavItems.map(item => (
-          <Link
-            key={item.path}
-            to={item.path}
-            className={`bottom-nav-item${location.pathname === item.path ? ' active' : ''}`}
-          >
-            {item.label}
-          </Link>
-        ))}
-      </nav>
     </div>
   );
 };

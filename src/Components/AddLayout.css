@@ -84,7 +84,7 @@
 
 @media (max-width: 768px) {
   .app-header { padding: 0 12px !important; }
-  .app-content { padding: 8px 12px; padding-bottom: 72px; }
+  .app-content { padding: 8px 12px; }
   .user-name-text { display: none; }
   .avatar-chevron { display: none; }
 
