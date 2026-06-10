@@ -380,21 +380,27 @@ const CreateEvent = () => {
               <label className="ce-label">가능 시간 범위</label>
               {isMobile ? (
                 <div className="ce-native-time-row">
-                  <input
-                    type="time"
-                    step="3600"
+                  <select
                     className="ce-input ce-time-input"
                     value={startTime ? startTime.format('HH:mm') : ''}
                     onChange={e => setStartTime(e.target.value ? dayjs(e.target.value, 'HH:mm') : null)}
-                  />
+                  >
+                    <option value="">시작 시간</option>
+                    {Array.from({ length: 24 }, (_, h) => `${String(h).padStart(2, '0')}:00`).map(t => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
                   <span className="ce-date-sep">~</span>
-                  <input
-                    type="time"
-                    step="3600"
+                  <select
                     className="ce-input ce-time-input"
                     value={endTime ? endTime.format('HH:mm') : ''}
                     onChange={e => setEndTime(e.target.value ? dayjs(e.target.value, 'HH:mm') : null)}
-                  />
+                  >
+                    <option value="">종료 시간</option>
+                    {Array.from({ length: 24 }, (_, h) => `${String(h).padStart(2, '0')}:00`).map(t => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
                 </div>
               ) : (
                 <TimePicker.RangePicker
