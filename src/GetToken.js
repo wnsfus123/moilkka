@@ -49,6 +49,7 @@ const GetToken = () => {
           });
 
           const userInfo = userInfoResponse.data;
+          console.log('카카오 유저 전체 응답:', JSON.stringify(userInfo));
           localStorage.setItem('userInfo', JSON.stringify(userInfo));
 
           // 토큰의 유효 기간 (초 단위로)과 발급 시각을 가져옵니다.
