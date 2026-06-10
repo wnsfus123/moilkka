@@ -482,7 +482,12 @@ function EventPage() {
             <div className="ep-panel">
               <div className="ep-panel-header">
                 <h3 className="ep-panel-title">⌚ 내 일정 등록하기</h3>
-                <button className="ep-btn-outline" onClick={showModal}>등록된 일정 확인</button>
+                <div className="ep-panel-actions">
+                  <button className="ep-btn-outline" onClick={showModal}>등록된 일정 확인</button>
+                  <button className="ep-btn-save" onClick={handleConfirm} disabled={confirmLoading}>
+                    {confirmLoading ? '저장 중...' : '💾 저장'}
+                  </button>
+                </div>
               </div>
               <div className="schedule-selector-wrapper">
                 {dateGroups ? (
@@ -528,9 +533,6 @@ function EventPage() {
                   />
                 )}
               </div>
-              <button className="ep-btn-confirm" onClick={handleConfirm} disabled={confirmLoading}>
-                {confirmLoading ? '저장 중...' : '확인'}
-              </button>
             </div>
 
             {/* All participants */}
@@ -630,7 +632,12 @@ function EventPage() {
             <div className="ep-panel">
               <div className="ep-panel-header">
                 <h3 className="ep-panel-title">⌚ 내 일정 등록하기</h3>
-                <button className="ep-btn-outline" onClick={showModal}>확인</button>
+                <div className="ep-panel-actions">
+                  <button className="ep-btn-outline" onClick={showModal}>내 일정 보기</button>
+                  <button className="ep-btn-save" onClick={handleConfirm} disabled={confirmLoading}>
+                    {confirmLoading ? '저장 중...' : '💾 저장'}
+                  </button>
+                </div>
               </div>
               <div className="schedule-selector-wrapper">
                 {dateGroups ? (
@@ -676,9 +683,6 @@ function EventPage() {
                   />
                 )}
               </div>
-              <button className="ep-btn-confirm" onClick={handleConfirm} disabled={confirmLoading}>
-                {confirmLoading ? '저장 중...' : '확인'}
-              </button>
             </div>
           )}
 
