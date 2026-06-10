@@ -56,10 +56,16 @@ const GetToken = () => {
           const issuedAt = Math.floor(Date.now() / 1000);
 
           // 유저 저장 (실패해도 로그인 흐름 계속)
+          const nickname =
+            userInfo?.kakao_account?.profile?.nickname ||
+            userInfo?.properties?.nickname ||
+            userInfo?.kakao_account?.name ||
+            '익명';
+
           try {
             await axios.post('/api/users/save', {
               kakaoId: userInfo.id.toString(),
-              nickname: userInfo.kakao_account?.profile?.nickname || '',
+              nickname,
             });
           } catch (err) {
             console.error('[GetToken] 유저 저장 실패:', err.response?.data || err.message);

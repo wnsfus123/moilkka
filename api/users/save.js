@@ -11,7 +11,7 @@ module.exports = async (req, res) => {
 
   const { error } = await supabase.from('users').upsert({
     kakao_id: kakaoId,
-    nickname,
+    nickname: nickname || '익명',
   }, { onConflict: 'kakao_id' });
 
   if (error) {
