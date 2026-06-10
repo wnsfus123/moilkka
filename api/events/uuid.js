@@ -17,11 +17,9 @@ module.exports = async (req, res) => {
 
     if (error) return res.status(404).json({ error: '이벤트를 찾을 수 없습니다.' });
 
-    console.log('[events/uuid] Supabase data keys:', Object.keys(data || {}));
-    console.log('[events/uuid] start_at:', data.start_at, '/ startday:', data.startday);
-
     const startday = data.start_at ?? data.startday ?? null;
     const endday = data.end_at ?? data.endday ?? null;
+    console.log('[events/uuid] 응답 startday:', startday, '/ endday:', endday);
 
     return res.status(200).json({
       ...data,

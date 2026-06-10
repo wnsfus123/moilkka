@@ -64,7 +64,7 @@ const CreateEvent = () => {
     if (!userInfo) { console.error('로그인 정보가 없습니다.'); return; }
 
     const kakaoId = userInfo.id.toString();
-    const nickname = userInfo.kakao_account.profile.nickname;
+    const nickname = userInfo?.kakao_account?.profile?.nickname || '익명';
     const createDay = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
 
     axios.post('/api/events', {

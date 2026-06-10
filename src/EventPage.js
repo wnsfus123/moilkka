@@ -124,7 +124,7 @@ function EventPage() {
           const datetime = parse(`${date} ${time}`, 'yyyy-MM-dd HH:mm', new Date()).toISOString();
           await axios.post('/api/schedules/save', {
             kakaoId: userInfo.id.toString(),
-            nickname: userInfo.kakao_account.profile.nickname,
+            nickname: userInfo?.kakao_account?.profile?.nickname || '익명',
             event_uuid: eventData.uuid,
             event_datetime: datetime,
           });
