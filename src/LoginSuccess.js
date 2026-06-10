@@ -11,7 +11,7 @@ const LoginSuccess = () => {
       <h2>로그인 성공!</h2>
       {userInfo ? (
         <div>
-          <p>안녕하세요 {userInfo.kakao_account.profile.nickname}님!</p>
+          <p>안녕하세요 {userInfo?.kakao_account?.profile?.nickname || userInfo?.properties?.nickname || ''}님!</p>
         </div>
       ) : (
         <p>사용자 정보를 불러오는 중...</p>

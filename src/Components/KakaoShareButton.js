@@ -7,7 +7,7 @@ const KakaoShareButton = ({ userInfo, eventData }) => {
     if (!eventData || !userInfo) return;
 
     const shareUrl = `${getBaseUrl()}/test/?key=${eventData.uuid}`;
-    const shareMessage = `${userInfo.kakao_account.profile.nickname} 님이 모일까 일정추가를 원해요!\n카카오톡 로그인 후에 일정을 등록해보세요!`;
+    const shareMessage = `${userInfo?.kakao_account?.profile?.nickname || userInfo?.properties?.nickname || '누군가'} 님이 모일까 일정추가를 원해요!\n카카오톡 로그인 후에 일정을 등록해보세요!`;
 
     if (window.Kakao) {
       window.Kakao.Link.sendDefault({
