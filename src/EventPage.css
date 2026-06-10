@@ -177,6 +177,7 @@
   color: #555;
 }
 .ep-badge-count { background: #EDE7F6; color: #512DA8; border-color: #D1C4E9; }
+.ep-badge-tz    { background: #E6F7FF; color: #0958D9; border-color: #BAE0FF; display: inline-block; vertical-align: middle; margin-left: 8px; }
 .ep-date-range {
   font-size: 14px;
   color: #666;

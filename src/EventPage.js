@@ -3,7 +3,9 @@ import axios from 'axios';
 import { format, addMinutes, differenceInDays, isBefore, isAfter, parse } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import dayjs from 'dayjs';
-import { message, Tooltip, Modal, DatePicker, TimePicker } from 'antd';
+import { message, Tooltip, Modal, DatePicker, TimePicker, Dropdown } from 'antd';
+import { formatInTimeZone } from 'date-fns-tz';
+import { TIMEZONE_OPTIONS } from './Components/timezones';
 import ScheduleSelector from 'react-schedule-selector';
 import {
   checkKakaoLoginStatus,
@@ -331,8 +333,13 @@ function EventPage() {
 
   const Schedule_Start = parseDateSafe(eventData.startday);
   const Schedule_End = parseDateSafe(eventData.endday);
+  const tz = eventData.timezone || 'Asia/Seoul';
   const startTimeStr = format(Schedule_Start, 'HH:mm');
   const endTimeStr = format(Schedule_End, 'HH:mm');
+  const displayStartTime = formatInTimeZone(Schedule_Start, tz, 'HH:mm');
+  const displayEndTime = formatInTimeZone(Schedule_End, tz, 'HH:mm');
+  const tzOption = TIMEZONE_OPTIONS.find(t => t.value === tz);
+  const tzShort = tzOption ? tzOption.short : tz;
 
   const colors = ['blue', 'red', 'green', 'purple', 'orange', 'pink'];
   const userColorMap = {};
@@ -425,9 +432,10 @@ function EventPage() {
               </div>
               <p className="ep-date-range">
                 {dateGroups
-                  ? <>총 {eventData.selected_dates.length}일 선택<span className="ep-time-range"> · {startTimeStr} ~ {endTimeStr}</span></>
-                  : <>{format(Schedule_Start, 'yyyy.MM.dd')} ~ {format(Schedule_End, 'yyyy.MM.dd')}<span className="ep-time-range"> ({startTimeStr} ~ {endTimeStr})</span></>
+                  ? <>총 {eventData.selected_dates.length}일 선택<span className="ep-time-range"> · {displayStartTime} ~ {displayEndTime}</span></>
+                  : <>{format(Schedule_Start, 'yyyy.MM.dd')} ~ {format(Schedule_End, 'yyyy.MM.dd')}<span className="ep-time-range"> ({displayStartTime} ~ {displayEndTime})</span></>
                 }
+                <span className="ep-badge ep-badge-tz">🌏 {tzShort}</span>
               </p>
             </div>
           </div>
@@ -435,9 +443,9 @@ function EventPage() {
             <div className="ep-detail-row">
               <div className="ep-detail-item">
                 <span className="ep-detail-label">가능 시간</span>
-                <TimePicker value={dayjs(Schedule_Start)} format="HH:mm" disabled size="small" />
+                <TimePicker value={dayjs(displayStartTime, 'HH:mm')} format="HH:mm" disabled size="small" />
                 <span style={{ color: '#aaa', fontSize: 13 }}>~</span>
-                <TimePicker value={dayjs(Schedule_End)} format="HH:mm" disabled size="small" />
+                <TimePicker value={dayjs(displayEndTime, 'HH:mm')} format="HH:mm" disabled size="small" />
               </div>
               <div className="ep-date-chips">
                 {eventData.selected_dates.sort().map(d => (
@@ -451,13 +459,13 @@ function EventPage() {
             <div className="ep-detail-row">
               <div className="ep-detail-item">
                 <span className="ep-detail-label">시작</span>
-                <DatePicker value={dayjs(Schedule_Start)} format="YYYY-MM-DD" disabled size="small" />
-                <TimePicker value={dayjs(Schedule_Start)} format="HH:mm" disabled size="small" />
+                <DatePicker value={dayjs(formatInTimeZone(Schedule_Start, tz, 'yyyy-MM-dd'))} format="YYYY-MM-DD" disabled size="small" />
+                <TimePicker value={dayjs(displayStartTime, 'HH:mm')} format="HH:mm" disabled size="small" />
               </div>
               <div className="ep-detail-item">
                 <span className="ep-detail-label">종료</span>
-                <DatePicker value={dayjs(Schedule_End)} format="YYYY-MM-DD" disabled size="small" />
-                <TimePicker value={dayjs(Schedule_End)} format="HH:mm" disabled size="small" />
+                <DatePicker value={dayjs(formatInTimeZone(Schedule_End, tz, 'yyyy-MM-dd'))} format="YYYY-MM-DD" disabled size="small" />
+                <TimePicker value={dayjs(displayEndTime, 'HH:mm')} format="HH:mm" disabled size="small" />
               </div>
             </div>
           )}
@@ -467,12 +475,22 @@ function EventPage() {
         <div className="ep-toolbar">
           <KakaoShareButton userInfo={userInfo} eventData={eventData} />
           <button className="ep-tool-btn btn-blue" onClick={handleCopyLink}>🔗 링크 복사</button>
-          <button className={`ep-tool-btn btn-green${isGoogleLoggedIn ? ' connected' : ''}`} onClick={handleGoogleLoginClick}>
-            {isGoogleLoggedIn ? '📆 구글 연동됨' : '📆 구글 캘린더 연동'}
-          </button>
-          <button className="ep-tool-btn btn-teal" onClick={handleGoogleCalendarFetch}>📆 일정 불러오기</button>
-          <button className="ep-tool-btn btn-orange" onClick={handleExportToGoogleCalendar}>📆 내보내기</button>
-          <button className="ep-tool-btn btn-red" onClick={handleGoogleLogoutClick}>📆 연동 해제</button>
+          <Dropdown
+            menu={{
+              items: [
+                !isGoogleLoggedIn && { key: 'connect', label: '🔗 캘린더 연동', onClick: handleGoogleLoginClick },
+                isGoogleLoggedIn && { key: 'fetch', label: '📥 일정 불러오기', onClick: handleGoogleCalendarFetch },
+                isGoogleLoggedIn && { key: 'export', label: '📤 캘린더에 내보내기', onClick: handleExportToGoogleCalendar },
+                isGoogleLoggedIn && { type: 'divider' },
+                isGoogleLoggedIn && { key: 'disconnect', label: '연동 해제', onClick: handleGoogleLogoutClick, danger: true },
+              ].filter(Boolean),
+            }}
+            trigger={['click']}
+          >
+            <button className={`ep-tool-btn btn-green${isGoogleLoggedIn ? ' connected' : ''}`}>
+              📆 구글 {isGoogleLoggedIn ? '연동됨' : '캘린더'} ▾
+            </button>
+          </Dropdown>
         </div>
 
         {/* ── Desktop: 두 셀렉터 나란히 + 최적시간 아래 ── */}

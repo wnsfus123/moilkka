@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { ConfigProvider, DatePicker, TimePicker, message } from 'antd';
+import { ConfigProvider, DatePicker, TimePicker, Select, message } from 'antd';
+import { TIMEZONE_OPTIONS } from './Components/timezones';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import koKR from 'antd/lib/locale/ko_KR';
@@ -144,6 +145,7 @@ const CreateEvent = () => {
   const [userInfo,        setUserInfo]        = useState(null);
 
   // 날짜 선택 모드
+  const [timezone,        setTimezone]        = useState('Asia/Seoul');
   const [dateMode,        setDateMode]        = useState('range');   // 'range' | 'custom' | 'weekday'
   const [rangeDates,      setRangeDates]      = useState([]);        // [dayjs, dayjs]
   const [customDates,     setCustomDates]     = useState(new Set()); // Set<'YYYY-MM-DD'>
@@ -231,6 +233,7 @@ const CreateEvent = () => {
       nickname,
       createDay,
       selectedDates: dateList,
+      timezone,
     })
       .then(() => { window.location.href = `${getBaseUrl()}/test/?key=${eventUUID}`; })
       .catch(err => console.error('이벤트 생성 오류:', err));
@@ -342,6 +345,18 @@ const CreateEvent = () => {
                 placeholder={['시작 시간', '종료 시간']}
                 size="large"
                 minuteStep={60}
+              />
+            </div>
+
+            {/* 시간대 */}
+            <div className="ce-field">
+              <label className="ce-label">시간대</label>
+              <Select
+                value={timezone}
+                onChange={setTimezone}
+                options={TIMEZONE_OPTIONS.map(t => ({ label: t.label, value: t.value }))}
+                style={{ width: '100%' }}
+                size="large"
               />
             </div>
 
