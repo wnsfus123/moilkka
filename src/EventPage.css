@@ -86,17 +86,49 @@
   line-height: 1;
 }
 
-/* ── Groups side-by-side layout ── */
+/* ── Groups scroller ── */
+.groups-scroller {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.groups-scroller-inner {
+  flex: 1;
+  overflow: hidden;
+}
 .ep-groups-row {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 16px;
   align-items: flex-start;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 2px;
 }
+.ep-groups-row::-webkit-scrollbar { display: none; }
 .ep-groups-row .ep-date-group {
   flex-shrink: 0;
-  margin-bottom: 0;
 }
+.gs-btn {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, box-shadow 0.15s;
+  box-shadow: var(--shadow-sm);
+  padding: 0;
+}
+.gs-btn:hover { background: #F0F0EE; box-shadow: var(--shadow-md, 0 2px 8px rgba(0,0,0,0.12)); }
 .schedule-selector-wrapper {
   overflow-x: auto;
 }
@@ -185,6 +217,15 @@
 }
 .ep-time-range { color: #aaa; }
 
+.ep-hero-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 0.5px solid var(--color-border);
+}
+
 .ep-detail-row {
   display: flex;
   gap: 16px;
@@ -222,7 +263,7 @@
   color: #444;
 }
 
-/* ── Toolbar ── */
+/* ── Toolbar (kept for potential reuse) ── */
 .ep-toolbar {
   display: flex;
   gap: 8px;
@@ -303,7 +344,6 @@
   gap: 16px;
   margin-bottom: 16px;
 }
-.ep-best-panel { margin-top: 0; }
 .ep-schedule-mobile { display: none; }
 
 /* ── Tab Panels ── */
@@ -381,52 +421,6 @@
   color: #555;
 }
 
-/* ── Rank cards ── */
-.ep-rank-section { display: flex; flex-direction: column; gap: 12px; }
-
-.ep-rank-card {
-  border: 0.5px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 16px 20px;
-  background: var(--color-card);
-}
-.ep-rank-card.rank-first {
-  background: #F0FFF4;
-  border-color: #9AE6B4;
-}
-
-.ep-rank-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
-}
-.ep-rank-badge {
-  font-size: 12px;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: #ddd;
-  color: #555;
-}
-.rank-first .ep-rank-badge {
-  background: #38A169;
-  color: white;
-}
-.ep-rank-count {
-  font-size: 13px;
-  font-weight: 600;
-  color: #555;
-}
-.rank-first .ep-rank-count { color: #276749; }
-
-.ep-rank-times { display: flex; flex-direction: column; gap: 4px; }
-.ep-rank-time-item {
-  font-size: 13px;
-  color: #444;
-  padding: 4px 0;
-}
-.ep-rank-empty { color: #bbb; font-size: 14px; text-align: center; padding: 32px 0; }
 
 /* ── Mobile ── */
 @media (max-width: 768px) {

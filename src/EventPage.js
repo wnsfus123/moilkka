@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { format, addMinutes, differenceInDays, isBefore, isAfter, parse } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -39,6 +39,20 @@ function groupConsecutiveDates(sortedDates) {
     }
   }
   return groups;
+}
+
+function GroupsScroller({ children }) {
+  const scrollRef = useRef(null);
+  const scroll = (dir) => scrollRef.current?.scrollBy({ left: dir * 260, behavior: 'smooth' });
+  return (
+    <div className="groups-scroller">
+      <button className="gs-btn" onClick={() => scroll(-1)}>‹</button>
+      <div className="groups-scroller-inner">
+        <div className="ep-groups-row" ref={scrollRef}>{children}</div>
+      </div>
+      <button className="gs-btn" onClick={() => scroll(1)}>›</button>
+    </div>
+  );
 }
 
 function EventPage() {
@@ -225,7 +239,7 @@ function EventPage() {
     const continuousTimeRanges = [];
     userSelectedTimes.forEach(timeRange => {
       const startDt = parse(timeRange, 'yyyy-MM-dd HH:mm', new Date());
-      const endDt = addMinutes(startDt, 30);
+      const endDt = addMinutes(startDt, 60);
       if (continuousTimeRanges.length === 0) {
         continuousTimeRanges.push({ start: startDt, end: endDt });
       } else {
@@ -259,52 +273,6 @@ function EventPage() {
   const handleOk = () => { setIsModalVisible(false); setIsGoogleModalVisible(false); };
   const handleCancel = () => { setIsModalVisible(false); setIsGoogleModalVisible(false); };
 
-  const getRankedTimes = () => {
-    if (allSchedules.length === 0) return [];
-    const timeCounts = {};
-    allSchedules.forEach(s => {
-      if (!s.event_datetime) return;
-      const timeDt = new Date(s.event_datetime);
-      if (isNaN(timeDt.getTime())) return;
-      const key = format(timeDt, 'yyyy-MM-dd HH:mm');
-      timeCounts[key] = (timeCounts[key] || 0) + 1;
-    });
-
-    const uniqueCounts = [...new Set(Object.values(timeCounts))]
-      .sort((a, b) => b - a)
-      .slice(0, 3);
-
-    return uniqueCounts.map((count, idx) => {
-      const slots = Object.entries(timeCounts)
-        .filter(([, c]) => c === count)
-        .map(([time]) => {
-          const startDt = parse(time, 'yyyy-MM-dd HH:mm', new Date());
-          const endDt = addMinutes(startDt, 30);
-          return { date: format(startDt, 'yyyy/MM/dd'), startDt, endDt };
-        })
-        .sort((a, b) => a.startDt - b.startDt)
-        .reduce((acc, curr) => {
-          if (acc.length === 0) {
-            acc.push({ ...curr });
-          } else {
-            const last = acc[acc.length - 1];
-            if (last.date === curr.date && last.endDt.getTime() === curr.startDt.getTime()) {
-              last.endDt = curr.endDt;
-            } else {
-              acc.push({ ...curr });
-            }
-          }
-          return acc;
-        }, [])
-        .map(s => ({
-          date: s.date,
-          start: format(s.startDt, "HH'시' mm'분'", { locale: ko }),
-          end: format(s.endDt, "HH'시' mm'분'", { locale: ko }),
-        }));
-
-      return { rank: idx + 1, count, slots };
-    });
-  };
 
   if (loading) {
     return (
@@ -346,8 +314,6 @@ function EventPage() {
   const allUsers = [...new Set(allSchedules.map(s => s.nickname))];
   allUsers.forEach((user, i) => { userColorMap[user] = colors[i % colors.length]; });
 
-  const rankedTimes = getRankedTimes();
-
   const minTime = parseInt(startTimeStr.split(':')[0], 10);
   const maxTime = parseInt(endTimeStr.split(':')[0], 10);
 
@@ -379,10 +345,8 @@ function EventPage() {
   };
 
   const renderAllCell = (time, _selected, innerRef) => {
-    const key00 = format(time, 'yyyy-MM-dd HH:mm');
-    const key30 = format(addMinutes(time, 30), 'yyyy-MM-dd HH:mm');
-    const combined = [...(userSchedules[key00] || []), ...(userSchedules[key30] || [])];
-    const uniqueUsers = [...new Set(combined)];
+    const key = format(time, 'yyyy-MM-dd HH:mm');
+    const uniqueUsers = [...new Set(userSchedules[key] || [])];
     const ratio = allUsers.length > 0 ? uniqueUsers.length / allUsers.length : 0;
     const alpha = uniqueUsers.length > 0 ? 0.12 + ratio * 0.65 : 0;
     return (
@@ -469,28 +433,28 @@ function EventPage() {
               </div>
             </div>
           )}
-        </div>
 
-        {/* Toolbar */}
-        <div className="ep-toolbar">
-          <KakaoShareButton userInfo={userInfo} eventData={eventData} />
-          <button className="ep-tool-btn btn-blue" onClick={handleCopyLink}>🔗 링크 복사</button>
-          <Dropdown
-            menu={{
-              items: [
-                !isGoogleLoggedIn && { key: 'connect', label: '🔗 캘린더 연동', onClick: handleGoogleLoginClick },
-                isGoogleLoggedIn && { key: 'fetch', label: '📥 일정 불러오기', onClick: handleGoogleCalendarFetch },
-                isGoogleLoggedIn && { key: 'export', label: '📤 캘린더에 내보내기', onClick: handleExportToGoogleCalendar },
-                isGoogleLoggedIn && { type: 'divider' },
-                isGoogleLoggedIn && { key: 'disconnect', label: '연동 해제', onClick: handleGoogleLogoutClick, danger: true },
-              ].filter(Boolean),
-            }}
-            trigger={['click']}
-          >
-            <button className={`ep-tool-btn btn-green${isGoogleLoggedIn ? ' connected' : ''}`}>
-              📆 구글 {isGoogleLoggedIn ? '연동됨' : '캘린더'} ▾
-            </button>
-          </Dropdown>
+          {/* Share actions */}
+          <div className="ep-hero-actions">
+            <KakaoShareButton userInfo={userInfo} eventData={eventData} />
+            <button className="ep-tool-btn btn-blue" onClick={handleCopyLink}>🔗 링크 복사</button>
+            <Dropdown
+              menu={{
+                items: [
+                  !isGoogleLoggedIn && { key: 'connect', label: '🔗 캘린더 연동', onClick: handleGoogleLoginClick },
+                  isGoogleLoggedIn && { key: 'fetch', label: '📥 일정 불러오기', onClick: handleGoogleCalendarFetch },
+                  isGoogleLoggedIn && { key: 'export', label: '📤 캘린더에 내보내기', onClick: handleExportToGoogleCalendar },
+                  isGoogleLoggedIn && { type: 'divider' },
+                  isGoogleLoggedIn && { key: 'disconnect', label: '연동 해제', onClick: handleGoogleLogoutClick, danger: true },
+                ].filter(Boolean),
+              }}
+              trigger={['click']}
+            >
+              <button className={`ep-tool-btn btn-green${isGoogleLoggedIn ? ' connected' : ''}`}>
+                📆 구글 {isGoogleLoggedIn ? '연동됨' : '캘린더'} ▾
+              </button>
+            </Dropdown>
+          </div>
         </div>
 
         {/* ── Desktop: 두 셀렉터 나란히 + 최적시간 아래 ── */}
@@ -509,7 +473,7 @@ function EventPage() {
               </div>
               <div className="schedule-selector-wrapper">
                 {dateGroups ? (
-                  <div className="ep-groups-row">
+                  <GroupsScroller>
                     {dateGroups.map(group => (
                       <div key={group[0]} className="ep-date-group" style={{ width: `${group.length * 82 + 62}px` }}>
                         <ScheduleSelector
@@ -532,7 +496,7 @@ function EventPage() {
                         />
                       </div>
                     ))}
-                  </div>
+                  </GroupsScroller>
                 ) : (
                   <ScheduleSelector
                     selection={schedule}
@@ -569,7 +533,7 @@ function EventPage() {
               )}
               <div className="schedule-selector-wrapper">
                 {dateGroups ? (
-                  <div className="ep-groups-row">
+                  <GroupsScroller>
                     {dateGroups.map(group => (
                       <div key={group[0]} className="ep-date-group" style={{ width: `${group.length * 82 + 62}px` }}>
                         <ScheduleSelector
@@ -588,7 +552,7 @@ function EventPage() {
                         />
                       </div>
                     ))}
-                  </div>
+                  </GroupsScroller>
                 ) : (
                   <ScheduleSelector
                     selection={schedule}
@@ -608,34 +572,6 @@ function EventPage() {
               </div>
             </div>
           </div>
-
-          {/* Optimal times — full width below */}
-          <div className="ep-panel ep-best-panel">
-            <div className="ep-panel-header">
-              <h3 className="ep-panel-title">👍 최적 시간 추천</h3>
-            </div>
-            {rankedTimes.length > 0 ? (
-              <div className="ep-rank-section">
-                {rankedTimes.map(({ rank, count, slots }) => (
-                  <div key={rank} className={`ep-rank-card${rank === 1 ? ' rank-first' : ''}`}>
-                    <div className="ep-rank-header">
-                      <span className="ep-rank-badge">{rank}위</span>
-                      <span className="ep-rank-count">{count}명 가능</span>
-                    </div>
-                    <div className="ep-rank-times">
-                      {slots.map((s, i) => (
-                        <div key={i} className="ep-rank-time-item">
-                          📅 {s.date} &nbsp; 🕒 {s.start} ~ {s.end}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="ep-rank-empty">등록된 일정이 없습니다.</p>
-            )}
-          </div>
         </div>
 
         {/* ── Mobile: 탭 전환 ── */}
@@ -643,7 +579,6 @@ function EventPage() {
           <div className="ep-tabs">
             <button className={`ep-tab${activeTab === 'my' ? ' active' : ''}`} onClick={() => setActiveTab('my')}>내 일정 등록</button>
             <button className={`ep-tab${activeTab === 'all' ? ' active' : ''}`} onClick={() => setActiveTab('all')}>전체 현황</button>
-            <button className={`ep-tab${activeTab === 'best' ? ' active' : ''}`} onClick={() => setActiveTab('best')}>최적 시간</button>
           </div>
 
           {activeTab === 'my' && (
@@ -659,7 +594,7 @@ function EventPage() {
               </div>
               <div className="schedule-selector-wrapper">
                 {dateGroups ? (
-                  <div className="ep-groups-row">
+                  <GroupsScroller>
                     {dateGroups.map(group => (
                       <div key={group[0]} className="ep-date-group" style={{ width: `${group.length * 82 + 62}px` }}>
                         <ScheduleSelector
@@ -682,7 +617,7 @@ function EventPage() {
                         />
                       </div>
                     ))}
-                  </div>
+                  </GroupsScroller>
                 ) : (
                   <ScheduleSelector
                     selection={schedule}
@@ -720,7 +655,7 @@ function EventPage() {
               )}
               <div className="schedule-selector-wrapper">
                 {dateGroups ? (
-                  <div className="ep-groups-row">
+                  <GroupsScroller>
                     {dateGroups.map(group => (
                       <div key={group[0]} className="ep-date-group" style={{ width: `${group.length * 82 + 62}px` }}>
                         <ScheduleSelector
@@ -739,7 +674,7 @@ function EventPage() {
                         />
                       </div>
                     ))}
-                  </div>
+                  </GroupsScroller>
                 ) : (
                   <ScheduleSelector
                     selection={schedule}
@@ -759,35 +694,6 @@ function EventPage() {
               </div>
             </div>
           )}
-
-          {activeTab === 'best' && (
-            <div className="ep-panel">
-              <div className="ep-panel-header">
-                <h3 className="ep-panel-title">👍 최적 시간 추천</h3>
-              </div>
-              {rankedTimes.length > 0 ? (
-                <div className="ep-rank-section">
-                  {rankedTimes.map(({ rank, count, slots }) => (
-                    <div key={rank} className={`ep-rank-card${rank === 1 ? ' rank-first' : ''}`}>
-                      <div className="ep-rank-header">
-                        <span className="ep-rank-badge">{rank}위</span>
-                        <span className="ep-rank-count">{count}명 가능</span>
-                      </div>
-                      <div className="ep-rank-times">
-                        {slots.map((s, i) => (
-                          <div key={i} className="ep-rank-time-item">
-                            📅 {s.date} &nbsp; 🕒 {s.start} ~ {s.end}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="ep-rank-empty">등록된 일정이 없습니다.</p>
-              )}
-            </div>
-          )}
         </div>
 
         {/* My schedule modal */}
@@ -803,7 +709,7 @@ function EventPage() {
             const mergedTimes = [];
             userSelectedTimes.forEach(timeRange => {
               const startDt = parse(timeRange, 'yyyy-MM-dd HH:mm', new Date());
-              const endDt = addMinutes(startDt, 30);
+              const endDt = addMinutes(startDt, 60);
               if (mergedTimes.length === 0) {
                 mergedTimes.push({ start: startDt, end: endDt });
               } else {
