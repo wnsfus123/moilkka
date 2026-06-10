@@ -409,13 +409,6 @@ function EventPage() {
     );
   };
 
-  const renderGroupLabel = (group) => (
-    <div className="ep-date-group-label">
-      {group.length === 1
-        ? format(new Date(group[0]), 'M월 d일 (EEE)', { locale: ko })
-        : `${format(new Date(group[0]), 'M/d')} ~ ${format(new Date(group[group.length - 1]), 'M/d')}`}
-    </div>
-  );
 
   return (
     <div className="App">
