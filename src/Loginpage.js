@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import useUserStore from './store/userStore';
 import { Layout, Typography, Card } from 'antd';
 import SocialLogin from './Components/SocialLogin';
-import { checkKakaoLoginStatus, getBaseUrl } from './Components/authUtils';
+import { checkKakaoLoginStatus, getUserInfoFromLocalStorage, getBaseUrl } from './Components/authUtils';
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -22,6 +23,23 @@ const Loginpage = () => {
       if (savedAccessToken) {
         const status = await checkKakaoLoginStatus(savedAccessToken);
         if (status) {
+          // checkKakaoLoginStatus가 이미 최신 userInfo를 localStorage에 저장
+          const latestUserInfo = getUserInfoFromLocalStorage();
+          if (latestUserInfo) {
+            const nickname =
+              latestUserInfo?.kakao_account?.profile?.nickname ||
+              latestUserInfo?.properties?.nickname ||
+              latestUserInfo?.kakao_account?.name ||
+              null;
+            try {
+              await axios.post('/api/users/save', {
+                kakaoId: latestUserInfo.id.toString(),
+                nickname,
+              });
+            } catch (err) {
+              console.error('[Loginpage] 유저 닉네임 업데이트 실패:', err.message);
+            }
+          }
           setLoading(false);
           window.location.href = `${getBaseUrl()}/event`;
         } else {
