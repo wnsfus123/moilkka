@@ -49,6 +49,57 @@
   background: #ff4d4f;
   display: block;
 }
+.tg-cell-dots {
+  position: absolute;
+  bottom: 3px;
+  left: 3px;
+  right: 3px;
+  display: flex;
+  gap: 1px;
+  align-items: center;
+  font-size: 8px;
+  line-height: 1;
+  overflow: hidden;
+}
+.tg-cell-more {
+  font-size: 8px;
+  color: #555;
+  font-weight: 600;
+  margin-left: 1px;
+}
+
+/* ── Date column label ── */
+.tg-date-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 2px 4px;
+  gap: 1px;
+}
+.tg-date-dow {
+  font-size: 11px;
+  font-weight: 500;
+}
+.tg-date-num {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* ── Groups side-by-side layout ── */
+.ep-groups-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+}
+.ep-groups-row .ep-date-group {
+  flex-shrink: 0;
+  margin-bottom: 0;
+}
+.schedule-selector-wrapper {
+  overflow-x: auto;
+}
 
 /* ── Date groups (multi-group schedule selectors) ── */
 .ep-date-group {

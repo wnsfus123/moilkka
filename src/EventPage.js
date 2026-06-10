@@ -384,8 +384,28 @@ function EventPage() {
           ref={innerRef}
           className="tg-cell tg-cell-all"
           style={{ backgroundColor: `rgba(22, 163, 74, ${alpha})` }}
-        />
+        >
+          {uniqueUsers.length > 0 && (
+            <div className="tg-cell-dots">
+              {uniqueUsers.slice(0, 5).map((user, i) => (
+                <span key={i} style={{ color: userColorMap[user] }}>●</span>
+              ))}
+              {uniqueUsers.length > 5 && <span className="tg-cell-more">+{uniqueUsers.length - 5}</span>}
+            </div>
+          )}
+        </div>
       </Tooltip>
+    );
+  };
+
+  const renderDateLabel = (date) => {
+    const dow = date.getDay();
+    const dowColor = dow === 0 ? '#f5222d' : dow === 6 ? '#1677ff' : '#888';
+    return (
+      <div className="tg-date-label">
+        <span className="tg-date-dow" style={{ color: dowColor }}>{format(date, 'EEE', { locale: ko })}</span>
+        <span className="tg-date-num" style={{ color: dow === 0 ? '#f5222d' : dow === 6 ? '#1677ff' : '#222' }}>{format(date, 'd')}</span>
+      </div>
     );
   };
 
@@ -473,28 +493,31 @@ function EventPage() {
               </div>
               <div className="schedule-selector-wrapper">
                 {dateGroups ? (
-                  dateGroups.map(group => (
-                    <div key={group[0]} className="ep-date-group">
-                      {renderGroupLabel(group)}
-                      <ScheduleSelector
-                        selection={schedule.filter(d => group.includes(format(d, 'yyyy-MM-dd')))}
-                        numDays={group.length}
-                        startDate={makeGroupStart(group[0])}
-                        minTime={minTime}
-                        maxTime={maxTime}
-                        hourlyChunks={1}
-                        cellHeight={44}
-                        rowGap="3px"
-                        columnGap="6px"
-                        onChange={(newSel) => {
-                          const others = schedule.filter(d => !group.includes(format(d, 'yyyy-MM-dd')));
-                          handleScheduleChange([...others, ...newSel]);
-                        }}
-                        renderTimeLabel={renderTimeLabel}
-                        renderDateCell={renderMyCell}
-                      />
-                    </div>
-                  ))
+                  <div className="ep-groups-row">
+                    {dateGroups.map(group => (
+                      <div key={group[0]} className="ep-date-group" style={{ width: `${group.length * 82 + 62}px` }}>
+                        {renderGroupLabel(group)}
+                        <ScheduleSelector
+                          selection={schedule.filter(d => group.includes(format(d, 'yyyy-MM-dd')))}
+                          numDays={group.length}
+                          startDate={makeGroupStart(group[0])}
+                          minTime={minTime}
+                          maxTime={maxTime}
+                          hourlyChunks={1}
+                          cellHeight={44}
+                          rowGap="3px"
+                          columnGap="6px"
+                          onChange={(newSel) => {
+                            const others = schedule.filter(d => !group.includes(format(d, 'yyyy-MM-dd')));
+                            handleScheduleChange([...others, ...newSel]);
+                          }}
+                          renderTimeLabel={renderTimeLabel}
+                          renderDateLabel={renderDateLabel}
+                          renderDateCell={renderMyCell}
+                        />
+                      </div>
+                    ))}
+                  </div>
                 ) : (
                   <ScheduleSelector
                     selection={schedule}
@@ -508,6 +531,7 @@ function EventPage() {
                     columnGap="6px"
                     onChange={handleScheduleChange}
                     renderTimeLabel={renderTimeLabel}
+                    renderDateLabel={renderDateLabel}
                     renderDateCell={renderMyCell}
                   />
                 )}
@@ -533,24 +557,27 @@ function EventPage() {
               )}
               <div className="schedule-selector-wrapper">
                 {dateGroups ? (
-                  dateGroups.map(group => (
-                    <div key={group[0]} className="ep-date-group">
-                      {renderGroupLabel(group)}
-                      <ScheduleSelector
-                        selection={schedule.filter(d => group.includes(format(d, 'yyyy-MM-dd')))}
-                        numDays={group.length}
-                        startDate={makeGroupStart(group[0])}
-                        minTime={minTime}
-                        maxTime={maxTime}
-                        hourlyChunks={1}
-                        cellHeight={44}
-                        rowGap="3px"
-                        columnGap="6px"
-                        renderTimeLabel={renderTimeLabel}
-                        renderDateCell={renderAllCell}
-                      />
-                    </div>
-                  ))
+                  <div className="ep-groups-row">
+                    {dateGroups.map(group => (
+                      <div key={group[0]} className="ep-date-group" style={{ width: `${group.length * 82 + 62}px` }}>
+                        {renderGroupLabel(group)}
+                        <ScheduleSelector
+                          selection={schedule.filter(d => group.includes(format(d, 'yyyy-MM-dd')))}
+                          numDays={group.length}
+                          startDate={makeGroupStart(group[0])}
+                          minTime={minTime}
+                          maxTime={maxTime}
+                          hourlyChunks={1}
+                          cellHeight={44}
+                          rowGap="3px"
+                          columnGap="6px"
+                          renderTimeLabel={renderTimeLabel}
+                          renderDateLabel={renderDateLabel}
+                          renderDateCell={renderAllCell}
+                        />
+                      </div>
+                    ))}
+                  </div>
                 ) : (
                   <ScheduleSelector
                     selection={schedule}
@@ -563,6 +590,7 @@ function EventPage() {
                     rowGap="3px"
                     columnGap="6px"
                     renderTimeLabel={renderTimeLabel}
+                    renderDateLabel={renderDateLabel}
                     renderDateCell={renderAllCell}
                   />
                 )}
@@ -615,28 +643,31 @@ function EventPage() {
               </div>
               <div className="schedule-selector-wrapper">
                 {dateGroups ? (
-                  dateGroups.map(group => (
-                    <div key={group[0]} className="ep-date-group">
-                      {renderGroupLabel(group)}
-                      <ScheduleSelector
-                        selection={schedule.filter(d => group.includes(format(d, 'yyyy-MM-dd')))}
-                        numDays={group.length}
-                        startDate={makeGroupStart(group[0])}
-                        minTime={minTime}
-                        maxTime={maxTime}
-                        hourlyChunks={1}
-                        cellHeight={44}
-                        rowGap="3px"
-                        columnGap="6px"
-                        onChange={(newSel) => {
-                          const others = schedule.filter(d => !group.includes(format(d, 'yyyy-MM-dd')));
-                          handleScheduleChange([...others, ...newSel]);
-                        }}
-                        renderTimeLabel={renderTimeLabel}
-                        renderDateCell={renderMyCell}
-                      />
-                    </div>
-                  ))
+                  <div className="ep-groups-row">
+                    {dateGroups.map(group => (
+                      <div key={group[0]} className="ep-date-group" style={{ width: `${group.length * 82 + 62}px` }}>
+                        {renderGroupLabel(group)}
+                        <ScheduleSelector
+                          selection={schedule.filter(d => group.includes(format(d, 'yyyy-MM-dd')))}
+                          numDays={group.length}
+                          startDate={makeGroupStart(group[0])}
+                          minTime={minTime}
+                          maxTime={maxTime}
+                          hourlyChunks={1}
+                          cellHeight={44}
+                          rowGap="3px"
+                          columnGap="6px"
+                          onChange={(newSel) => {
+                            const others = schedule.filter(d => !group.includes(format(d, 'yyyy-MM-dd')));
+                            handleScheduleChange([...others, ...newSel]);
+                          }}
+                          renderTimeLabel={renderTimeLabel}
+                          renderDateLabel={renderDateLabel}
+                          renderDateCell={renderMyCell}
+                        />
+                      </div>
+                    ))}
+                  </div>
                 ) : (
                   <ScheduleSelector
                     selection={schedule}
@@ -650,6 +681,7 @@ function EventPage() {
                     columnGap="6px"
                     onChange={handleScheduleChange}
                     renderTimeLabel={renderTimeLabel}
+                    renderDateLabel={renderDateLabel}
                     renderDateCell={renderMyCell}
                   />
                 )}
@@ -676,24 +708,27 @@ function EventPage() {
               )}
               <div className="schedule-selector-wrapper">
                 {dateGroups ? (
-                  dateGroups.map(group => (
-                    <div key={group[0]} className="ep-date-group">
-                      {renderGroupLabel(group)}
-                      <ScheduleSelector
-                        selection={schedule.filter(d => group.includes(format(d, 'yyyy-MM-dd')))}
-                        numDays={group.length}
-                        startDate={makeGroupStart(group[0])}
-                        minTime={minTime}
-                        maxTime={maxTime}
-                        hourlyChunks={1}
-                        cellHeight={44}
-                        rowGap="3px"
-                        columnGap="6px"
-                        renderTimeLabel={renderTimeLabel}
-                        renderDateCell={renderAllCell}
-                      />
-                    </div>
-                  ))
+                  <div className="ep-groups-row">
+                    {dateGroups.map(group => (
+                      <div key={group[0]} className="ep-date-group" style={{ width: `${group.length * 82 + 62}px` }}>
+                        {renderGroupLabel(group)}
+                        <ScheduleSelector
+                          selection={schedule.filter(d => group.includes(format(d, 'yyyy-MM-dd')))}
+                          numDays={group.length}
+                          startDate={makeGroupStart(group[0])}
+                          minTime={minTime}
+                          maxTime={maxTime}
+                          hourlyChunks={1}
+                          cellHeight={44}
+                          rowGap="3px"
+                          columnGap="6px"
+                          renderTimeLabel={renderTimeLabel}
+                          renderDateLabel={renderDateLabel}
+                          renderDateCell={renderAllCell}
+                        />
+                      </div>
+                    ))}
+                  </div>
                 ) : (
                   <ScheduleSelector
                     selection={schedule}
@@ -706,6 +741,7 @@ function EventPage() {
                     rowGap="3px"
                     columnGap="6px"
                     renderTimeLabel={renderTimeLabel}
+                    renderDateLabel={renderDateLabel}
                     renderDateCell={renderAllCell}
                   />
                 )}
