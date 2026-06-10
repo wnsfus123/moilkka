@@ -4,7 +4,7 @@ import { Layout, Menu, Avatar, Dropdown } from "antd";
 import { getUserInfoFromLocalStorage } from './authUtils';
 import './AddLayout.css';
 
-const { Header, Content, Footer } = Layout;
+const { Header } = Layout;
 
 const AppLayout = () => {
   const location = useLocation();
@@ -40,7 +40,7 @@ const AppLayout = () => {
   ];
 
   return (
-    <Layout style={{ minHeight: '100vh', background: '#F8F8F6' }}>
+    <div className="app-shell">
       <Header className="app-header">
         <a href="/event" className="header-logo-link">
           <img src="/logo.png" alt="모일까" className="header-logo-img" />
@@ -84,13 +84,13 @@ const AppLayout = () => {
         )}
       </Header>
 
-      <Content className="app-content">
+      <main className="app-content">
         <Outlet />
-      </Content>
+      </main>
 
-      <Footer className="app-footer">
+      <footer className="app-footer">
         모일까 ©{new Date().getFullYear()} Created by 모일까
-      </Footer>
+      </footer>
 
       <nav className="mobile-bottom-nav">
         {mobileNavItems.map(item => (
@@ -103,7 +103,7 @@ const AppLayout = () => {
           </Link>
         ))}
       </nav>
-    </Layout>
+    </div>
   );
 };
 

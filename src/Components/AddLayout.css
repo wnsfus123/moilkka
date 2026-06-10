@@ -1,4 +1,12 @@
-/* ── Header ── */
+/* ── Shell (replaces antd Layout) ── */
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+}
+
+/* ── Header (antd Header kept, but forced transparent bg override) ── */
 .app-header {
   display: flex !important;
   align-items: center !important;
@@ -9,6 +17,7 @@
   top: 0;
   z-index: 200;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .header-logo-link {
@@ -23,12 +32,6 @@
   height: 32px;
   width: auto;
   display: block;
-}
-.header-logo-text {
-  font-size: 16px;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: -0.3px;
 }
 
 /* User dropdown trigger */
@@ -56,18 +59,19 @@
 
 /* ── Content ── */
 .app-content {
-  padding: 0 !important;
-  background: #F8F8F6 !important;
+  flex: 1;
+  padding: 0;
+  background: transparent;
 }
 
 /* ── Footer ── */
 .app-footer {
-  text-align: center !important;
-  font-size: 12px !important;
-  padding: 12px 24px !important;
-  background: #001529 !important;
-  color: rgba(255, 255, 255, 0.45) !important;
-  line-height: normal !important;
+  text-align: center;
+  font-size: 12px;
+  padding: 12px 24px;
+  background: #001529;
+  color: rgba(255, 255, 255, 0.45);
+  flex-shrink: 0;
 }
 
 /* ── Mobile bottom nav ── */
@@ -75,7 +79,7 @@
 
 @media (max-width: 768px) {
   .app-header { padding: 0 12px !important; }
-  .app-content { padding: 8px 12px !important; padding-bottom: 72px !important; }
+  .app-content { padding: 8px 12px; padding-bottom: 72px; }
   .user-name-text { display: none; }
   .avatar-chevron { display: none; }
 
