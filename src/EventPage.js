@@ -37,7 +37,6 @@ function EventPage() {
   const [userSelectedTimes, setUserSelectedTimes] = useState([]);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [maxOverlapTimes, setMaxOverlapTimes] = useState([]);
   const [isGoogleLoggedIn, setIsGoogleLoggedIn] = useState(false);
   const [isGoogleModalVisible, setIsGoogleModalVisible] = useState(false);
   const [overlappingEvents, setOverlappingEvents] = useState([]);
@@ -109,7 +108,6 @@ function EventPage() {
           selectedTimeByDate[date].push(format(time, 'HH:mm'));
         });
         setSelectedTime(selectedTimeByDate);
-        setMaxOverlapTimes(findMaxOverlappingTimes(schedules));
       }
     } catch (error) {
       console.error('이벤트 데이터 조회 오류:', error);
@@ -235,36 +233,6 @@ function EventPage() {
   const showModal = () => setIsModalVisible(true);
   const handleOk = () => { setIsModalVisible(false); setIsGoogleModalVisible(false); };
   const handleCancel = () => { setIsModalVisible(false); setIsGoogleModalVisible(false); };
-
-  const findMaxOverlappingTimes = (schedules) => {
-    const timeCounts = {};
-    schedules.forEach(s => {
-      if (!s.event_datetime) return;
-      const timeDt = new Date(s.event_datetime);
-      if (isNaN(timeDt.getTime())) return;
-      const endTimeDt = addMinutes(timeDt, 30);
-      let m = timeDt;
-      while (isBefore(m, endTimeDt)) {
-        const key = format(m, 'yyyy-MM-dd HH:mm');
-        timeCounts[key] = (timeCounts[key] || 0) + 1;
-        m = addMinutes(m, 30);
-      }
-    });
-
-    if (Object.keys(timeCounts).length === 0) return [];
-    const maxCount = Math.max(...Object.values(timeCounts));
-    return Object.entries(timeCounts)
-      .filter(([, count]) => count === maxCount)
-      .map(([time]) => {
-        const startDt = parse(time, 'yyyy-MM-dd HH:mm', new Date());
-        const endDt = addMinutes(startDt, 30);
-        return {
-          date: format(startDt, 'yyyy/MM/dd'),
-          start: format(startDt, "HH'시' mm'분'", { locale: ko }),
-          end: format(endDt, "HH'시' mm'분'", { locale: ko }),
-        };
-      });
-  };
 
   const getRankedTimes = () => {
     if (allSchedules.length === 0) return [];
