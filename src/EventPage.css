@@ -1,3 +1,18 @@
+/* ── Date groups (multi-group schedule selectors) ── */
+.ep-date-group {
+  margin-bottom: 16px;
+}
+.ep-date-group-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #555;
+  background: #F0F0EE;
+  border-radius: 6px;
+  padding: 4px 10px;
+  margin-bottom: 6px;
+  display: inline-block;
+}
+
 /* ── Loading / Error ── */
 .ep-loading {
   display: flex;

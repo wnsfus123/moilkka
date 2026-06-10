@@ -25,6 +25,20 @@ import GoogleCalendar from './GoogleCalendar';
 import './App.css';
 import './EventPage.css';
 
+function groupConsecutiveDates(sortedDates) {
+  if (!sortedDates || sortedDates.length === 0) return null;
+  const groups = [[sortedDates[0]]];
+  for (let i = 1; i < sortedDates.length; i++) {
+    const diffMs = new Date(sortedDates[i]) - new Date(sortedDates[i - 1]);
+    if (diffMs === 86400000) {
+      groups[groups.length - 1].push(sortedDates[i]);
+    } else {
+      groups.push([sortedDates[i]]);
+    }
+  }
+  return groups;
+}
+
 function EventPage() {
   const [eventData, setEventData] = useState(null);
   const [selectedTime, setSelectedTime] = useState([]);
@@ -41,6 +55,7 @@ function EventPage() {
   const [isGoogleModalVisible, setIsGoogleModalVisible] = useState(false);
   const [overlappingEvents, setOverlappingEvents] = useState([]);
   const [activeTab, setActiveTab] = useState('my');
+  const [dateGroups, setDateGroups] = useState(null);
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -69,15 +84,13 @@ function EventPage() {
       console.log('[EventPage] fetchEventData full response:', JSON.stringify(response.data));
       setEventData(response.data);
 
-      // selected_dates(개별 지정)가 있으면 그 범위, 없으면 startday~endday 범위 사용
       const selDates = response.data.selected_dates;
       if (Array.isArray(selDates) && selDates.length > 0) {
         const sorted = [...selDates].sort();
-        const startD = new Date(sorted[0]);
-        const endD   = new Date(sorted[sorted.length - 1]);
-        const diffDays = differenceInDays(endD, startD) + 1;
-        setNumDays(Math.max(1, diffDays));
+        setDateGroups(groupConsecutiveDates(sorted));
+        setNumDays(sorted.length);
       } else {
+        setDateGroups(null);
         const startD = new Date(response.data.startday);
         const endD = new Date(response.data.endday);
         const diffDays = (!isNaN(startD) && !isNaN(endD))
@@ -328,6 +341,81 @@ function EventPage() {
 
   const rankedTimes = getRankedTimes();
 
+  const minTime = parseInt(startTimeStr.split(':')[0], 10);
+  const maxTime = parseInt(endTimeStr.split(':')[0], 10);
+
+  const makeGroupStart = (dateStr) => {
+    const d = new Date(Schedule_Start);
+    const [y, m, day] = dateStr.split('-').map(Number);
+    d.setFullYear(y, m - 1, day);
+    return d;
+  };
+
+  const renderTimeLabel = (time) => (
+    <div className="time-label">{format(time, 'HH:mm')} - {format(addMinutes(time, 30), 'HH:mm')}</div>
+  );
+
+  const renderMyCell = (time, selected, innerRef) => {
+    const timeEnd = addMinutes(time, 30);
+    const overlapping = overlappingEvents.filter(ev => {
+      const evStart = new Date(ev.start);
+      const evEnd = new Date(ev.end);
+      return isBefore(evStart, timeEnd) && isAfter(evEnd, time);
+    });
+    const bgColor = selected ? '#1890ff' : '#e6f7ff';
+    const border = selected ? '1px solid blue' : '1px solid #ccc';
+    return (
+      <div
+        ref={innerRef}
+        style={{ position: 'relative', padding: '5px', border, height: '100%', backgroundColor: bgColor }}
+        onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#b3e0ff'; }}
+        onMouseLeave={e => { e.currentTarget.style.backgroundColor = selected ? '#1890ff' : '#e6f7ff'; }}
+      >
+        {overlapping.length > 0 && (
+          <div style={{ position: 'absolute', top: '50%', right: '5px', transform: 'translateY(-50%)', fontSize: '12px', color: 'red', textAlign: 'right' }}>
+            {overlapping.map(ev => ev.title).join(', ')}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderAllCell = (time, _selected, innerRef) => {
+    const formattedTime = format(time, 'yyyy-MM-dd HH:mm');
+    const users = userSchedules[formattedTime] || [];
+    const uniqueUsers = [...new Set(users)];
+    const dots = uniqueUsers.map((user, i) => (
+      <span key={i} style={{ display: 'inline-block', marginLeft: '2px', color: userColorMap[user], fontSize: '14px' }}>●</span>
+    ));
+    return (
+      <Tooltip title={uniqueUsers.join(', ')} placement="top">
+        <div
+          ref={innerRef}
+          style={{
+            backgroundColor: `rgba(0, 128, 0, ${Math.min(0.1 + uniqueUsers.length * 0.1, 1)})`,
+            border: '1px solid #ccc',
+            height: '100%',
+            width: '100%',
+            position: 'relative',
+            paddingRight: '5px',
+          }}
+        >
+          <div style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)' }}>
+            {dots}
+          </div>
+        </div>
+      </Tooltip>
+    );
+  };
+
+  const renderGroupLabel = (group) => (
+    <div className="ep-date-group-label">
+      {group.length === 1
+        ? format(new Date(group[0]), 'M월 d일 (EEE)', { locale: ko })
+        : `${format(new Date(group[0]), 'M/d')} ~ ${format(new Date(group[group.length - 1]), 'M/d')}`}
+    </div>
+  );
+
   return (
     <div className="App">
       <main className="main-content" style={{ background: 'var(--color-bg)', padding: 0 }}>
@@ -383,46 +471,43 @@ function EventPage() {
                 <button className="ep-btn-outline" onClick={showModal}>등록된 일정 확인</button>
               </div>
               <div className="schedule-selector-wrapper">
-                <ScheduleSelector
-                  selection={schedule}
-                  numDays={numDays}
-                  startDate={Schedule_Start}
-                  minTime={parseInt(startTimeStr.split(':')[0], 10)}
-                  maxTime={parseInt(endTimeStr.split(':')[0], 10)}
-                  hourlyChunks={2}
-                  rowGap="4px"
-                  columnGap="7px"
-                  onChange={handleScheduleChange}
-                  renderTimeLabel={(time) => (
-                    <div className="time-label">
-                      {format(time, 'HH:mm')} - {format(addMinutes(time, 30), 'HH:mm')}
+                {dateGroups ? (
+                  dateGroups.map(group => (
+                    <div key={group[0]} className="ep-date-group">
+                      {renderGroupLabel(group)}
+                      <ScheduleSelector
+                        selection={schedule.filter(d => group.includes(format(d, 'yyyy-MM-dd')))}
+                        numDays={group.length}
+                        startDate={makeGroupStart(group[0])}
+                        minTime={minTime}
+                        maxTime={maxTime}
+                        hourlyChunks={2}
+                        rowGap="4px"
+                        columnGap="7px"
+                        onChange={(newSel) => {
+                          const others = schedule.filter(d => !group.includes(format(d, 'yyyy-MM-dd')));
+                          handleScheduleChange([...others, ...newSel]);
+                        }}
+                        renderTimeLabel={renderTimeLabel}
+                        renderDateCell={renderMyCell}
+                      />
                     </div>
-                  )}
-                  renderDateCell={(time, selected, innerRef) => {
-                    const timeEnd = addMinutes(time, 30);
-                    const overlapping = overlappingEvents.filter(event => {
-                      const eventStart = new Date(event.start);
-                      const eventEnd = new Date(event.end);
-                      return isBefore(eventStart, timeEnd) && isAfter(eventEnd, time);
-                    });
-                    const backgroundColor = selected ? '#1890ff' : '#e6f7ff';
-                    const borderColor = selected ? '1px solid blue' : '1px solid #ccc';
-                    return (
-                      <div
-                        ref={innerRef}
-                        style={{ position: 'relative', padding: '5px', border: borderColor, height: '100%', backgroundColor }}
-                        onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#b3e0ff'; }}
-                        onMouseLeave={e => { e.currentTarget.style.backgroundColor = selected ? '#1890ff' : '#e6f7ff'; }}
-                      >
-                        {overlapping.length > 0 && (
-                          <div style={{ position: 'absolute', top: '50%', right: '5px', transform: 'translateY(-50%)', fontSize: '12px', color: 'red', textAlign: 'right' }}>
-                            {overlapping.map(e => e.title).join(', ')}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  }}
-                />
+                  ))
+                ) : (
+                  <ScheduleSelector
+                    selection={schedule}
+                    numDays={numDays}
+                    startDate={Schedule_Start}
+                    minTime={minTime}
+                    maxTime={maxTime}
+                    hourlyChunks={2}
+                    rowGap="4px"
+                    columnGap="7px"
+                    onChange={handleScheduleChange}
+                    renderTimeLabel={renderTimeLabel}
+                    renderDateCell={renderMyCell}
+                  />
+                )}
               </div>
               <button className="ep-btn-confirm" onClick={handleConfirm} disabled={confirmLoading}>
                 {confirmLoading ? '저장 중...' : '확인'}
@@ -444,48 +529,38 @@ function EventPage() {
                 </div>
               )}
               <div className="schedule-selector-wrapper">
-                <ScheduleSelector
-                  selection={schedule}
-                  numDays={numDays}
-                  startDate={Schedule_Start}
-                  minTime={parseInt(startTimeStr.split(':')[0], 10)}
-                  maxTime={parseInt(endTimeStr.split(':')[0], 10)}
-                  hourlyChunks={2}
-                  rowGap="4px"
-                  columnGap="7px"
-                  renderTimeLabel={(time) => (
-                    <div className="time-label">
-                      {format(time, 'HH:mm')} - {format(addMinutes(time, 30), 'HH:mm')}
+                {dateGroups ? (
+                  dateGroups.map(group => (
+                    <div key={group[0]} className="ep-date-group">
+                      {renderGroupLabel(group)}
+                      <ScheduleSelector
+                        selection={schedule.filter(d => group.includes(format(d, 'yyyy-MM-dd')))}
+                        numDays={group.length}
+                        startDate={makeGroupStart(group[0])}
+                        minTime={minTime}
+                        maxTime={maxTime}
+                        hourlyChunks={2}
+                        rowGap="4px"
+                        columnGap="7px"
+                        renderTimeLabel={renderTimeLabel}
+                        renderDateCell={renderAllCell}
+                      />
                     </div>
-                  )}
-                  renderDateCell={(time, selected, innerRef) => {
-                    const formattedTime = format(time, 'yyyy-MM-dd HH:mm');
-                    const users = userSchedules[formattedTime] || [];
-                    const uniqueUsers = [...new Set(users)];
-                    const dots = uniqueUsers.map((user, i) => (
-                      <span key={i} style={{ display: 'inline-block', marginLeft: '2px', color: userColorMap[user], fontSize: '14px' }}>●</span>
-                    ));
-                    return (
-                      <Tooltip title={uniqueUsers.join(', ')} placement="top">
-                        <div
-                          ref={innerRef}
-                          style={{
-                            backgroundColor: `rgba(0, 128, 0, ${Math.min(0.1 + uniqueUsers.length * 0.1, 1)})`,
-                            border: '1px solid #ccc',
-                            height: '100%',
-                            width: '100%',
-                            position: 'relative',
-                            paddingRight: '5px',
-                          }}
-                        >
-                          <div style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)' }}>
-                            {dots}
-                          </div>
-                        </div>
-                      </Tooltip>
-                    );
-                  }}
-                />
+                  ))
+                ) : (
+                  <ScheduleSelector
+                    selection={schedule}
+                    numDays={numDays}
+                    startDate={Schedule_Start}
+                    minTime={minTime}
+                    maxTime={maxTime}
+                    hourlyChunks={2}
+                    rowGap="4px"
+                    columnGap="7px"
+                    renderTimeLabel={renderTimeLabel}
+                    renderDateCell={renderAllCell}
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -534,46 +609,43 @@ function EventPage() {
                 <button className="ep-btn-outline" onClick={showModal}>확인</button>
               </div>
               <div className="schedule-selector-wrapper">
-                <ScheduleSelector
-                  selection={schedule}
-                  numDays={numDays}
-                  startDate={Schedule_Start}
-                  minTime={parseInt(startTimeStr.split(':')[0], 10)}
-                  maxTime={parseInt(endTimeStr.split(':')[0], 10)}
-                  hourlyChunks={2}
-                  rowGap="4px"
-                  columnGap="7px"
-                  onChange={handleScheduleChange}
-                  renderTimeLabel={(time) => (
-                    <div className="time-label">
-                      {format(time, 'HH:mm')} - {format(addMinutes(time, 30), 'HH:mm')}
+                {dateGroups ? (
+                  dateGroups.map(group => (
+                    <div key={group[0]} className="ep-date-group">
+                      {renderGroupLabel(group)}
+                      <ScheduleSelector
+                        selection={schedule.filter(d => group.includes(format(d, 'yyyy-MM-dd')))}
+                        numDays={group.length}
+                        startDate={makeGroupStart(group[0])}
+                        minTime={minTime}
+                        maxTime={maxTime}
+                        hourlyChunks={2}
+                        rowGap="4px"
+                        columnGap="7px"
+                        onChange={(newSel) => {
+                          const others = schedule.filter(d => !group.includes(format(d, 'yyyy-MM-dd')));
+                          handleScheduleChange([...others, ...newSel]);
+                        }}
+                        renderTimeLabel={renderTimeLabel}
+                        renderDateCell={renderMyCell}
+                      />
                     </div>
-                  )}
-                  renderDateCell={(time, selected, innerRef) => {
-                    const timeEnd = addMinutes(time, 30);
-                    const overlapping = overlappingEvents.filter(event => {
-                      const eventStart = new Date(event.start);
-                      const eventEnd = new Date(event.end);
-                      return isBefore(eventStart, timeEnd) && isAfter(eventEnd, time);
-                    });
-                    const backgroundColor = selected ? '#1890ff' : '#e6f7ff';
-                    const borderColor = selected ? '1px solid blue' : '1px solid #ccc';
-                    return (
-                      <div
-                        ref={innerRef}
-                        style={{ position: 'relative', padding: '5px', border: borderColor, height: '100%', backgroundColor }}
-                        onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#b3e0ff'; }}
-                        onMouseLeave={e => { e.currentTarget.style.backgroundColor = selected ? '#1890ff' : '#e6f7ff'; }}
-                      >
-                        {overlapping.length > 0 && (
-                          <div style={{ position: 'absolute', top: '50%', right: '5px', transform: 'translateY(-50%)', fontSize: '12px', color: 'red', textAlign: 'right' }}>
-                            {overlapping.map(e => e.title).join(', ')}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  }}
-                />
+                  ))
+                ) : (
+                  <ScheduleSelector
+                    selection={schedule}
+                    numDays={numDays}
+                    startDate={Schedule_Start}
+                    minTime={minTime}
+                    maxTime={maxTime}
+                    hourlyChunks={2}
+                    rowGap="4px"
+                    columnGap="7px"
+                    onChange={handleScheduleChange}
+                    renderTimeLabel={renderTimeLabel}
+                    renderDateCell={renderMyCell}
+                  />
+                )}
               </div>
               <button className="ep-btn-confirm" onClick={handleConfirm} disabled={confirmLoading}>
                 {confirmLoading ? '저장 중...' : '확인'}
@@ -596,48 +668,38 @@ function EventPage() {
                 </div>
               )}
               <div className="schedule-selector-wrapper">
-                <ScheduleSelector
-                  selection={schedule}
-                  numDays={numDays}
-                  startDate={Schedule_Start}
-                  minTime={parseInt(startTimeStr.split(':')[0], 10)}
-                  maxTime={parseInt(endTimeStr.split(':')[0], 10)}
-                  hourlyChunks={2}
-                  rowGap="4px"
-                  columnGap="7px"
-                  renderTimeLabel={(time) => (
-                    <div className="time-label">
-                      {format(time, 'HH:mm')} - {format(addMinutes(time, 30), 'HH:mm')}
+                {dateGroups ? (
+                  dateGroups.map(group => (
+                    <div key={group[0]} className="ep-date-group">
+                      {renderGroupLabel(group)}
+                      <ScheduleSelector
+                        selection={schedule.filter(d => group.includes(format(d, 'yyyy-MM-dd')))}
+                        numDays={group.length}
+                        startDate={makeGroupStart(group[0])}
+                        minTime={minTime}
+                        maxTime={maxTime}
+                        hourlyChunks={2}
+                        rowGap="4px"
+                        columnGap="7px"
+                        renderTimeLabel={renderTimeLabel}
+                        renderDateCell={renderAllCell}
+                      />
                     </div>
-                  )}
-                  renderDateCell={(time, selected, innerRef) => {
-                    const formattedTime = format(time, 'yyyy-MM-dd HH:mm');
-                    const users = userSchedules[formattedTime] || [];
-                    const uniqueUsers = [...new Set(users)];
-                    const dots = uniqueUsers.map((user, i) => (
-                      <span key={i} style={{ display: 'inline-block', marginLeft: '2px', color: userColorMap[user], fontSize: '14px' }}>●</span>
-                    ));
-                    return (
-                      <Tooltip title={uniqueUsers.join(', ')} placement="top">
-                        <div
-                          ref={innerRef}
-                          style={{
-                            backgroundColor: `rgba(0, 128, 0, ${Math.min(0.1 + uniqueUsers.length * 0.1, 1)})`,
-                            border: '1px solid #ccc',
-                            height: '100%',
-                            width: '100%',
-                            position: 'relative',
-                            paddingRight: '5px',
-                          }}
-                        >
-                          <div style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)' }}>
-                            {dots}
-                          </div>
-                        </div>
-                      </Tooltip>
-                    );
-                  }}
-                />
+                  ))
+                ) : (
+                  <ScheduleSelector
+                    selection={schedule}
+                    numDays={numDays}
+                    startDate={Schedule_Start}
+                    minTime={minTime}
+                    maxTime={maxTime}
+                    hourlyChunks={2}
+                    rowGap="4px"
+                    columnGap="7px"
+                    renderTimeLabel={renderTimeLabel}
+                    renderDateCell={renderAllCell}
+                  />
+                )}
               </div>
             </div>
           )}
