@@ -2,7 +2,7 @@
 
 .ce-tabs {
   display: flex;
-  background: var(--color-bg);
+  background: #F0F0EE;
   border-radius: var(--radius-lg);
   padding: 4px;
   margin-bottom: 20px;
@@ -14,7 +14,7 @@
   padding: 10px;
   border: none;
   border-radius: var(--radius-md);
-  background: none;
+  background: transparent;
   font-size: 14px;
   font-weight: 500;
   color: #888;
@@ -23,10 +23,10 @@
   white-space: nowrap;
 }
 .ce-tab.active {
-  background: var(--color-card);
-  color: #111;
+  background: #ffffff;
+  color: #1A1A1A;
   font-weight: 700;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .ce-panel { display: flex; flex-direction: column; gap: 18px; }

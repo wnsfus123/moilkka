@@ -11,7 +11,7 @@
   top: 0;
   z-index: 200;
   height: var(--header-height);
-  background: var(--color-header);
+  background: #1A1A2E !important;
   border-bottom: none;
   display: flex;
   align-items: center;
@@ -29,18 +29,18 @@
   border-radius: var(--radius-md);
   font-size: 14px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
   transition: background 0.15s, color 0.15s;
 }
 .header-nav-item:hover {
   background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.95);
+  color: #ffffff;
   text-decoration: none;
 }
 .header-nav-item.active {
-  background: var(--color-primary);
-  color: var(--color-primary-text);
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
   font-weight: 700;
 }
 
@@ -121,9 +121,9 @@
   text-align: center;
   padding: 16px;
   font-size: 12px;
-  color: #94A3B8;
-  border-top: 1px solid var(--color-border);
-  background: var(--color-card);
+  color: rgba(255, 255, 255, 0.5);
+  background: #1A1A2E;
+  border-top: none;
 }
 
 /* ── Mobile bottom nav ── */
