@@ -251,6 +251,46 @@
   color: #595959;
 }
 
+/* ── 모바일 네이티브 피커 ── */
+.ce-native-date-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+.ce-native-date-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ce-label-sm {
+  font-size: 11px;
+  font-weight: 600;
+  color: #aaa;
+}
+.ce-date-sep {
+  font-size: 16px;
+  color: #bbb;
+  padding-bottom: 10px;
+  flex-shrink: 0;
+}
+.ce-native-time-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ce-time-input {
+  flex: 1;
+  text-align: center;
+}
+/* 네이티브 input 날짜/시간 — 모바일에서 시스템 피커 사용 */
+input[type="date"],
+input[type="time"] {
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
 @media (max-width: 768px) {
   .ce-tab { font-size: 13px; padding: 9px 6px; }
   .wd-day-btn { font-size: 12px; padding: 7px 2px; }

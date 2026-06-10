@@ -148,6 +148,9 @@ const CreateEvent = () => {
   const [timezone,        setTimezone]        = useState('Asia/Seoul');
   const [dateMode,        setDateMode]        = useState('range');   // 'range' | 'custom' | 'weekday'
   const [rangeDates,      setRangeDates]      = useState([]);        // [dayjs, dayjs]
+  const [mobileRangeStart, setMobileRangeStart] = useState('');
+  const [mobileRangeEnd,   setMobileRangeEnd]   = useState('');
+  const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches;
   const [customDates,     setCustomDates]     = useState(new Set()); // Set<'YYYY-MM-DD'>
   const [calMonth,        setCalMonth]        = useState(dayjs());
   const [selectedWeekdays,setSelectedWeekdays]= useState(new Set());
@@ -288,16 +291,56 @@ const CreateEvent = () => {
 
             {/* 모드별 날짜 입력 */}
             {dateMode === 'range' && (
-              <div className="ce-field">
-                <DatePicker.RangePicker
-                  style={{ width: '100%' }}
-                  format="YYYY년 MM월 DD일"
-                  onChange={dates => setRangeDates(dates || [])}
-                  placeholder={['시작 날짜', '종료 날짜']}
-                  size="large"
-                  disabledDate={current => current && current < dayjs().startOf('day')}
-                />
-              </div>
+              isMobile ? (
+                <div className="ce-field">
+                  <div className="ce-native-date-row">
+                    <div className="ce-native-date-item">
+                      <label className="ce-label-sm">시작 날짜</label>
+                      <input
+                        type="date"
+                        className="ce-input"
+                        min={dayjs().format('YYYY-MM-DD')}
+                        value={mobileRangeStart}
+                        onChange={e => {
+                          const val = e.target.value;
+                          setMobileRangeStart(val);
+                          if (val && mobileRangeEnd && val <= mobileRangeEnd) {
+                            setRangeDates([dayjs(val), dayjs(mobileRangeEnd)]);
+                          } else { setRangeDates([]); }
+                        }}
+                      />
+                    </div>
+                    <span className="ce-date-sep">~</span>
+                    <div className="ce-native-date-item">
+                      <label className="ce-label-sm">종료 날짜</label>
+                      <input
+                        type="date"
+                        className="ce-input"
+                        min={mobileRangeStart || dayjs().format('YYYY-MM-DD')}
+                        value={mobileRangeEnd}
+                        onChange={e => {
+                          const val = e.target.value;
+                          setMobileRangeEnd(val);
+                          if (mobileRangeStart && val && mobileRangeStart <= val) {
+                            setRangeDates([dayjs(mobileRangeStart), dayjs(val)]);
+                          } else { setRangeDates([]); }
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="ce-field">
+                  <DatePicker.RangePicker
+                    style={{ width: '100%' }}
+                    format="YYYY년 MM월 DD일"
+                    onChange={dates => setRangeDates(dates || [])}
+                    placeholder={['시작 날짜', '종료 날짜']}
+                    size="large"
+                    disabledDate={current => current && current < dayjs().startOf('day')}
+                  />
+                </div>
+              )
             )}
 
             {dateMode === 'custom' && (
@@ -335,17 +378,37 @@ const CreateEvent = () => {
             {/* 시간 */}
             <div className="ce-field">
               <label className="ce-label">가능 시간 범위</label>
-              <TimePicker.RangePicker
-                style={{ width: '100%' }}
-                format="HH시 mm분"
-                onChange={times => {
-                  if (times) { setStartTime(times[0]); setEndTime(times[1]); }
-                  else { setStartTime(null); setEndTime(null); }
-                }}
-                placeholder={['시작 시간', '종료 시간']}
-                size="large"
-                minuteStep={60}
-              />
+              {isMobile ? (
+                <div className="ce-native-time-row">
+                  <input
+                    type="time"
+                    step="3600"
+                    className="ce-input ce-time-input"
+                    value={startTime ? startTime.format('HH:mm') : ''}
+                    onChange={e => setStartTime(e.target.value ? dayjs(e.target.value, 'HH:mm') : null)}
+                  />
+                  <span className="ce-date-sep">~</span>
+                  <input
+                    type="time"
+                    step="3600"
+                    className="ce-input ce-time-input"
+                    value={endTime ? endTime.format('HH:mm') : ''}
+                    onChange={e => setEndTime(e.target.value ? dayjs(e.target.value, 'HH:mm') : null)}
+                  />
+                </div>
+              ) : (
+                <TimePicker.RangePicker
+                  style={{ width: '100%' }}
+                  format="HH시 mm분"
+                  onChange={times => {
+                    if (times) { setStartTime(times[0]); setEndTime(times[1]); }
+                    else { setStartTime(null); setEndTime(null); }
+                  }}
+                  placeholder={['시작 시간', '종료 시간']}
+                  size="large"
+                  minuteStep={60}
+                />
+              )}
             </div>
 
             {/* 시간대 */}
