@@ -102,6 +102,22 @@
   min-width: 28px;
 }
 
+.ep-date-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+  width: 100%;
+}
+.ep-date-chip {
+  padding: 3px 10px;
+  background: #F0F0EE;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #444;
+}
+
 /* ── Toolbar ── */
 .ep-toolbar {
   display: flex;

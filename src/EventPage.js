@@ -430,23 +430,43 @@ function EventPage() {
                 <span className="ep-badge ep-badge-count">참여자 {allUsers.length}명</span>
               </div>
               <p className="ep-date-range">
-                {format(Schedule_Start, 'yyyy.MM.dd')} ~ {format(Schedule_End, 'yyyy.MM.dd')}
-                <span className="ep-time-range"> ({startTimeStr} ~ {endTimeStr})</span>
+                {dateGroups
+                  ? <>총 {eventData.selected_dates.length}일 선택<span className="ep-time-range"> · {startTimeStr} ~ {endTimeStr}</span></>
+                  : <>{format(Schedule_Start, 'yyyy.MM.dd')} ~ {format(Schedule_End, 'yyyy.MM.dd')}<span className="ep-time-range"> ({startTimeStr} ~ {endTimeStr})</span></>
+                }
               </p>
             </div>
           </div>
-          <div className="ep-detail-row">
-            <div className="ep-detail-item">
-              <span className="ep-detail-label">시작</span>
-              <DatePicker value={dayjs(Schedule_Start)} format="YYYY-MM-DD" disabled size="small" />
-              <TimePicker value={dayjs(Schedule_Start)} format="HH:mm" disabled size="small" />
+          {dateGroups ? (
+            <div className="ep-detail-row">
+              <div className="ep-detail-item">
+                <span className="ep-detail-label">가능 시간</span>
+                <TimePicker value={dayjs(Schedule_Start)} format="HH:mm" disabled size="small" />
+                <span style={{ color: '#aaa', fontSize: 13 }}>~</span>
+                <TimePicker value={dayjs(Schedule_End)} format="HH:mm" disabled size="small" />
+              </div>
+              <div className="ep-date-chips">
+                {eventData.selected_dates.sort().map(d => (
+                  <span key={d} className="ep-date-chip">
+                    {format(new Date(d), 'M/d (EEE)', { locale: ko })}
+                  </span>
+                ))}
+              </div>
             </div>
-            <div className="ep-detail-item">
-              <span className="ep-detail-label">종료</span>
-              <DatePicker value={dayjs(Schedule_End)} format="YYYY-MM-DD" disabled size="small" />
-              <TimePicker value={dayjs(Schedule_End)} format="HH:mm" disabled size="small" />
+          ) : (
+            <div className="ep-detail-row">
+              <div className="ep-detail-item">
+                <span className="ep-detail-label">시작</span>
+                <DatePicker value={dayjs(Schedule_Start)} format="YYYY-MM-DD" disabled size="small" />
+                <TimePicker value={dayjs(Schedule_Start)} format="HH:mm" disabled size="small" />
+              </div>
+              <div className="ep-detail-item">
+                <span className="ep-detail-label">종료</span>
+                <DatePicker value={dayjs(Schedule_End)} format="YYYY-MM-DD" disabled size="small" />
+                <TimePicker value={dayjs(Schedule_End)} format="HH:mm" disabled size="small" />
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Toolbar */}
