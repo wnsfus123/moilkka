@@ -1,16 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { ConfigProvider, DatePicker, TimePicker, Button, Form, Input, Card, message, Row, Col } from 'antd';
+import { ConfigProvider, DatePicker, TimePicker, message } from 'antd';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import koKR from 'antd/lib/locale/ko_KR';
 import 'dayjs/locale/ko';
 import dayjs from 'dayjs';
 import { format } from 'date-fns';
-import { checkKakaoLoginStatus, getUserInfoFromLocalStorage, clearUserInfoFromLocalStorage, getBaseUrl } from './Components/authUtils';
+import {
+  checkKakaoLoginStatus,
+  getUserInfoFromLocalStorage,
+  clearUserInfoFromLocalStorage,
+  getBaseUrl,
+} from './Components/authUtils';
+import './CreateEvent.css';
 
 dayjs.locale('ko');
 
 const CreateEvent = () => {
+  const [activeTab, setActiveTab] = useState('create');
   const [eventName, setEventName] = useState('');
   const [startTime, setStartTime] = useState(null);
   const [endTime, setEndTime] = useState(null);
@@ -25,9 +32,7 @@ const CreateEvent = () => {
         const status = await checkKakaoLoginStatus(savedAccessToken);
         if (status) {
           const storedUserInfo = getUserInfoFromLocalStorage();
-          if (storedUserInfo) {
-            setUserInfo(storedUserInfo);
-          }
+          if (storedUserInfo) setUserInfo(storedUserInfo);
         } else {
           clearUserInfoFromLocalStorage();
           setUserInfo(null);
@@ -53,7 +58,10 @@ const CreateEvent = () => {
   };
 
   const handleCreateEvent = () => {
-    if (selectedDates.length < 2) { console.error('날짜를 선택해주세요'); return; }
+    if (selectedDates.length < 2) { message.warning('날짜를 선택해주세요'); return; }
+    if (!startTime || !endTime) { message.warning('시간을 선택해주세요'); return; }
+    if (!eventName.trim()) { message.warning('일정 이름을 입력해주세요'); return; }
+    if (!userInfo) { console.error('로그인 정보가 없습니다.'); return; }
 
     const startDay = selectedDates[0].format('YYYY-MM-DD');
     const endDay = selectedDates[1].format('YYYY-MM-DD');
@@ -61,10 +69,11 @@ const CreateEvent = () => {
     const endTimeStr = endTime.format('HH:mm');
     const eventUUID = uuidv4().substring(0, 8);
 
-    if (!userInfo) { console.error('로그인 정보가 없습니다.'); return; }
-
     const kakaoId = userInfo.id.toString();
-    const nickname = userInfo?.kakao_account?.profile?.nickname || '익명';
+    const nickname =
+      userInfo?.kakao_account?.profile?.nickname ||
+      userInfo?.properties?.nickname ||
+      '익명';
     const createDay = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
 
     axios.post('/api/events', {
@@ -85,105 +94,93 @@ const CreateEvent = () => {
   };
 
   return (
-    <div className="App">
-      <main className="main-content">
-        <h1 style={{ textAlign: 'center' }}>🗓 모임을 새롭게 만들어보세요</h1>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <ConfigProvider locale={koKR}>
+      <div className="create-event">
+        <div className="ce-tabs">
+          <button
+            className={`ce-tab${activeTab === 'create' ? ' active' : ''}`}
+            onClick={() => setActiveTab('create')}
+          >
+            새 모임 만들기
+          </button>
+          <button
+            className={`ce-tab${activeTab === 'join' ? ' active' : ''}`}
+            onClick={() => setActiveTab('join')}
+          >
+            코드로 참여하기
+          </button>
+        </div>
 
-          <Card title="🗓 모임 일정의 이름과 날짜, 시간을 입력하세요 !" style={{ width: '100%', marginBottom: 20 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-
-              <Row justify="center" style={{ width: '100%', marginBottom: '20px' }}>
-                <Col xs={24} sm={24} md={12} lg={12}>
-                  <Form.Item name="eventName" rules={[{ required: true, message: '일정 이름을 입력해주세요' }]}>
-                    <Input
-                      onChange={e => setEventName(e.target.value)}
-                      placeholder="일정 이름을 입력해주세요."
-                      size="large"
-                      style={{ width: '100%' }}
-                    />
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Row justify="center" style={{ width: '100%', marginBottom: '20px' }}>
-                <Col xs={24} sm={24} md={12} lg={12}>
-                  <DatePicker.RangePicker
-                    style={{ width: '100%' }}
-                    format="YYYY년 MM월 DD일"
-                    onChange={dates => setSelectedDates(dates)}
-                    placeholder={['시작 날짜', '종료 날짜']}
-                    size="large"
-                    disabledDate={current => current && current < dayjs().startOf('day')}
-                  />
-                </Col>
-              </Row>
-
-              <Row justify="center" style={{ width: '100%', marginBottom: '20px' }}>
-                <Col xs={24} sm={24} md={12} lg={12}>
-                  <TimePicker.RangePicker
-                    style={{ width: '100%' }}
-                    format="HH시 mm분"
-                    onChange={times => { setStartTime(times[0]); setEndTime(times[1]); }}
-                    placeholder={['시작 시간', '종료 시간']}
-                    size="large"
-                    minuteStep={60}
-                  />
-                </Col>
-              </Row>
-
-              <Form.Item style={{ width: '100%', textAlign: 'center' }}>
-                <Button
-                  type="primary"
-                  onClick={handleCreateEvent}
-                  disabled={!selectedDates.length || !startTime || !endTime || !eventName}
-                  style={{ width: '100%', height: '45px', fontSize: '14px' }}
-                >
-                  일정 생성
-                </Button>
-              </Form.Item>
+        {activeTab === 'create' ? (
+          <div className="ce-panel">
+            <div className="ce-field">
+              <label className="ce-label">모임 이름</label>
+              <input
+                className="ce-input"
+                placeholder="일정 이름을 입력해주세요"
+                value={eventName}
+                onChange={e => setEventName(e.target.value)}
+              />
             </div>
-          </Card>
 
-          <Card title="UUID 입력 ❓ UUID는 모임 링크 key= 뒤에서 확인 가능해요 !" style={{ width: '100%' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <h3 style={{ textAlign: 'center' }}>UUID</h3>
-              <Form.Item
-                name="uuid"
-                rules={[{ required: true, message: 'UUID를 입력해주세요' }]}
+            <div className="ce-field">
+              <label className="ce-label">날짜 범위</label>
+              <DatePicker.RangePicker
                 style={{ width: '100%' }}
-              >
-                <Input.Search
-                  onSearch={handleConfirm}
-                  enterButton="확인"
-                  style={{ height: '40px', width: '100%', marginBottom: '10px' }}
-                  placeholder="UUID를 입력해주세요."
-                  size="large"
+                format="YYYY년 MM월 DD일"
+                onChange={dates => setSelectedDates(dates || [])}
+                placeholder={['시작 날짜', '종료 날짜']}
+                size="large"
+                disabledDate={current => current && current < dayjs().startOf('day')}
+              />
+            </div>
+
+            <div className="ce-field">
+              <label className="ce-label">가능 시간 범위</label>
+              <TimePicker.RangePicker
+                style={{ width: '100%' }}
+                format="HH시 mm분"
+                onChange={times => {
+                  if (times) { setStartTime(times[0]); setEndTime(times[1]); }
+                  else { setStartTime(null); setEndTime(null); }
+                }}
+                placeholder={['시작 시간', '종료 시간']}
+                size="large"
+                minuteStep={60}
+              />
+            </div>
+
+            <button
+              className="ce-btn-primary"
+              onClick={handleCreateEvent}
+              disabled={!selectedDates.length || !startTime || !endTime || !eventName.trim()}
+            >
+              모임 만들기
+            </button>
+          </div>
+        ) : (
+          <div className="ce-panel">
+            <div className="ce-field">
+              <label className="ce-label">UUID 입력</label>
+              <p className="ce-hint">모임 링크의 key= 뒤에 있는 코드를 입력하세요</p>
+              <div className="ce-search-row">
+                <input
+                  className="ce-input"
+                  placeholder="UUID를 입력해주세요"
                   value={uuid}
                   onChange={e => setUuid(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleConfirm()}
                 />
-              </Form.Item>
+                <button className="ce-btn-search" onClick={handleConfirm}>
+                  참여하기
+                </button>
+              </div>
             </div>
-          </Card>
-        </div>
-      </main>
-
-      <div>
-        <h2>로그인 성공!</h2>
-        {userInfo ? (
-          <div><p>안녕하세요 {userInfo?.kakao_account?.profile?.nickname || userInfo?.properties?.nickname || ''}님!</p></div>
-        ) : (
-          <p>사용자 정보를 불러오는 중...</p>
+          </div>
         )}
       </div>
-    </div>
+    </ConfigProvider>
   );
 };
 
-const App = () => (
-  <ConfigProvider locale={koKR}>
-    <CreateEvent />
-  </ConfigProvider>
-);
-
-export default App;
+export default CreateEvent;

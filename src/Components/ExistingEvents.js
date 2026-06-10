@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, List, Card, Button, message } from 'antd';
+import { message } from 'antd';
 import axios from 'axios';
-import { format } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { getBaseUrl } from './authUtils';
+import './ExistingEvents.css';
 
 const ExistingEvents = ({ userInfo }) => {
   const [existingEvents, setExistingEvents] = useState([]);
@@ -12,6 +13,7 @@ const ExistingEvents = ({ userInfo }) => {
   const [deleteConfirmationVisible, setDeleteConfirmationVisible] = useState(false);
   const [eventToDelete, setEventToDelete] = useState(null);
   const [showDeleteButtons, setShowDeleteButtons] = useState(false);
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   useEffect(() => {
     if (userInfo) fetchExistingEvents(userInfo.id.toString());
@@ -30,6 +32,7 @@ const ExistingEvents = ({ userInfo }) => {
 
   const showEventDetails = (uuid) => {
     setIsModalVisible(true);
+    setLoadingDetail(true);
     axios.get(`/api/schedules/details/${uuid}`)
       .then(res => {
         const { eventDetails, participants, creator } = res.data;
@@ -39,10 +42,12 @@ const ExistingEvents = ({ userInfo }) => {
           participants: safeParticipants,
           creator: creator || { nickname: '알 수 없음' },
         });
+        setLoadingDetail(false);
       })
       .catch(err => {
         console.error('이벤트 상세 조회 오류:', err);
         setIsModalVisible(false);
+        setLoadingDetail(false);
       });
   };
 
@@ -51,15 +56,28 @@ const ExistingEvents = ({ userInfo }) => {
     setSelectedEventDetails(null);
   };
 
-  const formatDateTime = (dateString) => {
+  const formatDate = (dateString) => {
     if (!dateString) return '-';
     try {
-      const d = new Date(dateString);
+      const d = new Date(typeof dateString === 'string' ? dateString.replace(' ', 'T') : dateString);
       if (isNaN(d.getTime())) return String(dateString);
-      return format(d, 'yyyy년 MM월 dd일 HH시', { locale: ko });
-    } catch {
-      return String(dateString) || '-';
-    }
+      return format(d, 'MM.dd(EEE)', { locale: ko });
+    } catch { return String(dateString) || '-'; }
+  };
+
+  const getDDay = (startday) => {
+    if (!startday) return null;
+    try {
+      const d = new Date(typeof startday === 'string' ? startday.replace(' ', 'T') : startday);
+      if (isNaN(d.getTime())) return null;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      d.setHours(0, 0, 0, 0);
+      const diff = differenceInDays(d, today);
+      if (diff === 0) return 'D-Day';
+      if (diff > 0) return `D-${diff}`;
+      return `D+${Math.abs(diff)}`;
+    } catch { return null; }
   };
 
   const confirmDeleteEvent = (uuid) => {
@@ -83,88 +101,150 @@ const ExistingEvents = ({ userInfo }) => {
       });
   };
 
-  const toggleDeleteButtons = () => setShowDeleteButtons(!showDeleteButtons);
+  const isCreator = (event) =>
+    event.kakao_id?.toString() === userInfo?.id?.toString();
 
   return (
-    <div>
-      <h2>👨‍👩‍👧‍👦 현재 일정을 등록한 모임 목록</h2>
-      <Button color="danger" variant="solid" onClick={toggleDeleteButtons} style={{ marginBottom: 16 }}>
-        {showDeleteButtons ? '삭제 취소' : '💥 일정 삭제'}
-      </Button>
-      <List
-        grid={{ gutter: 16, xs: 1, sm: 1, md: 1, lg: 2, xl: 2 }}
-        dataSource={existingEvents}
-        renderItem={(event) => (
-          <List.Item>
-            <Card
-              title={event.eventname}
-              extra={
-                showDeleteButtons ? (
-                  <Button type="text" onClick={() => confirmDeleteEvent(event.uuid)} style={{ color: 'red' }}>
-                    X
-                  </Button>
-                ) : null
-              }
-              style={{ width: '100%', minHeight: '150px', fontSize: '14px' }}
-            >
-              <p>{formatDateTime(event.startday)} ~ {formatDateTime(event.endday)}</p>
-              <Button onClick={() => showEventDetails(event.uuid)}>상세보기</Button>
-              <Button
-                type="primary"
-                style={{ marginLeft: 10 }}
-                href={`${getBaseUrl()}/test/?key=${event.uuid}`}
-                target="_blank"
-              >
-                모임 바로가기
-              </Button>
-            </Card>
-          </List.Item>
-        )}
-        style={{ maxHeight: 'calc(150px * 6)', overflowY: 'auto', overflowX: 'hidden' }}
-      />
+    <div className="existing-events">
+      <div className="ee-header">
+        <h2 className="ee-title">내 모임 목록</h2>
+        <button
+          className={`ee-delete-toggle${showDeleteButtons ? ' active' : ''}`}
+          onClick={() => setShowDeleteButtons(v => !v)}
+        >
+          {showDeleteButtons ? '취소' : '삭제'}
+        </button>
+      </div>
 
-      <Modal
-        title="모임 삭제 확인"
-        open={deleteConfirmationVisible}
-        onOk={handleDeleteEvent}
-        onCancel={() => setDeleteConfirmationVisible(false)}
-        okText="확인"
-        cancelText="취소"
-      >
-        <p>정말로 삭제하시겠습니까? 모임 생성자라면 모임 자체가 사라져요!</p>
-      </Modal>
+      {existingEvents.length === 0 ? (
+        <div className="ee-empty">
+          <p>참여한 모임이 없습니다.</p>
+        </div>
+      ) : (
+        <div className="ee-list">
+          {existingEvents.map(event => {
+            const dday = getDDay(event.startday);
+            const creator = isCreator(event);
+            return (
+              <div key={event.uuid} className="ee-card">
+                <div className="ee-card-header">
+                  <div className="ee-badges">
+                    {creator
+                      ? <span className="badge badge-creator">주최자</span>
+                      : <span className="badge badge-participant">참여자</span>
+                    }
+                    {dday && (
+                      <span className={`badge badge-dday${dday === 'D-Day' ? ' today' : dday.startsWith('D+') ? ' past' : ''}`}>
+                        {dday}
+                      </span>
+                    )}
+                  </div>
+                  {showDeleteButtons && (
+                    <button
+                      className="ee-delete-btn"
+                      onClick={() => confirmDeleteEvent(event.uuid)}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
 
-      <Modal
-        title="일정 세부정보"
-        open={isModalVisible}
-        onOk={closeModal}
-        onCancel={closeModal}
-        okText="확인"
-        cancelText="취소"
-      >
-        {selectedEventDetails ? (
-          <div>
-            <p><strong>생성자:</strong> {selectedEventDetails.creator.nickname}</p>
-            <p><strong>일정 이름:</strong> {selectedEventDetails.eventname}</p>
-            <p><strong>시작일:</strong> {formatDateTime(selectedEventDetails.startday)}</p>
-            <p><strong>종료일:</strong> {formatDateTime(selectedEventDetails.endday)}</p>
-            <p><strong>참여자:</strong></p>
-            <ul>
-              {selectedEventDetails.participants.length > 0 ? (
-                selectedEventDetails.participants.map((p, i) => (
-                  <li key={i}>
-                    {p.nickname} - {formatDateTime(p.event_datetime)}
-                  </li>
-                ))
-              ) : (
-                <li>참여자가 없습니다.</li>
-              )}
-            </ul>
+                <div className="ee-card-name">{event.eventname}</div>
+                <div className="ee-card-date">
+                  {formatDate(event.startday)} ~ {formatDate(event.endday)}
+                </div>
+
+                <div className="ee-card-actions">
+                  <button className="ee-btn-outline" onClick={() => showEventDetails(event.uuid)}>
+                    상세보기
+                  </button>
+                  <a
+                    className="ee-btn-primary"
+                    href={`${getBaseUrl()}/test/?key=${event.uuid}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    모임 바로가기
+                  </a>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Delete confirm modal */}
+      {deleteConfirmationVisible && (
+        <div className="modal-overlay" onClick={() => setDeleteConfirmationVisible(false)}>
+          <div className="modal-box" onClick={e => e.stopPropagation()}>
+            <h3 className="modal-title">모임 삭제</h3>
+            <p className="modal-body">
+              정말로 삭제하시겠습니까?<br />
+              모임 생성자라면 모임 자체가 사라져요!
+            </p>
+            <div className="modal-actions">
+              <button className="modal-btn-cancel" onClick={() => setDeleteConfirmationVisible(false)}>
+                취소
+              </button>
+              <button className="modal-btn-danger" onClick={handleDeleteEvent}>
+                삭제
+              </button>
+            </div>
           </div>
-        ) : (
-          <p>이벤트 세부 정보를 불러오는 중입니다...</p>
-        )}
-      </Modal>
+        </div>
+      )}
+
+      {/* Detail modal */}
+      {isModalVisible && (
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-box" onClick={e => e.stopPropagation()}>
+            <h3 className="modal-title">일정 세부정보</h3>
+            <button className="modal-close" onClick={closeModal}>✕</button>
+            {loadingDetail ? (
+              <p className="modal-loading">불러오는 중...</p>
+            ) : selectedEventDetails ? (
+              <div className="modal-detail">
+                <div className="detail-row">
+                  <span className="detail-label">생성자</span>
+                  <span>{selectedEventDetails.creator.nickname}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">일정 이름</span>
+                  <span>{selectedEventDetails.eventname}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">시작</span>
+                  <span>{formatDate(selectedEventDetails.startday)}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">종료</span>
+                  <span>{formatDate(selectedEventDetails.endday)}</span>
+                </div>
+                <div className="detail-participants">
+                  <span className="detail-label">
+                    참여자 ({selectedEventDetails.participants.length}명)
+                  </span>
+                  {selectedEventDetails.participants.length > 0 ? (
+                    <ul className="participant-list">
+                      {selectedEventDetails.participants.map((p, i) => (
+                        <li key={i} className="participant-item">
+                          <span className="participant-name">{p.nickname}</span>
+                          <span className="participant-time">{formatDate(p.event_datetime)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="no-participants">참여자가 없습니다.</p>
+                  )}
+                </div>
+              </div>
+            ) : null}
+            <div className="modal-actions">
+              <button className="modal-btn-primary" onClick={closeModal}>확인</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

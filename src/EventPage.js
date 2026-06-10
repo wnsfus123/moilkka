@@ -3,18 +3,27 @@ import axios from 'axios';
 import { format, addMinutes, differenceInDays, isBefore, isAfter, parse } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import dayjs from 'dayjs';
-import { Button, Card, Typography, Row, Col, message, Tooltip, TimePicker, Input, DatePicker, Modal } from 'antd';
-import { CalendarOutlined, ToolOutlined } from '@ant-design/icons';
+import { message, Tooltip, Modal, DatePicker, TimePicker } from 'antd';
 import ScheduleSelector from 'react-schedule-selector';
-import { checkKakaoLoginStatus, getUserInfoFromLocalStorage, clearUserInfoFromLocalStorage, getBaseUrl } from './Components/authUtils';
+import {
+  checkKakaoLoginStatus,
+  getUserInfoFromLocalStorage,
+  clearUserInfoFromLocalStorage,
+  getBaseUrl,
+} from './Components/authUtils';
 import Socialkakao from './Components/Socialkakao';
 import KakaoShareButton from './Components/KakaoShareButton';
-import { initGoogleAPI, signInWithGoogle, signOutFromGoogle, isGoogleSignedIn, addEventToGoogleCalendar } from './googleAuth';
+import {
+  initGoogleAPI,
+  signInWithGoogle,
+  signOutFromGoogle,
+  isGoogleSignedIn,
+  addEventToGoogleCalendar,
+} from './googleAuth';
 import GoogleCalendar from './GoogleCalendar';
 
 import './App.css';
-
-const { Title, Text } = Typography;
+import './EventPage.css';
 
 function EventPage() {
   const [eventData, setEventData] = useState(null);
@@ -32,6 +41,7 @@ function EventPage() {
   const [isGoogleLoggedIn, setIsGoogleLoggedIn] = useState(false);
   const [isGoogleModalVisible, setIsGoogleModalVisible] = useState(false);
   const [overlappingEvents, setOverlappingEvents] = useState([]);
+  const [activeTab, setActiveTab] = useState('my');
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -256,16 +266,69 @@ function EventPage() {
       });
   };
 
-  if (loading) return <p>Loading...</p>;
+  const getRankedTimes = () => {
+    if (allSchedules.length === 0) return [];
+    const timeCounts = {};
+    allSchedules.forEach(s => {
+      if (!s.event_datetime) return;
+      const timeDt = new Date(s.event_datetime);
+      if (isNaN(timeDt.getTime())) return;
+      const key = format(timeDt, 'yyyy-MM-dd HH:mm');
+      timeCounts[key] = (timeCounts[key] || 0) + 1;
+    });
+
+    const uniqueCounts = [...new Set(Object.values(timeCounts))]
+      .sort((a, b) => b - a)
+      .slice(0, 3);
+
+    return uniqueCounts.map((count, idx) => {
+      const slots = Object.entries(timeCounts)
+        .filter(([, c]) => c === count)
+        .map(([time]) => {
+          const startDt = parse(time, 'yyyy-MM-dd HH:mm', new Date());
+          const endDt = addMinutes(startDt, 30);
+          return { date: format(startDt, 'yyyy/MM/dd'), startDt, endDt };
+        })
+        .sort((a, b) => a.startDt - b.startDt)
+        .reduce((acc, curr) => {
+          if (acc.length === 0) {
+            acc.push({ ...curr });
+          } else {
+            const last = acc[acc.length - 1];
+            if (last.date === curr.date && last.endDt.getTime() === curr.startDt.getTime()) {
+              last.endDt = curr.endDt;
+            } else {
+              acc.push({ ...curr });
+            }
+          }
+          return acc;
+        }, [])
+        .map(s => ({
+          date: s.date,
+          start: format(s.startDt, "HH'시' mm'분'", { locale: ko }),
+          end: format(s.endDt, "HH'시' mm'분'", { locale: ko }),
+        }));
+
+      return { rank: idx + 1, count, slots };
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="ep-loading">
+        <div className="ep-spinner" />
+        <p>일정 정보를 불러오는 중...</p>
+      </div>
+    );
+  }
   if (!userInfo) return <Socialkakao />;
-  if (!eventData) return <p>No event data available</p>;
+  if (!eventData) return <div className="ep-error">이벤트 정보를 찾을 수 없습니다.</div>;
 
   const parseDateSafe = (str) => {
     if (!str) {
       console.warn('[EventPage] parseDateSafe: null/undefined 값, 현재 시간으로 대체:', str);
       return new Date();
     }
-    // PostgreSQL timestamptz가 공백 구분자로 올 수 있음 → ISO 8601로 정규화
     const normalized = typeof str === 'string' ? str.replace(' ', 'T') : str;
     const d = new Date(normalized);
     if (isNaN(d.getTime())) {
@@ -274,6 +337,7 @@ function EventPage() {
     }
     return d;
   };
+
   const Schedule_Start = parseDateSafe(eventData.startday);
   const Schedule_End = parseDateSafe(eventData.endday);
   const startTimeStr = format(Schedule_Start, 'HH:mm');
@@ -284,297 +348,291 @@ function EventPage() {
   const allUsers = [...new Set(allSchedules.map(s => s.nickname))];
   allUsers.forEach((user, i) => { userColorMap[user] = colors[i % colors.length]; });
 
+  const rankedTimes = getRankedTimes();
+
   return (
     <div className="App">
-      <main className="main-content">
-        <Row gutter={[16, 16]}>
-          <Col span={12}>
-            <Card style={{ margin: '20px', padding: '0px' }}>
-              <Title level={4}>
-                <CalendarOutlined style={{ marginRight: '10px' }} />
-                모임 세부 정보
-              </Title>
-              <Row gutter={[16, 16]}>
-                <Col span={12}>
-                  <Text strong>📅 모임 이름: </Text>
-                  <Input value={eventData.eventname} readOnly style={{ width: '100%', backgroundColor: 'white' }} />
-                </Col>
-                <Col span={12}>
-                  <Text strong>📅 모임 UUID: </Text>
-                  <Input value={eventData.uuid} readOnly style={{ width: '100%', backgroundColor: 'white' }} />
-                </Col>
-              </Row>
-              <Row gutter={[16, 16]}>
-                <Col span={12}>
-                  <Text strong>📅 시작 날짜: </Text>
-                  <DatePicker value={dayjs(Schedule_Start)} format="YYYY-MM-DD" disabled style={{ width: '100%', backgroundColor: 'white' }} />
-                </Col>
-                <Col span={12}>
-                  <Text strong>📅 종료 날짜: </Text>
-                  <DatePicker value={dayjs(Schedule_End)} format="YYYY-MM-DD" disabled style={{ width: '100%', backgroundColor: 'white' }} />
-                </Col>
-              </Row>
-              <Row gutter={[16, 16]}>
-                <Col span={12}>
-                  <Text strong>🕒 시작 시간: </Text>
-                  <TimePicker value={dayjs(Schedule_Start)} format="HH:mm" disabled style={{ width: '100%', backgroundColor: 'white' }} />
-                </Col>
-                <Col span={12}>
-                  <Text strong>🕒 종료 시간: </Text>
-                  <TimePicker value={dayjs(Schedule_End)} format="HH:mm" disabled style={{ width: '100%', backgroundColor: 'white' }} />
-                </Col>
-              </Row>
-            </Card>
-          </Col>
+      <main className="main-content" style={{ background: 'var(--color-bg)', padding: 0 }}>
 
-          <Col span={12}>
-            <Card style={{ margin: '20px', padding: '0px' }}>
-              <Title level={4}>
-                <ToolOutlined style={{ marginRight: '10px' }} />
-                모임 관리
-              </Title>
-              <Row gutter={[16, 16]} style={{ marginTop: '20px' }}>
-                <Col span={12}>
-                  <KakaoShareButton userInfo={userInfo} eventData={eventData} />
-                </Col>
-                <Col span={12}>
-                  <Button type="default" block onClick={handleCopyLink} style={{ marginBottom: '10px' }}>
-                    🔗 모임 링크 복사
-                  </Button>
-                </Col>
-              </Row>
-              <Row gutter={[16, 16]} style={{ marginTop: '20px' }}>
-                <Col span={12}>
-                  <Button type="default" block style={{ marginBottom: '10px' }} onClick={handleGoogleLoginClick}>
-                    {isGoogleLoggedIn ? '📆 구글 캘린더 연동완료' : '📆 구글 캘린더 연동하기'}
-                  </Button>
-                </Col>
-                <Col span={12}>
-                  <Button type="default" block style={{ marginBottom: '10px' }} onClick={handleGoogleCalendarFetch}>
-                    📆 구글 일정 불러오기
-                  </Button>
-                  <Modal title="구글 캘린더 일정" open={isGoogleModalVisible} onCancel={handleGoogleModalClose} footer={null}>
-                    <GoogleCalendar scheduleStart={Schedule_Start} scheduleEnd={Schedule_End} setOverlappingEvents={setOverlappingEvents} />
-                  </Modal>
-                </Col>
-                <Col span={12}>
-                  <Button type="default" block onClick={handleExportToGoogleCalendar}>
-                    📆 구글 캘린더로 내보내기
-                  </Button>
-                </Col>
-                <Col span={12}>
-                  <Button type="default" block style={{ marginBottom: '10px' }} onClick={handleGoogleLogoutClick}>
-                    📆 구글 캘린더 연동해제
-                  </Button>
-                </Col>
-              </Row>
-            </Card>
-          </Col>
-        </Row>
-
-        <Row gutter={[16, 16]}>
-          <Col span={12}>
-            <Card style={{ margin: '20px', padding: '0px', overflowX: 'auto' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Title level={4}>⌚ 내 일정 등록하기 !</Title>
-                <Button type="primary" onClick={showModal} style={{ marginTop: '0' }}>
-                  ⌚ 내가 등록한 일정 확인하기
-                </Button>
+        {/* Hero */}
+        <div className="ep-hero">
+          <div className="ep-hero-top">
+            <div>
+              <h1 className="ep-event-name">{eventData.eventname}</h1>
+              <div className="ep-hero-badges">
+                <span className="ep-badge">UUID: {eventData.uuid}</span>
+                <span className="ep-badge ep-badge-count">참여자 {allUsers.length}명</span>
               </div>
+              <p className="ep-date-range">
+                {format(Schedule_Start, 'yyyy.MM.dd')} ~ {format(Schedule_End, 'yyyy.MM.dd')}
+                <span className="ep-time-range"> ({startTimeStr} ~ {endTimeStr})</span>
+              </p>
+            </div>
+          </div>
+          <div className="ep-detail-row">
+            <div className="ep-detail-item">
+              <span className="ep-detail-label">시작</span>
+              <DatePicker value={dayjs(Schedule_Start)} format="YYYY-MM-DD" disabled size="small" />
+              <TimePicker value={dayjs(Schedule_Start)} format="HH:mm" disabled size="small" />
+            </div>
+            <div className="ep-detail-item">
+              <span className="ep-detail-label">종료</span>
+              <DatePicker value={dayjs(Schedule_End)} format="YYYY-MM-DD" disabled size="small" />
+              <TimePicker value={dayjs(Schedule_End)} format="HH:mm" disabled size="small" />
+            </div>
+          </div>
+        </div>
 
-              <Modal
-                title="내가 등록한 일정 확인하기"
-                open={isModalVisible}
-                onOk={handleOk}
-                onCancel={handleCancel}
-                okText="확인"
-                cancelText="취소"
-              >
-                {(() => {
-                  const mergedTimes = [];
-                  userSelectedTimes.forEach(timeRange => {
-                    const startDt = parse(timeRange, 'yyyy-MM-dd HH:mm', new Date());
-                    const endDt = addMinutes(startDt, 30);
-                    if (mergedTimes.length === 0) {
-                      mergedTimes.push({ start: startDt, end: endDt });
-                    } else {
-                      const last = mergedTimes[mergedTimes.length - 1];
-                      if (last.end.getTime() === startDt.getTime()) {
-                        last.end = endDt;
-                      } else {
-                        mergedTimes.push({ start: startDt, end: endDt });
-                      }
-                    }
+        {/* Toolbar */}
+        <div className="ep-toolbar">
+          <KakaoShareButton userInfo={userInfo} eventData={eventData} />
+          <button className="ep-tool-btn" onClick={handleCopyLink}>🔗 링크 복사</button>
+          <button className="ep-tool-btn" onClick={handleGoogleLoginClick}>
+            {isGoogleLoggedIn ? '📆 구글 연동됨' : '📆 구글 캘린더 연동'}
+          </button>
+          <button className="ep-tool-btn" onClick={handleGoogleCalendarFetch}>📆 일정 불러오기</button>
+          <button className="ep-tool-btn" onClick={handleExportToGoogleCalendar}>📆 내보내기</button>
+          <button className="ep-tool-btn" onClick={handleGoogleLogoutClick}>📆 연동 해제</button>
+        </div>
+
+        {/* Tabs */}
+        <div className="ep-tabs">
+          <button
+            className={`ep-tab${activeTab === 'my' ? ' active' : ''}`}
+            onClick={() => setActiveTab('my')}
+          >
+            내 일정 등록
+          </button>
+          <button
+            className={`ep-tab${activeTab === 'all' ? ' active' : ''}`}
+            onClick={() => setActiveTab('all')}
+          >
+            전체 현황
+          </button>
+          <button
+            className={`ep-tab${activeTab === 'best' ? ' active' : ''}`}
+            onClick={() => setActiveTab('best')}
+          >
+            최적 시간 추천
+          </button>
+        </div>
+
+        {/* Tab: My schedule */}
+        {activeTab === 'my' && (
+          <div className="ep-panel">
+            <div className="ep-panel-header">
+              <h3 className="ep-panel-title">⌚ 내 일정 등록하기</h3>
+              <button className="ep-btn-outline" onClick={showModal}>
+                등록된 일정 확인
+              </button>
+            </div>
+            <div className="schedule-selector-wrapper">
+              <ScheduleSelector
+                selection={schedule}
+                numDays={numDays}
+                startDate={Schedule_Start}
+                minTime={parseInt(startTimeStr.split(':')[0], 10)}
+                maxTime={parseInt(endTimeStr.split(':')[0], 10)}
+                hourlyChunks={2}
+                rowGap="4px"
+                columnGap="7px"
+                onChange={handleScheduleChange}
+                renderTimeLabel={(time) => (
+                  <div className="time-label">
+                    {format(time, 'HH:mm')} - {format(addMinutes(time, 30), 'HH:mm')}
+                  </div>
+                )}
+                renderDateCell={(time, selected, innerRef) => {
+                  const timeEnd = addMinutes(time, 30);
+                  const overlapping = overlappingEvents.filter(event => {
+                    const eventStart = new Date(event.start);
+                    const eventEnd = new Date(event.end);
+                    return isBefore(eventStart, timeEnd) && isAfter(eventEnd, time);
                   });
+                  const backgroundColor = selected ? '#1890ff' : '#e6f7ff';
+                  const borderColor = selected ? '1px solid blue' : '1px solid #ccc';
+                  return (
+                    <div
+                      ref={innerRef}
+                      style={{ position: 'relative', padding: '5px', border: borderColor, height: '100%', backgroundColor }}
+                      onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#b3e0ff'; }}
+                      onMouseLeave={e => { e.currentTarget.style.backgroundColor = selected ? '#1890ff' : '#e6f7ff'; }}
+                    >
+                      {overlapping.length > 0 && (
+                        <div style={{ position: 'absolute', top: '50%', right: '5px', transform: 'translateY(-50%)', fontSize: '12px', color: 'red', textAlign: 'right' }}>
+                          {overlapping.map(e => e.title).join(', ')}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }}
+              />
+            </div>
+            <button
+              className="ep-btn-confirm"
+              onClick={handleConfirm}
+              disabled={confirmLoading}
+            >
+              {confirmLoading ? '저장 중...' : '확인'}
+            </button>
+          </div>
+        )}
 
-                  const sortedRanges = mergedTimes.sort((a, b) => a.start - b.start);
-                  const groupedRanges = sortedRanges.reduce((acc, range) => {
-                    const dateKey = format(range.start, 'yyyy/MM/dd');
-                    if (!acc[dateKey]) acc[dateKey] = [];
-                    acc[dateKey].push(range);
-                    return acc;
-                  }, {});
+        {/* Tab: All participants */}
+        {activeTab === 'all' && (
+          <div className="ep-panel">
+            <div className="ep-panel-header">
+              <h3 className="ep-panel-title">📅 전체 참가자 일정</h3>
+            </div>
+            {allUsers.length > 0 && (
+              <div className="ep-legend">
+                {allUsers.map((user, i) => (
+                  <span key={i} className="ep-legend-item">
+                    <span style={{ color: userColorMap[user] }}>●</span> {user}
+                  </span>
+                ))}
+              </div>
+            )}
+            <div className="schedule-selector-wrapper">
+              <ScheduleSelector
+                selection={schedule}
+                numDays={numDays}
+                startDate={Schedule_Start}
+                minTime={parseInt(startTimeStr.split(':')[0], 10)}
+                maxTime={parseInt(endTimeStr.split(':')[0], 10)}
+                hourlyChunks={2}
+                rowGap="4px"
+                columnGap="7px"
+                renderTimeLabel={(time) => (
+                  <div className="time-label">
+                    {format(time, 'HH:mm')} - {format(addMinutes(time, 30), 'HH:mm')}
+                  </div>
+                )}
+                renderDateCell={(time, selected, innerRef) => {
+                  const formattedTime = format(time, 'yyyy-MM-dd HH:mm');
+                  const users = userSchedules[formattedTime] || [];
+                  const uniqueUsers = [...new Set(users)];
+                  const dots = uniqueUsers.map((user, i) => (
+                    <span key={i} style={{ display: 'inline-block', marginLeft: '2px', color: userColorMap[user], fontSize: '14px' }}>
+                      ●
+                    </span>
+                  ));
+                  return (
+                    <Tooltip title={uniqueUsers.join(', ')} placement="top">
+                      <div
+                        ref={innerRef}
+                        style={{
+                          backgroundColor: `rgba(0, 128, 0, ${Math.min(0.1 + uniqueUsers.length * 0.1, 1)})`,
+                          border: '1px solid #ccc',
+                          height: '100%',
+                          width: '100%',
+                          position: 'relative',
+                          paddingRight: '5px',
+                        }}
+                      >
+                        <div style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)' }}>
+                          {dots}
+                        </div>
+                      </div>
+                    </Tooltip>
+                  );
+                }}
+              />
+            </div>
+          </div>
+        )}
 
-                  return Object.entries(groupedRanges).map(([date, ranges]) => (
-                    <div key={date}>
-                      <div>📅 {date}</div>
-                      {ranges.map((range, i) => (
-                        <div key={i} style={{ marginLeft: '20px' }}>
-                          🕒 {format(range.start, "HH'시' mm'분'", { locale: ko })} 부터 {format(range.end, "HH'시' mm'분'", { locale: ko })}까지
+        {/* Tab: Optimal times */}
+        {activeTab === 'best' && (
+          <div className="ep-panel">
+            <div className="ep-panel-header">
+              <h3 className="ep-panel-title">👍 최적 시간 추천</h3>
+            </div>
+            {rankedTimes.length > 0 ? (
+              <div className="ep-rank-section">
+                {rankedTimes.map(({ rank, count, slots }) => (
+                  <div key={rank} className={`ep-rank-card${rank === 1 ? ' rank-first' : ''}`}>
+                    <div className="ep-rank-header">
+                      <span className="ep-rank-badge">{rank}위</span>
+                      <span className="ep-rank-count">{count}명 가능</span>
+                    </div>
+                    <div className="ep-rank-times">
+                      {slots.map((s, i) => (
+                        <div key={i} className="ep-rank-time-item">
+                          📅 {s.date} &nbsp; 🕒 {s.start} ~ {s.end}
                         </div>
                       ))}
                     </div>
-                  ));
-                })()}
-              </Modal>
-
-              <div className="schedule-selector-wrapper">
-                <ScheduleSelector
-                  selection={schedule}
-                  numDays={numDays}
-                  startDate={Schedule_Start}
-                  minTime={parseInt(startTimeStr.split(':')[0], 10)}
-                  maxTime={parseInt(endTimeStr.split(':')[0], 10)}
-                  hourlyChunks={2}
-                  rowGap="4px"
-                  columnGap="7px"
-                  onChange={handleScheduleChange}
-                  renderTimeLabel={(time) => (
-                    <div className="time-label">
-                      {format(time, 'HH:mm')} - {format(addMinutes(time, 30), 'HH:mm')}
-                    </div>
-                  )}
-                  renderDateCell={(time, selected, innerRef) => {
-                    const timeEnd = addMinutes(time, 30);
-                    const overlapping = overlappingEvents.filter(event => {
-                      const eventStart = new Date(event.start);
-                      const eventEnd = new Date(event.end);
-                      return isBefore(eventStart, timeEnd) && isAfter(eventEnd, time);
-                    });
-                    const backgroundColor = selected ? '#1890ff' : '#e6f7ff';
-                    const borderColor = selected ? '1px solid blue' : '1px solid #ccc';
-                    return (
-                      <div
-                        ref={innerRef}
-                        style={{ position: 'relative', padding: '5px', border: borderColor, height: '100%', backgroundColor }}
-                        onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#b3e0ff'; }}
-                        onMouseLeave={e => { e.currentTarget.style.backgroundColor = selected ? '#1890ff' : '#e6f7ff'; }}
-                      >
-                        {overlapping.length > 0 && (
-                          <div style={{ position: 'absolute', top: '50%', right: '5px', transform: 'translateY(-50%)', fontSize: '12px', color: 'red', textAlign: 'right' }}>
-                            {overlapping.map(e => e.title).join(', ')}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  }}
-                />
+                  </div>
+                ))}
               </div>
-              <Button type="primary" onClick={handleConfirm} style={{ marginTop: '20px' }} loading={confirmLoading}>
-                확인
-              </Button>
-            </Card>
-          </Col>
+            ) : (
+              <p className="ep-rank-empty">등록된 일정이 없습니다.</p>
+            )}
+          </div>
+        )}
 
-          <Col span={12}>
-            <Card style={{ margin: '20px', padding: '0px', overflowX: 'auto' }}>
-              <Title level={4}>
-                📅 모든 참가자들의 일정을 확인하세요 !
-                <span style={{ marginLeft: '10px', fontSize: '14px' }}>
-                  {allUsers.map((user, i) => (
-                    <span key={i} style={{ marginLeft: '5px', color: userColorMap[user] }}>
-                      ●( {userColorMap[user]} ) {user}
-                    </span>
-                  ))}
-                </span>
-              </Title>
-              <div className="schedule-selector-wrapper">
-                <ScheduleSelector
-                  selection={schedule}
-                  numDays={numDays}
-                  startDate={Schedule_Start}
-                  minTime={parseInt(startTimeStr.split(':')[0], 10)}
-                  maxTime={parseInt(endTimeStr.split(':')[0], 10)}
-                  hourlyChunks={2}
-                  rowGap="4px"
-                  columnGap="7px"
-                  renderTimeLabel={(time) => (
-                    <div className="time-label">
-                      {format(time, 'HH:mm')} - {format(addMinutes(time, 30), 'HH:mm')}
-                    </div>
-                  )}
-                  renderDateCell={(time, selected, innerRef) => {
-                    const formattedTime = format(time, 'yyyy-MM-dd HH:mm');
-                    const users = userSchedules[formattedTime] || [];
-                    const uniqueUsers = [...new Set(users)];
-                    const dots = uniqueUsers.map((user, i) => (
-                      <span key={i} style={{ display: 'inline-block', marginLeft: '2px', color: userColorMap[user], fontSize: '14px' }}>
-                        ●
-                      </span>
-                    ));
-                    return (
-                      <Tooltip title={uniqueUsers.join(', ')} placement="top">
-                        <div
-                          ref={innerRef}
-                          style={{
-                            backgroundColor: `rgba(0, 128, 0, ${Math.min(0.1 + uniqueUsers.length * 0.1, 1)})`,
-                            border: '1px solid #ccc',
-                            height: '100%',
-                            width: '100%',
-                            position: 'relative',
-                            paddingRight: '5px',
-                          }}
-                        >
-                          <div style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)' }}>
-                            {dots}
-                          </div>
-                        </div>
-                      </Tooltip>
-                    );
-                  }}
-                />
-              </div>
-            </Card>
-          </Col>
-        </Row>
-
-        <Card style={{ margin: '20px', padding: '0px' }}>
-          <Title level={4}>👍 모임 시간으로 적절한 시간을 추천 해드릴께요 !</Title>
-          <Text>🤖 가장 일정이 많이 겹친 시간</Text>
-          {maxOverlapTimes.length > 0 ? (
-            maxOverlapTimes
-              .reduce((acc, curr) => {
-                const existing = acc.find(item => item.date === curr.date);
-                const currentStartDt = parse(curr.start, "HH'시' mm'분'", new Date());
-                const currentEndDt = parse(curr.end, "HH'시' mm'분'", new Date());
-
-                if (existing) {
-                  const lastTimeStr = existing.times[existing.times.length - 1];
-                  const lastEndStr = lastTimeStr.split('부터')[1].trim().replace('까지', '').trim();
-                  const lastEndDt = parse(lastEndStr, "HH'시' mm'분'", new Date());
-                  const lastStartStr = lastTimeStr.split('부터')[0].replace('🕒 ', '').trim();
-                  const lastStartDt = parse(lastStartStr, "HH'시' mm'분'", new Date());
-
-                  if (lastEndDt.getTime() === currentStartDt.getTime()) {
-                    existing.times[existing.times.length - 1] =
-                      `🕒 ${format(lastStartDt, "HH'시' mm'분'", { locale: ko })} 부터 ${format(currentEndDt, "HH'시' mm'분'", { locale: ko })}까지`;
-                  } else {
-                    existing.times.push(`🕒 ${curr.start} 부터 ${curr.end}까지`);
-                  }
+        {/* My schedule modal */}
+        <Modal
+          title="내가 등록한 일정 확인하기"
+          open={isModalVisible}
+          onOk={handleOk}
+          onCancel={handleCancel}
+          okText="확인"
+          cancelText="취소"
+        >
+          {(() => {
+            const mergedTimes = [];
+            userSelectedTimes.forEach(timeRange => {
+              const startDt = parse(timeRange, 'yyyy-MM-dd HH:mm', new Date());
+              const endDt = addMinutes(startDt, 30);
+              if (mergedTimes.length === 0) {
+                mergedTimes.push({ start: startDt, end: endDt });
+              } else {
+                const last = mergedTimes[mergedTimes.length - 1];
+                if (last.end.getTime() === startDt.getTime()) {
+                  last.end = endDt;
                 } else {
-                  acc.push({ date: curr.date, times: [`🕒 ${curr.start} 부터 ${curr.end}까지`] });
+                  mergedTimes.push({ start: startDt, end: endDt });
                 }
-                return acc;
-              }, [])
-              .map((timeInfo, i) => (
-                <div key={i}>
-                  📅 {timeInfo.date} {timeInfo.times.join(', ')}
-                </div>
-              ))
-          ) : (
-            <Text>일정이 없습니다.</Text>
-          )}
-        </Card>
+              }
+            });
+
+            const sortedRanges = mergedTimes.sort((a, b) => a.start - b.start);
+            const groupedRanges = sortedRanges.reduce((acc, range) => {
+              const dateKey = format(range.start, 'yyyy/MM/dd');
+              if (!acc[dateKey]) acc[dateKey] = [];
+              acc[dateKey].push(range);
+              return acc;
+            }, {});
+
+            return Object.entries(groupedRanges).map(([date, ranges]) => (
+              <div key={date}>
+                <div>📅 {date}</div>
+                {ranges.map((range, i) => (
+                  <div key={i} style={{ marginLeft: '20px' }}>
+                    🕒 {format(range.start, "HH'시' mm'분'", { locale: ko })} 부터 {format(range.end, "HH'시' mm'분'", { locale: ko })}까지
+                  </div>
+                ))}
+              </div>
+            ));
+          })()}
+        </Modal>
+
+        {/* Google Calendar modal */}
+        <Modal
+          title="구글 캘린더 일정"
+          open={isGoogleModalVisible}
+          onCancel={handleGoogleModalClose}
+          footer={null}
+        >
+          <GoogleCalendar
+            scheduleStart={Schedule_Start}
+            scheduleEnd={Schedule_End}
+            setOverlappingEvents={setOverlappingEvents}
+          />
+        </Modal>
+
       </main>
     </div>
   );

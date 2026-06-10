@@ -1,21 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import useUserStore from './store/userStore';
-import { Layout, Typography, Card } from 'antd';
-import SocialLogin from './Components/SocialLogin';
 import { checkKakaoLoginStatus, getUserInfoFromLocalStorage, getBaseUrl } from './Components/authUtils';
-
-const { Content } = Layout;
-const { Text } = Typography;
+import './Login.css';
 
 const Loginpage = () => {
-  const { userInfo, setUserInfo, clearUserInfo } = useUserStore();
+  const { clearUserInfo } = useUserStore();
   const [loading, setLoading] = useState(true);
 
-  const handleLoginSuccess = (info) => {
-    setUserInfo(info);
-    window.location.href = `${getBaseUrl()}/event`;
-  };
+  const REST_API_KEY = process.env.REACT_APP_KAKAO_REST_API_KEY;
+  const REDIRECT_URI = process.env.REACT_APP_KAKAO_REDIRECT_URI;
+  const kakaoURL = `https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=profile_nickname,talk_message`;
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -23,7 +18,6 @@ const Loginpage = () => {
       if (savedAccessToken) {
         const status = await checkKakaoLoginStatus(savedAccessToken);
         if (status) {
-          // checkKakaoLoginStatus가 이미 최신 userInfo를 localStorage에 저장
           const latestUserInfo = getUserInfoFromLocalStorage();
           if (latestUserInfo) {
             const nickname =
@@ -53,18 +47,58 @@ const Loginpage = () => {
     checkLoginStatus();
   }, [clearUserInfo]);
 
+  if (loading) {
+    return (
+      <div className="login-loading">
+        <div className="login-spinner" />
+        <span>로딩 중...</span>
+      </div>
+    );
+  }
+
   return (
-    <Layout style={{ height: '100vh' }}>
-      <Content style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', padding: '0px' }}>
-        <Card style={{ width: 1000, textAlign: 'center', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)' }}>
-          {loading ? (
-            <Text>로딩 중...</Text>
-          ) : userInfo ? null : (
-            <SocialLogin onLoginSuccess={handleLoginSuccess} />
-          )}
-        </Card>
-      </Content>
-    </Layout>
+    <div className="login-page">
+      <div className="login-card">
+        <div className="login-brand">
+          <img src="/logo.png" alt="모일까" className="login-logo" />
+          <p className="login-tagline">모임 일정, 더 쉽게 맞춰요</p>
+        </div>
+
+        <div className="login-features">
+          <div className="feature-item">
+            <span className="feature-icon">📅</span>
+            <div>
+              <div className="feature-title">날짜 선택</div>
+              <div className="feature-desc">원하는 날짜 범위를 간편하게 설정</div>
+            </div>
+          </div>
+          <div className="feature-item">
+            <span className="feature-icon">👥</span>
+            <div>
+              <div className="feature-title">일정 공유</div>
+              <div className="feature-desc">카카오톡으로 친구에게 쉽게 공유</div>
+            </div>
+          </div>
+          <div className="feature-item">
+            <span className="feature-icon">✨</span>
+            <div>
+              <div className="feature-title">최적 시간 추천</div>
+              <div className="feature-desc">모두가 가능한 시간을 자동으로 분석</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="login-kakao">
+          <a href={kakaoURL}>
+            <img
+              src="https://developers.kakao.com/tool/resource/static/img/button/login/full/ko/kakao_login_medium_narrow.png"
+              alt="카카오 로그인"
+              className="kakao-login-img"
+            />
+          </a>
+        </div>
+      </div>
+    </div>
   );
 };
 

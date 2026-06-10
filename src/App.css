@@ -1,4 +1,4 @@
-@import '~antd/dist/antd.css'; 
+﻿@import혻'~antd/dist/antd.css'; 
 
 
 
@@ -19,13 +19,13 @@
  .logo-container {
   display: flex;
   align-items: center;
-  justify-content: center; /* 로고를 가운데에 배치 */
+  justify-content: center; /* 濡쒓퀬瑜?媛?대뜲??諛곗튂 */
  }
  
  .nav-buttons {
   display: flex;
   gap: 10px;
-  justify-content: flex-end; /* 버튼을 오른쪽으로 배치 */
+  justify-content: flex-end; /* 踰꾪듉???ㅻⅨ履쎌쑝濡?諛곗튂 */
  }
  
  .main-content {
@@ -51,13 +51,13 @@
  } */
 
  .schedule-container {
-  width: 200px; /* 원하는 너비로 조정 */
-  height: 200px; /* 원하는 높이로 조정 */
+  width: 200px; /* ?먰븯???덈퉬濡?議곗젙 */
+  height: 200px; /* ?먰븯???믪씠濡?議곗젙 */
  }
 
  .custom-schedule-selector {
-  max-width: 50px; /* 원하는 가로 크기로 조절해 주세요 */
-  margin: 0 auto; /* 중앙 정렬을 위해 사용 */
+  max-width: 50px; /* ?먰븯??媛濡??ш린濡?議곗젅??二쇱꽭??*/
+  margin: 0 auto; /* 以묒븰 ?뺣젹???꾪빐 ?ъ슜 */
 }
 
 .schedule-selector-wrapper {
@@ -66,19 +66,19 @@
 }
 
 .time-label {
-  width: 100px; /* 고정된 너비 설정 */
+  width: 100px; /* 怨좎젙???덈퉬 ?ㅼ젙 */
   text-align: center;
 }
 
 .schedule-selector {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* 고정된 너비 설정 */
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* 怨좎젙???덈퉬 ?ㅼ젙 */
   gap: 4px 7px;
 }
 
 .schedule-selector .rs__cell {
-  width: 100px; /* 고정된 너비 설정 */
-  height: 50px; /* 고정된 높이 설정 */
+  width: 100px; /* 怨좎젙???덈퉬 ?ㅼ젙 */
+  height: 50px; /* 怨좎젙???믪씠 ?ㅼ젙 */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -94,4 +94,5 @@
   background-color: #1890ff;
   color: white;
 }
+
 

@@ -1,0 +1,90 @@
+.create-event { width: 100%; }
+
+.ce-tabs {
+  display: flex;
+  background: var(--color-bg);
+  border-radius: var(--radius-lg);
+  padding: 4px;
+  margin-bottom: 20px;
+  gap: 4px;
+}
+
+.ce-tab {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: #888;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+  white-space: nowrap;
+}
+.ce-tab.active {
+  background: var(--color-card);
+  color: #111;
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+}
+
+.ce-panel { display: flex; flex-direction: column; gap: 18px; }
+
+.ce-field { display: flex; flex-direction: column; gap: 6px; }
+.ce-label { font-size: 13px; font-weight: 600; color: #444; }
+.ce-hint { font-size: 12px; color: #bbb; margin: 0; }
+
+.ce-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  background: var(--color-card);
+  outline: none;
+  color: #111;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.ce-input:focus {
+  border-color: #bbb;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
+}
+.ce-input::placeholder { color: #ccc; }
+
+.ce-btn-primary {
+  width: 100%;
+  padding: 13px;
+  background: var(--color-primary);
+  color: var(--color-primary-text);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  margin-top: 4px;
+}
+.ce-btn-primary:hover:not(:disabled) { opacity: 0.85; }
+.ce-btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.ce-search-row { display: flex; gap: 8px; }
+.ce-search-row .ce-input { flex: 1; }
+
+.ce-btn-search {
+  padding: 10px 18px;
+  background: var(--color-primary);
+  color: var(--color-primary-text);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+.ce-btn-search:hover { opacity: 0.85; }
+
+@media (max-width: 768px) {
+  .ce-tab { font-size: 13px; padding: 9px 6px; }
+}

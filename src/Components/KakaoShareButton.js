@@ -1,5 +1,4 @@
 import React from 'react';
-import { Button } from 'antd';
 import { getBaseUrl } from './authUtils';
 
 const KakaoShareButton = ({ userInfo, eventData }) => {
@@ -7,7 +6,11 @@ const KakaoShareButton = ({ userInfo, eventData }) => {
     if (!eventData || !userInfo) return;
 
     const shareUrl = `${getBaseUrl()}/test/?key=${eventData.uuid}`;
-    const shareMessage = `${userInfo?.kakao_account?.profile?.nickname || userInfo?.properties?.nickname || '누군가'} 님이 모일까 일정추가를 원해요!\n카카오톡 로그인 후에 일정을 등록해보세요!`;
+    const senderName =
+      userInfo?.kakao_account?.profile?.nickname ||
+      userInfo?.properties?.nickname ||
+      '누군가';
+    const shareMessage = `${senderName} 님이 모일까 일정추가를 원해요!\n카카오톡 로그인 후에 일정을 등록해보세요!`;
 
     if (window.Kakao) {
       window.Kakao.Link.sendDefault({
@@ -26,9 +29,9 @@ const KakaoShareButton = ({ userInfo, eventData }) => {
   };
 
   return (
-    <Button type="default" onClick={handleKakaoShare} block style={{ marginBottom: '10px' }}>
-      💬 카카오톡으로 공유하기
-    </Button>
+    <button className="ep-tool-btn kakao" onClick={handleKakaoShare}>
+      💬 카카오톡 공유
+    </button>
   );
 };
 
