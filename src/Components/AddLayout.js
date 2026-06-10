@@ -1,17 +1,18 @@
-import React, { useState, useEffect, useRef } from "react";
+import React from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
+import { Layout, Menu, Avatar, Dropdown } from "antd";
 import { getUserInfoFromLocalStorage } from './authUtils';
 import './AddLayout.css';
 
+const { Header, Content, Footer } = Layout;
+
 const AppLayout = () => {
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const location = useLocation();
   const userInfo = getUserInfoFromLocalStorage();
   const nickname =
     userInfo?.kakao_account?.profile?.nickname ||
     userInfo?.properties?.nickname ||
     '';
-  const dropdownRef = useRef(null);
 
   const handleLogout = () => {
     localStorage.removeItem('kakaoAccessToken');
@@ -20,75 +21,79 @@ const AppLayout = () => {
     window.location.href = '/';
   };
 
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setUserMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
   const navItems = [
+    { key: '/event', label: <Link to="/event">홈</Link> },
+    { key: '/create', label: <Link to="/create">새 모임</Link> },
+    { key: '/help', label: <Link to="/help">도움말</Link> },
+  ];
+
+  const userDropdownItems = [
+    { key: 'name', label: <span style={{ fontWeight: 600 }}>{nickname || '사용자'}</span>, disabled: true },
+    { type: 'divider' },
+    { key: 'logout', label: '로그아웃', danger: true, onClick: handleLogout },
+  ];
+
+  const mobileNavItems = [
     { path: '/event', label: '홈' },
     { path: '/create', label: '새 모임' },
     { path: '/help', label: '도움말' },
   ];
 
   return (
-    <div className="app-layout">
-      <header className="app-header">
+    <Layout style={{ minHeight: '100vh' }}>
+      <Header className="app-header">
         <a href="/event" className="header-logo-link">
           <img src="/logo.png" alt="모일까" className="header-logo-img" />
         </a>
 
-        <nav className="header-nav">
-          {navItems.map(item => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`header-nav-item${location.pathname === item.path ? ' active' : ''}`}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        <Menu
+          theme="dark"
+          mode="horizontal"
+          selectedKeys={[location.pathname]}
+          items={navItems}
+          style={{
+            flex: 1,
+            minWidth: 0,
+            background: 'transparent',
+            borderBottom: 'none',
+            lineHeight: '64px',
+          }}
+        />
 
         {userInfo && (
-          <div className="header-user" ref={dropdownRef}>
-            <button
-              className="user-avatar-btn"
-              onClick={() => setUserMenuOpen(v => !v)}
-            >
-              <div className="user-avatar">
+          <Dropdown
+            menu={{ items: userDropdownItems }}
+            trigger={['click']}
+            placement="bottomRight"
+          >
+            <div className="header-user-btn">
+              <Avatar
+                style={{
+                  backgroundColor: '#FEE500',
+                  color: '#3C1E1E',
+                  fontWeight: 700,
+                  flexShrink: 0,
+                }}
+              >
                 {nickname ? nickname.charAt(0) : '?'}
-              </div>
+              </Avatar>
               <span className="user-name-text">{nickname || '사용자'}</span>
-              <span className="avatar-chevron">{userMenuOpen ? '▲' : '▼'}</span>
-            </button>
-            {userMenuOpen && (
-              <div className="user-dropdown">
-                <div className="dropdown-username">{nickname || '사용자'}</div>
-                <button onClick={handleLogout} className="dropdown-logout">
-                  로그아웃
-                </button>
-              </div>
-            )}
-          </div>
+              <span className="avatar-chevron">▾</span>
+            </div>
+          </Dropdown>
         )}
-      </header>
+      </Header>
 
-      <main className="app-content">
+      <Content className="app-content">
         <Outlet />
-      </main>
+      </Content>
 
-      <footer className="app-footer">
+      <Footer className="app-footer">
         모일까 ©{new Date().getFullYear()} Created by 모일까
-      </footer>
+      </Footer>
 
       <nav className="mobile-bottom-nav">
-        {navItems.map(item => (
+        {mobileNavItems.map(item => (
           <Link
             key={item.path}
             to={item.path}
@@ -98,7 +103,7 @@ const AppLayout = () => {
           </Link>
         ))}
       </nav>
-    </div>
+    </Layout>
   );
 };
 
