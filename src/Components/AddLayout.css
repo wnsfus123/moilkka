@@ -13,6 +13,8 @@
   padding: 0 24px !important;
   height: 52px !important;
   line-height: 52px !important;
+  margin: 0 !important;
+  border-top: none !important;
   position: sticky;
   top: 0;
   z-index: 200;
