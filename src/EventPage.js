@@ -352,58 +352,39 @@ function EventPage() {
   };
 
   const renderTimeLabel = (time) => (
-    <div className="time-label">{format(time, 'HH:mm')} - {format(addMinutes(time, 30), 'HH:mm')}</div>
+    <div className="tg-time-label">{format(time, 'HH:00')}</div>
   );
 
   const renderMyCell = (time, selected, innerRef) => {
-    const timeEnd = addMinutes(time, 30);
+    const timeEnd = addMinutes(time, 60);
     const overlapping = overlappingEvents.filter(ev => {
       const evStart = new Date(ev.start);
       const evEnd = new Date(ev.end);
       return isBefore(evStart, timeEnd) && isAfter(evEnd, time);
     });
-    const bgColor = selected ? '#1890ff' : '#e6f7ff';
-    const border = selected ? '1px solid blue' : '1px solid #ccc';
     return (
-      <div
-        ref={innerRef}
-        style={{ position: 'relative', padding: '5px', border, height: '100%', backgroundColor: bgColor }}
-        onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#b3e0ff'; }}
-        onMouseLeave={e => { e.currentTarget.style.backgroundColor = selected ? '#1890ff' : '#e6f7ff'; }}
-      >
+      <div ref={innerRef} className={`tg-cell${selected ? ' tg-cell-sel' : ''}`}>
         {overlapping.length > 0 && (
-          <div style={{ position: 'absolute', top: '50%', right: '5px', transform: 'translateY(-50%)', fontSize: '12px', color: 'red', textAlign: 'right' }}>
-            {overlapping.map(ev => ev.title).join(', ')}
-          </div>
+          <span className="tg-cell-event-dot" title={overlapping.map(ev => ev.title).join(', ')} />
         )}
       </div>
     );
   };
 
   const renderAllCell = (time, _selected, innerRef) => {
-    const formattedTime = format(time, 'yyyy-MM-dd HH:mm');
-    const users = userSchedules[formattedTime] || [];
-    const uniqueUsers = [...new Set(users)];
-    const dots = uniqueUsers.map((user, i) => (
-      <span key={i} style={{ display: 'inline-block', marginLeft: '2px', color: userColorMap[user], fontSize: '14px' }}>●</span>
-    ));
+    const key00 = format(time, 'yyyy-MM-dd HH:mm');
+    const key30 = format(addMinutes(time, 30), 'yyyy-MM-dd HH:mm');
+    const combined = [...(userSchedules[key00] || []), ...(userSchedules[key30] || [])];
+    const uniqueUsers = [...new Set(combined)];
+    const ratio = allUsers.length > 0 ? uniqueUsers.length / allUsers.length : 0;
+    const alpha = uniqueUsers.length > 0 ? 0.12 + ratio * 0.65 : 0;
     return (
-      <Tooltip title={uniqueUsers.join(', ')} placement="top">
+      <Tooltip title={uniqueUsers.length > 0 ? uniqueUsers.join(', ') : ''} placement="top">
         <div
           ref={innerRef}
-          style={{
-            backgroundColor: `rgba(0, 128, 0, ${Math.min(0.1 + uniqueUsers.length * 0.1, 1)})`,
-            border: '1px solid #ccc',
-            height: '100%',
-            width: '100%',
-            position: 'relative',
-            paddingRight: '5px',
-          }}
-        >
-          <div style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)' }}>
-            {dots}
-          </div>
-        </div>
+          className="tg-cell tg-cell-all"
+          style={{ backgroundColor: `rgba(22, 163, 74, ${alpha})` }}
+        />
       </Tooltip>
     );
   };
@@ -501,9 +482,10 @@ function EventPage() {
                         startDate={makeGroupStart(group[0])}
                         minTime={minTime}
                         maxTime={maxTime}
-                        hourlyChunks={2}
-                        rowGap="4px"
-                        columnGap="7px"
+                        hourlyChunks={1}
+                        cellHeight={44}
+                        rowGap="3px"
+                        columnGap="6px"
                         onChange={(newSel) => {
                           const others = schedule.filter(d => !group.includes(format(d, 'yyyy-MM-dd')));
                           handleScheduleChange([...others, ...newSel]);
@@ -520,9 +502,10 @@ function EventPage() {
                     startDate={Schedule_Start}
                     minTime={minTime}
                     maxTime={maxTime}
-                    hourlyChunks={2}
-                    rowGap="4px"
-                    columnGap="7px"
+                    hourlyChunks={1}
+                    cellHeight={44}
+                    rowGap="3px"
+                    columnGap="6px"
                     onChange={handleScheduleChange}
                     renderTimeLabel={renderTimeLabel}
                     renderDateCell={renderMyCell}
@@ -559,9 +542,10 @@ function EventPage() {
                         startDate={makeGroupStart(group[0])}
                         minTime={minTime}
                         maxTime={maxTime}
-                        hourlyChunks={2}
-                        rowGap="4px"
-                        columnGap="7px"
+                        hourlyChunks={1}
+                        cellHeight={44}
+                        rowGap="3px"
+                        columnGap="6px"
                         renderTimeLabel={renderTimeLabel}
                         renderDateCell={renderAllCell}
                       />
@@ -574,9 +558,10 @@ function EventPage() {
                     startDate={Schedule_Start}
                     minTime={minTime}
                     maxTime={maxTime}
-                    hourlyChunks={2}
-                    rowGap="4px"
-                    columnGap="7px"
+                    hourlyChunks={1}
+                    cellHeight={44}
+                    rowGap="3px"
+                    columnGap="6px"
                     renderTimeLabel={renderTimeLabel}
                     renderDateCell={renderAllCell}
                   />
@@ -639,9 +624,10 @@ function EventPage() {
                         startDate={makeGroupStart(group[0])}
                         minTime={minTime}
                         maxTime={maxTime}
-                        hourlyChunks={2}
-                        rowGap="4px"
-                        columnGap="7px"
+                        hourlyChunks={1}
+                        cellHeight={44}
+                        rowGap="3px"
+                        columnGap="6px"
                         onChange={(newSel) => {
                           const others = schedule.filter(d => !group.includes(format(d, 'yyyy-MM-dd')));
                           handleScheduleChange([...others, ...newSel]);
@@ -658,9 +644,10 @@ function EventPage() {
                     startDate={Schedule_Start}
                     minTime={minTime}
                     maxTime={maxTime}
-                    hourlyChunks={2}
-                    rowGap="4px"
-                    columnGap="7px"
+                    hourlyChunks={1}
+                    cellHeight={44}
+                    rowGap="3px"
+                    columnGap="6px"
                     onChange={handleScheduleChange}
                     renderTimeLabel={renderTimeLabel}
                     renderDateCell={renderMyCell}
@@ -698,9 +685,10 @@ function EventPage() {
                         startDate={makeGroupStart(group[0])}
                         minTime={minTime}
                         maxTime={maxTime}
-                        hourlyChunks={2}
-                        rowGap="4px"
-                        columnGap="7px"
+                        hourlyChunks={1}
+                        cellHeight={44}
+                        rowGap="3px"
+                        columnGap="6px"
                         renderTimeLabel={renderTimeLabel}
                         renderDateCell={renderAllCell}
                       />
@@ -713,9 +701,10 @@ function EventPage() {
                     startDate={Schedule_Start}
                     minTime={minTime}
                     maxTime={maxTime}
-                    hourlyChunks={2}
-                    rowGap="4px"
-                    columnGap="7px"
+                    hourlyChunks={1}
+                    cellHeight={44}
+                    rowGap="3px"
+                    columnGap="6px"
                     renderTimeLabel={renderTimeLabel}
                     renderDateCell={renderAllCell}
                   />
