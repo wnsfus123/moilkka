@@ -65,6 +65,15 @@ const ExistingEvents = ({ userInfo }) => {
     } catch { return String(dateString) || '-'; }
   };
 
+  const formatFull = (dateString) => {
+    if (!dateString) return '-';
+    try {
+      const d = new Date(typeof dateString === 'string' ? dateString.replace(' ', 'T') : dateString);
+      if (isNaN(d.getTime())) return String(dateString);
+      return format(d, 'yyyy.MM.dd(EEE)', { locale: ko });
+    } catch { return String(dateString) || '-'; }
+  };
+
   const getDDay = (startday) => {
     if (!startday) return null;
     try {
@@ -103,6 +112,25 @@ const ExistingEvents = ({ userInfo }) => {
 
   const isCreator = (event) =>
     event.kakao_id?.toString() === userInfo?.id?.toString();
+
+  const handleCopyEventLink = (uuid) => {
+    const link = `${getBaseUrl()}/test/?key=${uuid}`;
+    navigator.clipboard.writeText(link)
+      .then(() => message.success('링크가 복사되었습니다!'))
+      .catch(() => message.error('복사에 실패했습니다.'));
+  };
+
+  const getUniqueParticipants = (participants) => {
+    const seen = new Map();
+    participants.forEach(p => {
+      if (!seen.has(p.nickname)) {
+        seen.set(p.nickname, { ...p, slots: [p.event_datetime].filter(Boolean) });
+      } else {
+        seen.get(p.nickname).slots.push(p.event_datetime);
+      }
+    });
+    return [...seen.values()];
+  };
 
   return (
     <div className="existing-events">
@@ -197,51 +225,107 @@ const ExistingEvents = ({ userInfo }) => {
       {/* Detail modal */}
       {isModalVisible && (
         <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal-box" onClick={e => e.stopPropagation()}>
-            <h3 className="modal-title">일정 세부정보</h3>
+          <div className="modal-box detail-modal-box" onClick={e => e.stopPropagation()}>
             <button className="modal-close" onClick={closeModal}>✕</button>
+
             {loadingDetail ? (
               <p className="modal-loading">불러오는 중...</p>
-            ) : selectedEventDetails ? (
-              <div className="modal-detail">
-                <div className="detail-row">
-                  <span className="detail-label">생성자</span>
-                  <span>{selectedEventDetails.creator.nickname}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="detail-label">일정 이름</span>
-                  <span>{selectedEventDetails.eventname}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="detail-label">시작</span>
-                  <span>{formatDate(selectedEventDetails.startday)}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="detail-label">종료</span>
-                  <span>{formatDate(selectedEventDetails.endday)}</span>
-                </div>
-                <div className="detail-participants">
-                  <span className="detail-label">
-                    참여자 ({selectedEventDetails.participants.length}명)
-                  </span>
-                  {selectedEventDetails.participants.length > 0 ? (
-                    <ul className="participant-list">
-                      {selectedEventDetails.participants.map((p, i) => (
-                        <li key={i} className="participant-item">
-                          <span className="participant-name">{p.nickname}</span>
-                          <span className="participant-time">{formatDate(p.event_datetime)}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="no-participants">참여자가 없습니다.</p>
-                  )}
-                </div>
-              </div>
-            ) : null}
-            <div className="modal-actions">
-              <button className="modal-btn-primary" onClick={closeModal}>확인</button>
-            </div>
+            ) : selectedEventDetails ? (() => {
+              const uniqueParticipants = getUniqueParticipants(selectedEventDetails.participants);
+              const dday = getDDay(selectedEventDetails.startday);
+              return (
+                <>
+                  {/* 헤더 */}
+                  <div className="detail-header">
+                    <div className="detail-title-row">
+                      <h3 className="detail-event-name">{selectedEventDetails.eventname}</h3>
+                      {dday && (
+                        <span className={`badge badge-dday${dday === 'D-Day' ? ' today' : dday.startsWith('D+') ? ' past' : ''}`}>
+                          {dday}
+                        </span>
+                      )}
+                    </div>
+                    <p className="detail-creator">주최자: {selectedEventDetails.creator.nickname}</p>
+                  </div>
+
+                  {/* 빠른 액션 */}
+                  <div className="detail-quick-actions">
+                    <a
+                      className="detail-action-btn primary"
+                      href={`${getBaseUrl()}/test/?key=${selectedEventDetails.uuid}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      🗓 모임 바로가기
+                    </a>
+                    <button
+                      className="detail-action-btn secondary"
+                      onClick={() => handleCopyEventLink(selectedEventDetails.uuid)}
+                    >
+                      🔗 링크 복사
+                    </button>
+                  </div>
+
+                  {/* 일정 정보 그리드 */}
+                  <div className="detail-info-grid">
+                    <div className="detail-info-cell">
+                      <span className="detail-info-label">시작일</span>
+                      <span className="detail-info-value">{formatFull(selectedEventDetails.startday)}</span>
+                    </div>
+                    <div className="detail-info-cell">
+                      <span className="detail-info-label">종료일</span>
+                      <span className="detail-info-value">{formatFull(selectedEventDetails.endday)}</span>
+                    </div>
+                  </div>
+
+                  {/* UUID */}
+                  <div className="detail-uuid-row">
+                    <span className="detail-info-label">UUID</span>
+                    <code className="detail-uuid-code">{selectedEventDetails.uuid}</code>
+                    <button
+                      className="uuid-copy-btn"
+                      onClick={() => {
+                        navigator.clipboard.writeText(selectedEventDetails.uuid)
+                          .then(() => message.success('UUID 복사됨'))
+                          .catch(() => {});
+                      }}
+                    >
+                      복사
+                    </button>
+                  </div>
+
+                  {/* 참여자 */}
+                  <div className="detail-participants-section">
+                    <div className="detail-participants-header">
+                      <span className="detail-info-label">일정 등록 현황</span>
+                      <span className="detail-participants-count">
+                        {uniqueParticipants.length}명 등록 완료
+                      </span>
+                    </div>
+                    {uniqueParticipants.length > 0 ? (
+                      <div className="participant-chips">
+                        {uniqueParticipants.map((p, i) => (
+                          <div key={i} className="participant-chip">
+                            <span className="chip-avatar">{p.nickname.charAt(0)}</span>
+                            <div className="chip-info">
+                              <span className="chip-name">{p.nickname}</span>
+                              <span className="chip-slots">{p.slots.length}개 슬롯</span>
+                            </div>
+                            <span className="chip-check">✓</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="no-participants">아직 일정을 등록한 참여자가 없습니다.</p>
+                    )}
+                  </div>
+
+                  <div className="modal-actions">
+                    <button className="modal-btn-primary" onClick={closeModal}>닫기</button>
+                  </div>
+                </>
+              );
+            })() : null}
           </div>
         </div>
       )}
