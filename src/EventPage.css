@@ -91,9 +91,12 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  width: 100%;
+  min-width: 0;
 }
 .groups-scroller-inner {
   flex: 1;
+  min-width: 0;        /* critical: allows flex item to shrink below content size */
   overflow: hidden;
 }
 .ep-groups-row {
@@ -128,9 +131,11 @@
   box-shadow: var(--shadow-sm);
   padding: 0;
 }
-.gs-btn:hover { background: #F0F0EE; box-shadow: var(--shadow-md, 0 2px 8px rgba(0,0,0,0.12)); }
+.gs-btn:hover { background: #F0F0EE; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
 .schedule-selector-wrapper {
-  overflow-x: auto;
+  overflow-x: auto;    /* single-selector fallback needs scroll */
+  width: 100%;
+  min-width: 0;
 }
 
 /* ── Date groups (multi-group schedule selectors) ── */
@@ -343,6 +348,11 @@
   grid-template-columns: 1fr 1fr;
   gap: 16px;
   margin-bottom: 16px;
+  min-width: 0;
+}
+/* Grid cells must have min-width:0 so 1fr tracks don't expand beyond viewport */
+.ep-schedule-grid > * {
+  min-width: 0;
 }
 .ep-schedule-mobile { display: none; }
 
