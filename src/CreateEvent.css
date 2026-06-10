@@ -93,6 +93,165 @@
 }
 .ce-btn-search:hover { opacity: 0.88; }
 
+/* ── 날짜 모드 선택 탭 ── */
+.date-mode-tabs {
+  display: flex;
+  gap: 6px;
+}
+.date-mode-btn {
+  flex: 1;
+  padding: 8px 6px;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.date-mode-btn.active {
+  background: #e6f4ff;
+  border-color: #1677ff;
+  color: #1677ff;
+  font-weight: 700;
+}
+
+/* ── 달력 (개별 선택) ── */
+.mc-wrap {
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
+  padding: 12px;
+  background: #fafafa;
+}
+.mc-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.mc-nav-btn {
+  background: none;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  width: 28px; height: 28px;
+  cursor: pointer;
+  font-size: 16px;
+  color: #555;
+  display: flex; align-items: center; justify-content: center;
+}
+.mc-nav-btn:hover { background: #f0f0f0; }
+.mc-nav-title { font-size: 14px; font-weight: 700; color: #111; }
+
+.mc-grid-head {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 4px;
+}
+.mc-dow {
+  text-align: center;
+  font-size: 11px;
+  color: #aaa;
+  padding: 4px 0;
+}
+.mc-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+.mc-day {
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  font-size: 13px;
+  cursor: pointer;
+  color: #333;
+  transition: background 0.12s;
+}
+.mc-day:hover:not(:disabled) { background: #e6f4ff; color: #1677ff; }
+.mc-day.selected { background: #1677ff; color: #fff; font-weight: 700; }
+.mc-day.past { color: #ccc; cursor: not-allowed; }
+.mc-summary {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #888;
+  text-align: center;
+}
+
+/* ── 요일 선택 ── */
+.wd-wrap {
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
+  padding: 12px;
+  background: #fafafa;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.wd-month-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.wd-days {
+  display: flex;
+  gap: 6px;
+}
+.wd-day-btn {
+  flex: 1;
+  padding: 8px 4px;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  color: #444;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.wd-day-btn.selected { background: #1677ff; border-color: #1677ff; color: #fff; font-weight: 700; }
+.wd-day-btn.sun { color: #e53e3e; }
+.wd-day-btn.sat { color: #1677ff; }
+.wd-day-btn.sun.selected, .wd-day-btn.sat.selected { color: #fff; }
+
+.wd-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-height: 28px;
+}
+.wd-chip {
+  padding: 3px 8px;
+  background: #e6f4ff;
+  border-radius: 999px;
+  font-size: 11px;
+  color: #1677ff;
+}
+.wd-empty { font-size: 12px; color: #bbb; }
+
+/* ── 날짜 선택 요약 ── */
+.ce-date-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+.ce-date-count {
+  font-size: 13px;
+  font-weight: 700;
+  color: #389e0d;
+}
+.ce-date-range-text {
+  font-size: 12px;
+  color: #595959;
+}
+
 @media (max-width: 768px) {
   .ce-tab { font-size: 13px; padding: 9px 6px; }
+  .wd-day-btn { font-size: 12px; padding: 7px 2px; }
 }

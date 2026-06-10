@@ -7,19 +7,24 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { uuid, eventName, startDay, endDay, startTime, endTime, kakaoId, nickname } = req.body;
+  const { uuid, eventName, startDay, endDay, startTime, endTime, kakaoId, nickname, selectedDates } = req.body;
 
   const start_at = `${startDay}T${startTime}:00+09:00`;
   const end_at = `${endDay}T${endTime}:00+09:00`;
 
-  const { error } = await supabase.from('events').insert({
+  const insertData = {
     uuid,
     name: eventName,
     start_at,
     end_at,
     kakao_id: kakaoId,
     nickname,
-  });
+  };
+  if (Array.isArray(selectedDates) && selectedDates.length > 0) {
+    insertData.selected_dates = selectedDates;
+  }
+
+  const { error } = await supabase.from('events').insert(insertData);
 
   if (error) {
     console.error('[events/index] Supabase insert 오류:', error.message, error.details, error.hint);

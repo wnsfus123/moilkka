@@ -69,12 +69,22 @@ function EventPage() {
       console.log('[EventPage] fetchEventData full response:', JSON.stringify(response.data));
       setEventData(response.data);
 
-      const startD = new Date(response.data.startday);
-      const endD = new Date(response.data.endday);
-      const diffDays = (!isNaN(startD) && !isNaN(endD))
-        ? differenceInDays(endD, startD) + 1
-        : 1;
-      setNumDays(Math.max(1, isNaN(diffDays) ? 1 : diffDays));
+      // selected_dates(개별 지정)가 있으면 그 범위, 없으면 startday~endday 범위 사용
+      const selDates = response.data.selected_dates;
+      if (Array.isArray(selDates) && selDates.length > 0) {
+        const sorted = [...selDates].sort();
+        const startD = new Date(sorted[0]);
+        const endD   = new Date(sorted[sorted.length - 1]);
+        const diffDays = differenceInDays(endD, startD) + 1;
+        setNumDays(Math.max(1, diffDays));
+      } else {
+        const startD = new Date(response.data.startday);
+        const endD = new Date(response.data.endday);
+        const diffDays = (!isNaN(startD) && !isNaN(endD))
+          ? differenceInDays(endD, startD) + 1
+          : 1;
+        setNumDays(Math.max(1, isNaN(diffDays) ? 1 : diffDays));
+      }
 
       const schedulesResponse = await axios.get(`/api/schedules/${uuid}`);
       const schedules = Array.isArray(schedulesResponse.data) ? schedulesResponse.data : [];
