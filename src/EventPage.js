@@ -705,23 +705,21 @@ function EventPage() {
                     ))}
                   </GroupsScroller>
                 ) : (
-                  <div style={{ width: `${numDays * 82 + 62}px` }}>
-                    <ScheduleSelector
-                      selection={schedule}
-                      numDays={numDays}
-                      startDate={Schedule_Start}
-                      minTime={minTime}
-                      maxTime={maxTime}
-                      hourlyChunks={1}
-                      cellHeight={44}
-                      rowGap="3px"
-                      columnGap="6px"
-                      onChange={handleScheduleChange}
-                      renderTimeLabel={renderTimeLabel}
-                      renderDateLabel={renderDateLabel}
-                      renderDateCell={renderMyCell}
-                    />
-                  </div>
+                  <ScheduleSelector
+                    selection={schedule}
+                    numDays={numDays}
+                    startDate={Schedule_Start}
+                    minTime={minTime}
+                    maxTime={maxTime}
+                    hourlyChunks={1}
+                    cellHeight={44}
+                    rowGap="3px"
+                    columnGap="6px"
+                    onChange={handleScheduleChange}
+                    renderTimeLabel={renderTimeLabel}
+                    renderDateLabel={renderDateLabel}
+                    renderDateCell={renderMyCell}
+                  />
                 )}
               </div>
             </div>
@@ -844,23 +842,21 @@ function EventPage() {
                     ))}
                   </GroupsScroller>
                 ) : (
-                  <div style={{ width: `${numDays * 82 + 62}px` }}>
-                    <ScheduleSelector
-                      selection={schedule}
-                      numDays={numDays}
-                      startDate={Schedule_Start}
-                      minTime={minTime}
-                      maxTime={maxTime}
-                      hourlyChunks={1}
-                      cellHeight={44}
-                      rowGap="3px"
-                      columnGap="6px"
-                      onChange={handleScheduleChange}
-                      renderTimeLabel={renderTimeLabel}
-                      renderDateLabel={renderDateLabel}
-                      renderDateCell={renderMyCell}
-                    />
-                  </div>
+                  <ScheduleSelector
+                    selection={schedule}
+                    numDays={numDays}
+                    startDate={Schedule_Start}
+                    minTime={minTime}
+                    maxTime={maxTime}
+                    hourlyChunks={1}
+                    cellHeight={44}
+                    rowGap="3px"
+                    columnGap="6px"
+                    onChange={handleScheduleChange}
+                    renderTimeLabel={renderTimeLabel}
+                    renderDateLabel={renderDateLabel}
+                    renderDateCell={renderMyCell}
+                  />
                 )}
               </div>
             </div>
@@ -914,22 +910,20 @@ function EventPage() {
                     ))}
                   </GroupsScroller>
                 ) : (
-                  <div style={{ width: `${numDays * 82 + 62}px` }}>
-                    <ScheduleSelector
-                      selection={schedule}
-                      numDays={numDays}
-                      startDate={Schedule_Start}
-                      minTime={minTime}
-                      maxTime={maxTime}
-                      hourlyChunks={1}
-                      cellHeight={44}
-                      rowGap="3px"
-                      columnGap="6px"
-                      renderTimeLabel={renderTimeLabel}
-                      renderDateLabel={renderDateLabel}
-                      renderDateCell={renderAllCell}
-                    />
-                  </div>
+                  <ScheduleSelector
+                    selection={schedule}
+                    numDays={numDays}
+                    startDate={Schedule_Start}
+                    minTime={minTime}
+                    maxTime={maxTime}
+                    hourlyChunks={1}
+                    cellHeight={44}
+                    rowGap="3px"
+                    columnGap="6px"
+                    renderTimeLabel={renderTimeLabel}
+                    renderDateLabel={renderDateLabel}
+                    renderDateCell={renderAllCell}
+                  />
                 )}
               </div>
             </div>
