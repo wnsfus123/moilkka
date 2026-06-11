@@ -1,5 +1,14 @@
 .create-event { width: 100%; padding: 0; margin: 0; }
 
+/* 단독 페이지(/create)에서 데스크탑 여백 */
+@media (min-width: 769px) {
+  .create-event {
+    max-width: 520px;
+    margin: 24px auto;
+    padding: 0 16px;
+  }
+}
+
 /* ── Tabs ── */
 .ce-tabs {
   display: flex;
