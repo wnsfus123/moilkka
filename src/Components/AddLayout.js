@@ -33,12 +33,6 @@ const AppLayout = () => {
     { key: 'logout', label: '로그아웃', danger: true, onClick: handleLogout },
   ];
 
-  const mobileNavItems = [
-    { path: '/event', label: '홈' },
-    { path: '/create', label: '새 모임' },
-    { path: '/help', label: '도움말' },
-  ];
-
   return (
     <div className="app-shell">
       <Header className="app-header">
