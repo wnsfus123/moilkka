@@ -432,6 +432,78 @@
 }
 
 
+/* ── Confirmed cell ── */
+.tg-cell-confirmed {
+  background: rgba(82, 196, 26, 0.25) !important;
+  border: 1.5px solid #52c41a !important;
+}
+.tg-cell-confirm-mark {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  font-size: 9px;
+  color: #389e0d;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* ── Confirmed banner ── */
+.ep-confirmed-banner {
+  margin-top: 14px;
+  padding: 12px 16px;
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+  border-radius: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.ep-confirmed-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #389e0d;
+  white-space: nowrap;
+  padding-top: 2px;
+}
+.ep-confirmed-slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ep-confirmed-slot {
+  padding: 4px 12px;
+  background: #d9f7be;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #237804;
+}
+
+/* ── Confirm button ── */
+.ep-tool-btn.btn-confirm { background: #fff7e6; color: #873800; border-color: #ffd591; }
+.ep-tool-btn.btn-confirm:hover { background: #ffe7ba; }
+.ep-tool-btn.btn-confirm.confirmed { background: #f6ffed; color: #237804; border-color: #b7eb8f; }
+
+/* ── Confirm modal ── */
+.confirm-modal-body { display: flex; flex-direction: column; gap: 14px; max-height: 60vh; overflow-y: auto; }
+.confirm-modal-hint { font-size: 12px; color: #aaa; margin: 0; }
+.confirm-date-group { display: flex; flex-direction: column; gap: 6px; }
+.confirm-date-label { font-size: 13px; font-weight: 700; color: #555; padding: 4px 0 2px; border-bottom: 1px solid #f0f0f0; }
+.confirm-slot {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px; border-radius: 8px; cursor: pointer;
+  border: 1px solid #f0f0f0; background: #fafafa;
+  transition: all 0.15s;
+}
+.confirm-slot:hover { background: #f0fff0; border-color: #b7eb8f; }
+.confirm-slot.selected { background: #f6ffed; border-color: #52c41a; }
+.confirm-slot-check { font-size: 16px; color: #52c41a; flex-shrink: 0; width: 18px; }
+.confirm-slot-time { font-size: 13px; font-weight: 600; color: #222; width: 90px; flex-shrink: 0; }
+.confirm-slot-bar-wrap { flex: 1; height: 8px; background: #e8e8e8; border-radius: 999px; overflow: hidden; }
+.confirm-slot-bar { height: 100%; background: #52c41a; border-radius: 999px; transition: width 0.3s; min-width: 4px; }
+.confirm-slot-count { font-size: 12px; color: #888; width: 44px; text-align: right; flex-shrink: 0; }
+
 /* ── View toggle (시간대 / 캘린더) ── */
 .ep-view-toggle {
   display: flex;

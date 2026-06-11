@@ -173,6 +173,8 @@ function EventPage() {
   const [activeTab, setActiveTab] = useState('my');
   const [dateGroups, setDateGroups] = useState(null);
   const [allView, setAllView] = useState('grid');
+  const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
+  const [confirmSelections, setConfirmSelections] = useState(new Set());
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -370,6 +372,28 @@ function EventPage() {
   };
 
   const handleGoogleModalClose = () => setIsGoogleModalVisible(false);
+
+  const openConfirmModal = () => {
+    const existing = new Set(eventData.confirmed_slots || []);
+    setConfirmSelections(existing);
+    setIsConfirmModalVisible(true);
+  };
+
+  const handleConfirmSave = async () => {
+    try {
+      await axios.patch(`/api/events/${eventData.uuid}`, {
+        kakaoId: userInfo.id,
+        confirmed_slots: [...confirmSelections],
+      });
+      await fetchEventData();
+      setIsConfirmModalVisible(false);
+      message.success('모임 시간이 확정되었습니다!');
+    } catch (err) {
+      console.error(err);
+      message.error('확정 저장 중 오류가 발생했습니다.');
+    }
+  };
+
   const showModal = () => setIsModalVisible(true);
   const handleOk = () => { setIsModalVisible(false); setIsGoogleModalVisible(false); };
   const handleCancel = () => { setIsModalVisible(false); setIsGoogleModalVisible(false); };
@@ -409,6 +433,10 @@ function EventPage() {
   const displayEndTime = formatInTimeZone(Schedule_End, tz, 'HH:mm');
   const tzOption = TIMEZONE_OPTIONS.find(t => t.value === tz);
   const tzShort = tzOption ? tzOption.short : tz;
+
+  const isCreator = userInfo?.id?.toString() === eventData?.kakaoId;
+  const confirmedSlots = eventData.confirmed_slots || [];
+  const confirmedSet = new Set(confirmedSlots);
 
   const colors = ['blue', 'red', 'green', 'purple', 'orange', 'pink'];
   const userColorMap = {};
@@ -450,13 +478,15 @@ function EventPage() {
     const uniqueUsers = [...new Set(userSchedules[key] || [])];
     const ratio = allUsers.length > 0 ? uniqueUsers.length / allUsers.length : 0;
     const alpha = uniqueUsers.length > 0 ? 0.12 + ratio * 0.65 : 0;
+    const isConfirmed = confirmedSet.has(key);
     return (
       <Tooltip title={uniqueUsers.length > 0 ? uniqueUsers.join(', ') : ''} placement="top">
         <div
           ref={innerRef}
-          className="tg-cell tg-cell-all"
-          style={{ backgroundColor: `rgba(22, 163, 74, ${alpha})` }}
+          className={`tg-cell tg-cell-all${isConfirmed ? ' tg-cell-confirmed' : ''}`}
+          style={{ backgroundColor: isConfirmed ? undefined : `rgba(22, 163, 74, ${alpha})` }}
         >
+          {isConfirmed && <span className="tg-cell-confirm-mark">✓</span>}
           {uniqueUsers.length > 0 && (
             <div className="tg-cell-dots">
               {uniqueUsers.slice(0, 5).map((user, i) => (
@@ -535,10 +565,44 @@ function EventPage() {
             </div>
           )}
 
+          {/* Confirmed slots banner */}
+          {confirmedSlots.length > 0 && (() => {
+            const parsed = confirmedSlots
+              .map(s => parse(s, 'yyyy-MM-dd HH:mm', new Date()))
+              .sort((a, b) => a - b);
+            const merged = [];
+            parsed.forEach(start => {
+              const end = addMinutes(start, 60);
+              if (merged.length > 0 && merged[merged.length - 1].end.getTime() === start.getTime()) {
+                merged[merged.length - 1].end = end;
+              } else {
+                merged.push({ start, end });
+              }
+            });
+            return (
+              <div className="ep-confirmed-banner">
+                <span className="ep-confirmed-label">✅ 확정된 시간</span>
+                <div className="ep-confirmed-slots">
+                  {merged.map((r, i) => (
+                    <span key={i} className="ep-confirmed-slot">
+                      {format(r.start, 'M월 d일 (EEE)', { locale: ko })} &nbsp;
+                      {format(r.start, 'HH:mm')} ~ {format(r.end, 'HH:mm')}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Share actions */}
           <div className="ep-hero-actions">
             <KakaoShareButton userInfo={userInfo} eventData={eventData} />
             <button className="ep-tool-btn btn-blue" onClick={handleCopyLink}>🔗 링크 복사</button>
+            {isCreator && (
+              <button className={`ep-tool-btn btn-confirm${confirmedSlots.length > 0 ? ' confirmed' : ''}`} onClick={openConfirmModal}>
+                📌 {confirmedSlots.length > 0 ? '확정 수정' : '모임 확정'}
+              </button>
+            )}
             <Dropdown
               menu={{
                 items: [
@@ -868,6 +932,70 @@ function EventPage() {
                 ))}
               </div>
             ));
+          })()}
+        </Modal>
+
+        {/* Confirm modal */}
+        <Modal
+          title="모임 시간 확정하기"
+          open={isConfirmModalVisible}
+          onOk={handleConfirmSave}
+          onCancel={() => setIsConfirmModalVisible(false)}
+          okText="확정하기"
+          cancelText="취소"
+          okButtonProps={{ style: { background: '#52c41a', borderColor: '#52c41a' } }}
+        >
+          {(() => {
+            const slotsByDate = {};
+            Object.entries(userSchedules)
+              .sort(([, a], [, b]) => b.length - a.length)
+              .forEach(([key, users]) => {
+                const date = key.split(' ')[0];
+                if (!slotsByDate[date]) slotsByDate[date] = [];
+                slotsByDate[date].push({ key, users });
+              });
+            const sortedDates = Object.keys(slotsByDate).sort();
+
+            if (sortedDates.length === 0) {
+              return <div style={{ color: '#aaa', textAlign: 'center', padding: '20px 0' }}>아직 참가자 일정이 없습니다.</div>;
+            }
+
+            return (
+              <div className="confirm-modal-body">
+                <p className="confirm-modal-hint">참여 가능한 시간을 선택하세요. 여러 개 선택 가능합니다.</p>
+                {sortedDates.map(date => (
+                  <div key={date} className="confirm-date-group">
+                    <div className="confirm-date-label">
+                      {format(new Date(date), 'M월 d일 (EEE)', { locale: ko })}
+                    </div>
+                    {slotsByDate[date].sort((a, b) => b.users.length - a.users.length).map(({ key, users }) => {
+                      const time = key.split(' ')[1];
+                      const endTime = format(addMinutes(parse(time, 'HH:mm', new Date()), 60), 'HH:mm');
+                      const ratio = allUsers.length > 0 ? users.length / allUsers.length : 0;
+                      const checked = confirmSelections.has(key);
+                      return (
+                        <div
+                          key={key}
+                          className={`confirm-slot${checked ? ' selected' : ''}`}
+                          onClick={() => {
+                            const next = new Set(confirmSelections);
+                            if (checked) next.delete(key); else next.add(key);
+                            setConfirmSelections(next);
+                          }}
+                        >
+                          <span className="confirm-slot-check">{checked ? '☑' : '☐'}</span>
+                          <span className="confirm-slot-time">{time} ~ {endTime}</span>
+                          <div className="confirm-slot-bar-wrap">
+                            <div className="confirm-slot-bar" style={{ width: `${ratio * 100}%` }} />
+                          </div>
+                          <span className="confirm-slot-count">{users.length}/{allUsers.length}명</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            );
           })()}
         </Modal>
 
