@@ -1,0 +1,54 @@
+.gt-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafaf8;
+}
+
+.gt-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 52px 44px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.08);
+  animation: gt-fade 0.35s ease;
+  min-width: 260px;
+}
+
+@keyframes gt-fade {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.gt-logo {
+  height: 56px;
+  width: auto;
+}
+
+.gt-spinner {
+  width: 44px;
+  height: 44px;
+  border: 3.5px solid #e8e8e8;
+  border-top-color: #FEE500;
+  border-radius: 50%;
+  animation: gt-spin 0.75s linear infinite;
+}
+
+@keyframes gt-spin { to { transform: rotate(360deg); } }
+
+.gt-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #111;
+  margin: 0;
+}
+
+.gt-sub {
+  font-size: 13px;
+  color: #aaa;
+  margin: 0;
+}

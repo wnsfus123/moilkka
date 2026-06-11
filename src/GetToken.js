@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
+import './GetToken.css';
 
 const GetToken = () => {
   const CLIENT_ID = process.env.REACT_APP_KAKAO_REST_API_KEY;
@@ -96,8 +97,13 @@ const GetToken = () => {
   }, [CLIENT_ID, REDIRECT_URI, navigate]);
 
   return (
-    <div>
-      <p>로그인 중입니다.</p>
+    <div className="gt-page">
+      <div className="gt-card">
+        <img src="/logo.png" alt="모일까" className="gt-logo" />
+        <div className="gt-spinner" />
+        <p className="gt-title">로그인 중...</p>
+        <p className="gt-sub">카카오 계정 정보를 불러오고 있어요</p>
+      </div>
     </div>
   );
 };

@@ -14,9 +14,13 @@ const ExistingEvents = ({ userInfo }) => {
   const [eventToDelete, setEventToDelete] = useState(null);
   const [showDeleteButtons, setShowDeleteButtons] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(false);
+  const [loadingList, setLoadingList] = useState(false);
 
   useEffect(() => {
-    if (userInfo) fetchExistingEvents(userInfo.id.toString());
+    if (userInfo) {
+      setLoadingList(true);
+      fetchExistingEvents(userInfo.id.toString());
+    }
   }, [userInfo]);
 
   const fetchExistingEvents = (kakaoId) => {
@@ -27,7 +31,8 @@ const ExistingEvents = ({ userInfo }) => {
         const events = Array.isArray(res.data) ? res.data : [];
         setExistingEvents(events);
       })
-      .catch(err => console.error('[ExistingEvents] API 오류:', err.response?.status, err.response?.data || err.message));
+      .catch(err => console.error('[ExistingEvents] API 오류:', err.response?.status, err.response?.data || err.message))
+      .finally(() => setLoadingList(false));
   };
 
   const showEventDetails = (uuid) => {
@@ -144,9 +149,16 @@ const ExistingEvents = ({ userInfo }) => {
         </button>
       </div>
 
-      {existingEvents.length === 0 ? (
+      {loadingList ? (
+        <div className="ee-loading">
+          <div className="ee-spinner" />
+          <p>모임 목록을 불러오는 중...</p>
+        </div>
+      ) : existingEvents.length === 0 ? (
         <div className="ee-empty">
-          <p>참여한 모임이 없습니다.</p>
+          <span className="ee-empty-icon">📭</span>
+          <p>아직 참여한 모임이 없어요</p>
+          <span className="ee-empty-sub">새 모임을 만들거나 초대 링크로 참여해보세요</span>
         </div>
       ) : (
         <div className="ee-list">
