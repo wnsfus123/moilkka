@@ -455,9 +455,18 @@
   border: 1px solid #b7eb8f;
   border-radius: 10px;
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.ep-confirmed-main {
+  display: flex;
   align-items: flex-start;
   gap: 12px;
   flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
 }
 .ep-confirmed-label {
   font-size: 13px;
@@ -465,6 +474,7 @@
   color: #389e0d;
   white-space: nowrap;
   padding-top: 2px;
+  flex-shrink: 0;
 }
 .ep-confirmed-slots {
   display: flex;
@@ -479,6 +489,20 @@
   font-weight: 600;
   color: #237804;
 }
+.ep-confirmed-share-btn {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  background: #FEE500;
+  color: #3C1E1E;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+.ep-confirmed-share-btn:hover { opacity: 0.85; }
 
 /* ── Confirm button ── */
 .ep-tool-btn.btn-confirm { background: #fff7e6; color: #873800; border-color: #ffd591; }

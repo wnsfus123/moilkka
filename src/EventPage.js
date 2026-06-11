@@ -379,6 +379,43 @@ function EventPage() {
     setIsConfirmModalVisible(true);
   };
 
+  const handleConfirmShare = () => {
+    if (confirmedSlots.length === 0) return;
+    const senderName = userInfo?.kakao_account?.profile?.nickname || userInfo?.properties?.nickname || '누군가';
+    const shareUrl = `${getBaseUrl()}/test/?key=${eventData.uuid}`;
+
+    const parsed = confirmedSlots
+      .map(s => parse(s, 'yyyy-MM-dd HH:mm', new Date()))
+      .sort((a, b) => a - b);
+    const merged = [];
+    parsed.forEach(start => {
+      const end = addMinutes(start, 60);
+      if (merged.length > 0 && merged[merged.length - 1].end.getTime() === start.getTime()) {
+        merged[merged.length - 1].end = end;
+      } else {
+        merged.push({ start, end });
+      }
+    });
+    const timeText = merged
+      .map(r => `${format(r.start, 'M월 d일 (EEE)', { locale: ko })} ${format(r.start, 'HH:mm')}~${format(r.end, 'HH:mm')}`)
+      .join('\n');
+
+    if (window.Kakao) {
+      window.Kakao.Link.sendDefault({
+        objectType: 'feed',
+        content: {
+          title: `📌 모임 확정 - ${eventData.eventname}`,
+          description: `${senderName}님이 모임 시간을 확정했어요!\n\n${timeText}`,
+          imageUrl: 'https://postfiles.pstatic.net/MjAyNDA2MjFfMTA4/MDAxNzE4OTU1MTA1MDg5.27seNkhpUz3k3bJv8rcsBYWXuvdMi-NYIGmm4MQfsCkg.4W9fU1m-u4DhuToJXqW5OTI-wySg-w_LByzoezu0szUg.PNG/logo2.png?type=w966',
+          link: { mobileWebUrl: shareUrl, webUrl: shareUrl },
+        },
+        buttons: [{ title: '모임 확인하기', link: { mobileWebUrl: shareUrl, webUrl: shareUrl } }],
+      });
+    } else {
+      message.warning('카카오톡 공유를 사용할 수 없습니다.');
+    }
+  };
+
   const handleConfirmSave = async () => {
     try {
       await axios.patch(`/api/events/${eventData.uuid}`, {
@@ -581,15 +618,20 @@ function EventPage() {
             });
             return (
               <div className="ep-confirmed-banner">
-                <span className="ep-confirmed-label">✅ 확정된 시간</span>
-                <div className="ep-confirmed-slots">
-                  {merged.map((r, i) => (
-                    <span key={i} className="ep-confirmed-slot">
-                      {format(r.start, 'M월 d일 (EEE)', { locale: ko })} &nbsp;
-                      {format(r.start, 'HH:mm')} ~ {format(r.end, 'HH:mm')}
-                    </span>
-                  ))}
+                <div className="ep-confirmed-main">
+                  <span className="ep-confirmed-label">✅ 확정된 시간</span>
+                  <div className="ep-confirmed-slots">
+                    {merged.map((r, i) => (
+                      <span key={i} className="ep-confirmed-slot">
+                        {format(r.start, 'M월 d일 (EEE)', { locale: ko })} &nbsp;
+                        {format(r.start, 'HH:mm')} ~ {format(r.end, 'HH:mm')}
+                      </span>
+                    ))}
+                  </div>
                 </div>
+                <button className="ep-confirmed-share-btn" onClick={handleConfirmShare}>
+                  💬 카톡 공유
+                </button>
               </div>
             );
           })()}
