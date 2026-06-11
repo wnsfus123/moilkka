@@ -173,6 +173,9 @@ const ExistingEvents = ({ userInfo }) => {
                       ? <span className="badge badge-creator">주최자</span>
                       : <span className="badge badge-participant">참여자</span>
                     }
+                    {event.is_private && (
+                      <span className="badge badge-private">🔒 비공개</span>
+                    )}
                     {dday && (
                       <span className={`badge badge-dday${dday === 'D-Day' ? ' today' : dday.startsWith('D+') ? ' past' : ''}`}>
                         {dday}

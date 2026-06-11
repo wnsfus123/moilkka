@@ -25,7 +25,7 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { uuid, eventName, startDay, endDay, startTime, endTime, kakaoId, nickname, selectedDates, timezone } = req.body;
+  const { uuid, eventName, startDay, endDay, startTime, endTime, kakaoId, nickname, selectedDates, timezone, is_private } = req.body;
 
   const tz = timezone || 'Asia/Seoul';
   const offset = getTzOffset(tz);
@@ -44,6 +44,7 @@ module.exports = async (req, res) => {
   if (Array.isArray(selectedDates) && selectedDates.length > 0) {
     insertData.selected_dates = selectedDates;
   }
+  if (is_private !== undefined) insertData.is_private = Boolean(is_private);
 
   const { error } = await supabase.from('events').insert(insertData);
 

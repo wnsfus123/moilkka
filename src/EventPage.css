@@ -380,6 +380,32 @@
   margin: 0;
 }
 
+/* ── 비공개 모드 ── */
+.ep-private-notice {
+  padding: 14px 16px;
+  background: #fffbe6;
+  border: 1px solid #ffe58f;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: #7c5000;
+  font-weight: 500;
+  margin: 8px 0;
+}
+.ep-private-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  background: #f5f5f5;
+  color: #555;
+  border-radius: 999px;
+  border: 0.5px solid #d9d9d9;
+}
+
+/* ── 장소 투표 패널 (데스크탑 전체 너비) ── */
+.ep-panel-place {
+  max-width: 100%;
+}
+
 .ep-btn-outline {
   padding: 8px 14px;
   border-radius: var(--radius-md);

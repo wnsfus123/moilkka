@@ -112,6 +112,7 @@
 .badge-dday { background: #EDE7F6; color: #512DA8; }
 .badge-dday.today { background: #E8F5E9; color: #2E7D32; }
 .badge-dday.past { background: #F5F5F5; color: #9E9E9E; }
+.badge-private { background: #F5F5F5; color: #555; }
 
 .ee-delete-btn {
   background: none;

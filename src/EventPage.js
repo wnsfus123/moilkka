@@ -15,6 +15,7 @@ import {
 } from './Components/authUtils';
 import Socialkakao from './Components/Socialkakao';
 import KakaoShareButton from './Components/KakaoShareButton';
+import PlaceSection from './Components/PlaceSection';
 import {
   initGoogleAPI,
   signInWithGoogle,
@@ -218,7 +219,8 @@ function EventPage() {
         setNumDays(Math.max(1, isNaN(diffDays) ? 1 : diffDays));
       }
 
-      const schedulesResponse = await axios.get(`/api/schedules/${uuid}`);
+      const kakaoIdParam = userInfo?.id ? `?kakaoId=${userInfo.id}` : '';
+      const schedulesResponse = await axios.get(`/api/schedules/${uuid}${kakaoIdParam}`);
       const schedules = Array.isArray(schedulesResponse.data) ? schedulesResponse.data : [];
       setAllSchedules(schedules);
 
@@ -728,12 +730,19 @@ function EventPage() {
             <div className="ep-panel">
               <div className="ep-panel-header">
                 <h3 className="ep-panel-title">📅 전체 참가자 일정</h3>
+                {eventData.is_private && !isCreator && (
+                  <span className="ep-private-badge">🔒 비공개</span>
+                )}
                 <div className="ep-view-toggle">
                   <button className={`ep-vt-btn${allView === 'grid' ? ' active' : ''}`} onClick={() => setAllView('grid')}>시간대</button>
                   <button className={`ep-vt-btn${allView === 'cal' ? ' active' : ''}`} onClick={() => setAllView('cal')}>캘린더</button>
                 </div>
               </div>
-              {allView === 'cal' ? (
+              {eventData.is_private && !isCreator ? (
+                <div className="ep-private-notice">
+                  🔒 이 모임은 비공개 모드예요. 방장만 전체 현황을 볼 수 있어요.
+                </div>
+              ) : allView === 'cal' ? (
                 <CalendarView
                   allSchedules={allSchedules}
                   allUsers={allUsers}
@@ -796,13 +805,32 @@ function EventPage() {
           </div>
         </div>
 
+        {/* ── Desktop: 장소 투표 (전체 너비) ── */}
+        <div className="ep-schedule-desktop">
+          <div className="ep-panel ep-panel-place">
+            <div className="ep-panel-header">
+              <h3 className="ep-panel-title">📍 장소 투표</h3>
+            </div>
+            <PlaceSection eventData={eventData} userInfo={userInfo} />
+          </div>
+        </div>
+
         {/* ── Mobile: 탭 전환 ── */}
         <div className="ep-schedule-mobile">
           <div className="ep-tabs">
             <button className={`ep-tab${activeTab === 'my' ? ' active' : ''}`} onClick={() => setActiveTab('my')}>내 일정 등록</button>
-            <button className={`ep-tab${activeTab === 'all' ? ' active' : ''}`} onClick={() => setActiveTab('all')}>전체 현황</button>
+            {(!eventData.is_private || isCreator) && (
+              <button className={`ep-tab${activeTab === 'all' ? ' active' : ''}`} onClick={() => setActiveTab('all')}>전체 현황</button>
+            )}
             <button className={`ep-tab${activeTab === 'cal' ? ' active' : ''}`} onClick={() => setActiveTab('cal')}>캘린더</button>
+            <button className={`ep-tab${activeTab === 'place' ? ' active' : ''}`} onClick={() => setActiveTab('place')}>📍 장소</button>
           </div>
+
+          {eventData.is_private && !isCreator && (
+            <div className="ep-private-notice">
+              🔒 이 모임은 비공개 모드예요. 방장만 전체 현황을 볼 수 있어요.
+            </div>
+          )}
 
           {activeTab === 'my' && (
             <div className="ep-panel">
@@ -870,6 +898,15 @@ function EventPage() {
                 userSchedules={userSchedules}
                 Schedule_Start={Schedule_Start}
               />
+            </div>
+          )}
+
+          {activeTab === 'place' && (
+            <div className="ep-panel">
+              <div className="ep-panel-header">
+                <h3 className="ep-panel-title">📍 장소 투표</h3>
+              </div>
+              <PlaceSection eventData={eventData} userInfo={userInfo} />
             </div>
           )}
 

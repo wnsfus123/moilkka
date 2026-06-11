@@ -146,6 +146,7 @@ const CreateEvent = () => {
 
   // 날짜 선택 모드
   const [timezone,        setTimezone]        = useState('Asia/Seoul');
+  const [isPrivate,       setIsPrivate]       = useState(false);
   const [dateMode,        setDateMode]        = useState('range');   // 'range' | 'custom' | 'weekday'
   const [rangeDates,      setRangeDates]      = useState([]);        // [dayjs, dayjs]
   const [mobileRangeStart, setMobileRangeStart] = useState('');
@@ -237,6 +238,7 @@ const CreateEvent = () => {
       createDay,
       selectedDates: dateList,
       timezone,
+      is_private: isPrivate,
     })
       .then(() => { window.location.href = `${getBaseUrl()}/test/?key=${eventUUID}`; })
       .catch(err => console.error('이벤트 생성 오류:', err));
@@ -427,6 +429,22 @@ const CreateEvent = () => {
                 style={{ width: '100%' }}
                 size="large"
               />
+            </div>
+
+            {/* 비공개 모드 */}
+            <div className="ce-field ce-private-row">
+              <div className="ce-private-info">
+                <span className="ce-private-label">🔒 비공개 모드</span>
+                <span className="ce-private-desc">방장만 전체 일정 현황을 볼 수 있어요</span>
+              </div>
+              <button
+                type="button"
+                className={`ce-toggle${isPrivate ? ' on' : ''}`}
+                onClick={() => setIsPrivate(v => !v)}
+                aria-label="비공개 모드 토글"
+              >
+                <span className="ce-toggle-knob" />
+              </button>
             </div>
 
             <button
