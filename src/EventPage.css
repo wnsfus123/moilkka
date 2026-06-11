@@ -458,6 +458,25 @@
 }
 
 
+/* ── Timetable blocked cell ── */
+.tg-cell-blocked {
+  background: rgba(0, 0, 0, 0.07) !important;
+  cursor: not-allowed !important;
+}
+.tg-cell-blocked:hover {
+  background: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* ── 시간표 버튼 ── */
+.ep-btn-tt {
+  font-size: 12px;
+  padding: 4px 10px;
+}
+.ep-btn-tt.tt-loaded {
+  color: #52c41a;
+  border-color: #52c41a;
+}
+
 /* ── Confirmed cell ── */
 .tg-cell-confirmed {
   background: rgba(82, 196, 26, 0.25) !important;

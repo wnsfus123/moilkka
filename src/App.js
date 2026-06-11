@@ -11,6 +11,7 @@ import Loginpage from "./Loginpage";
 import GoogleCalendar from "./GoogleCalendar";
 import CombinedPage from "./CombinedPage";
 import CalendarPage from "./CalendarPage";
+import TimetablePage from "./TimetablePage";
 
 const App = () => {
   return (
@@ -28,6 +29,7 @@ const App = () => {
               <Route path='/google' element={<GoogleCalendar />} />
               <Route path='/event' element={<CombinedPage />} />
               <Route path='/calendar' element={<CalendarPage />} />
+              <Route path='/timetable' element={<TimetablePage />} />
             </Route>
             <Route index={true} element={<Navigate replace to={"/main"}/>} />
           </Routes>

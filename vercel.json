@@ -17,6 +17,7 @@
     { "source": "/api/places/:id",                 "destination": "/api/places?id=:id" },
     { "source": "/api/places",                     "destination": "/api/places" },
     { "source": "/api/personal-events",            "destination": "/api/personal-events" },
+    { "source": "/api/timetable",                  "destination": "/api/timetable" },
     { "source": "/api/cron/notify",                "destination": "/api/cron/notify" },
     { "source": "/((?!api/).*)",                   "destination": "/index.html" }
   ],

@@ -176,6 +176,8 @@ function EventPage() {
   const [allView, setAllView] = useState('grid');
   const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
   const [confirmSelections, setConfirmSelections] = useState(new Set());
+  const [timetableBlocks, setTimetableBlocks] = useState(new Set());
+  const [timetableLoaded, setTimetableLoaded] = useState(false);
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -293,14 +295,37 @@ function EventPage() {
   };
 
   const handleScheduleChange = (newSchedule) => {
-    setSchedule(newSchedule);
+    const filtered = timetableBlocks.size > 0
+      ? newSchedule.filter(d => !timetableBlocks.has(`${(d.getDay() + 6) % 7}-${d.getHours()}`))
+      : newSchedule;
+    setSchedule(filtered);
     const selectedTimeByDate = {};
-    newSchedule.forEach(time => {
+    filtered.forEach(time => {
       const date = format(time, 'yyyy-MM-dd');
       if (!selectedTimeByDate[date]) selectedTimeByDate[date] = [];
       selectedTimeByDate[date].push(format(time, 'HH:mm'));
     });
     setSelectedTime(selectedTimeByDate);
+  };
+
+  const loadTimetable = async () => {
+    if (!userInfo?.id) { message.warning('로그인 후 이용할 수 있어요'); return; }
+    try {
+      const res = await axios.get(`/api/timetable?kakaoId=${userInfo.id}`);
+      const entries = res.data || [];
+      const blocks = new Set();
+      entries.forEach(entry => {
+        const startH = parseInt(entry.start_time.split(':')[0]);
+        const endH   = parseInt(entry.end_time.split(':')[0]);
+        for (let h = startH; h < endH; h++) blocks.add(`${entry.day_of_week}-${h}`);
+      });
+      setTimetableBlocks(blocks);
+      setTimetableLoaded(true);
+      if (entries.length > 0) message.success(`시간표 ${entries.length}개 항목 적용됨`);
+      else message.info('등록된 시간표가 없어요. 내 시간표에서 먼저 등록해 주세요.');
+    } catch (err) {
+      message.error('시간표를 불러오지 못했어요');
+    }
   };
 
   const handleCopyLink = () => {
@@ -503,8 +528,9 @@ function EventPage() {
       const evEnd = new Date(ev.end);
       return isBefore(evStart, timeEnd) && isAfter(evEnd, time);
     });
+    const isTTBlocked = timetableBlocks.has(`${(time.getDay() + 6) % 7}-${time.getHours()}`);
     return (
-      <div ref={innerRef} className={`tg-cell${selected ? ' tg-cell-sel' : ''}`}>
+      <div ref={innerRef} className={`tg-cell${selected ? ' tg-cell-sel' : ''}${isTTBlocked ? ' tg-cell-blocked' : ''}`}>
         {overlapping.length > 0 && (
           <span className="tg-cell-event-dot" title={overlapping.map(ev => ev.title).join(', ')} />
         )}
@@ -674,6 +700,13 @@ function EventPage() {
               <div className="ep-panel-header">
                 <h3 className="ep-panel-title">⌚ 내 일정 등록하기</h3>
                 <div className="ep-panel-actions">
+                  <button
+                    className={`ep-btn-outline ep-btn-tt${timetableLoaded ? ' tt-loaded' : ''}`}
+                    onClick={loadTimetable}
+                    title="내 시간표 불러오기"
+                  >
+                    {timetableLoaded ? '📋 시간표 ✓' : '📋 시간표'}
+                  </button>
                   <button className="ep-btn-outline" onClick={showModal}>등록된 일정 확인</button>
                   <button className="ep-btn-save" onClick={handleConfirm} disabled={confirmLoading}>
                     {confirmLoading ? '저장 중...' : '💾 저장'}
@@ -837,6 +870,13 @@ function EventPage() {
               <div className="ep-panel-header">
                 <h3 className="ep-panel-title">⌚ 내 일정 등록하기</h3>
                 <div className="ep-panel-actions">
+                  <button
+                    className={`ep-btn-outline ep-btn-tt${timetableLoaded ? ' tt-loaded' : ''}`}
+                    onClick={loadTimetable}
+                    title="내 시간표 불러오기"
+                  >
+                    {timetableLoaded ? '📋 ✓' : '📋'}
+                  </button>
                   <button className="ep-btn-outline" onClick={showModal}>내 일정 보기</button>
                   <button className="ep-btn-save" onClick={handleConfirm} disabled={confirmLoading}>
                     {confirmLoading ? '저장 중...' : '💾 저장'}
