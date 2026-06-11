@@ -55,6 +55,106 @@ function GroupsScroller({ children }) {
   );
 }
 
+function CalendarView({ allSchedules, allUsers, userSchedules, Schedule_Start }) {
+  const [calMonth, setCalMonth] = useState(() => new Date(Schedule_Start));
+  const [selectedDate, setSelectedDate] = useState(null);
+
+  const dateParticipants = {};
+  allSchedules.forEach(s => {
+    if (!s.event_datetime) return;
+    const d = format(new Date(s.event_datetime), 'yyyy-MM-dd');
+    if (!dateParticipants[d]) dateParticipants[d] = new Set();
+    dateParticipants[d].add(s.nickname);
+  });
+
+  const year = calMonth.getFullYear();
+  const month = calMonth.getMonth();
+  const firstDow = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const getColor = (dateStr) => {
+    const count = dateParticipants[dateStr]?.size || 0;
+    if (count === 0) return null;
+    const total = allUsers.length;
+    if (total === 0) return '#aaaaaa';
+    const ratio = count / total;
+    if (ratio >= 0.6) return '#52c41a';
+    if (ratio >= 0.3) return '#faad14';
+    return '#aaaaaa';
+  };
+
+  const getTimeSlots = (dateStr) =>
+    Object.entries(userSchedules)
+      .filter(([key]) => key.startsWith(dateStr))
+      .map(([key, users]) => [key.split(' ')[1], users])
+      .sort(([a], [b]) => a.localeCompare(b));
+
+  const DOW_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
+
+  return (
+    <div className="cal-view">
+      <div className="cal-nav">
+        <button className="cal-nav-btn" onClick={() => setCalMonth(new Date(year, month - 1, 1))}>‹</button>
+        <span className="cal-nav-title">{year}년 {month + 1}월</span>
+        <button className="cal-nav-btn" onClick={() => setCalMonth(new Date(year, month + 1, 1))}>›</button>
+      </div>
+      <div className="cal-head">
+        {DOW_LABELS.map(d => <span key={d} className="cal-head-dow">{d}</span>)}
+      </div>
+      <div className="cal-grid">
+        {Array.from({ length: firstDow }, (_, i) => <div key={`b${i}`} />)}
+        {Array.from({ length: daysInMonth }, (_, i) => {
+          const day = i + 1;
+          const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          const color = getColor(dateStr);
+          const count = dateParticipants[dateStr]?.size || 0;
+          const dow = new Date(year, month, day).getDay();
+          const isSelected = selectedDate === dateStr;
+          return (
+            <div
+              key={day}
+              className={`cal-day${color ? ' cal-day-has' : ''}${isSelected ? ' cal-day-sel' : ''}`}
+              onClick={() => color && setSelectedDate(isSelected ? null : dateStr)}
+            >
+              <span className={`cal-day-num${dow === 0 ? ' cal-sun' : dow === 6 ? ' cal-sat' : ''}`}>{day}</span>
+              {count > 0 && <span className="cal-dot" style={{ background: color }} />}
+            </div>
+          );
+        })}
+      </div>
+      <div className="cal-legend">
+        <span><span className="cal-legend-dot" style={{ background: '#52c41a' }} />많음</span>
+        <span><span className="cal-legend-dot" style={{ background: '#faad14' }} />보통</span>
+        <span><span className="cal-legend-dot" style={{ background: '#aaaaaa' }} />적음</span>
+      </div>
+      {selectedDate && (() => {
+        const slots = getTimeSlots(selectedDate);
+        const dayCount = dateParticipants[selectedDate]?.size || 0;
+        return (
+          <div className="cal-detail">
+            <div className="cal-detail-hd">
+              {format(new Date(selectedDate), 'M월 d일 (EEE)', { locale: ko })}
+              <span className="cal-detail-count">{dayCount}명 가능</span>
+            </div>
+            {slots.length > 0 ? slots.map(([time, users]) => {
+              const ratio = allUsers.length > 0 ? users.length / allUsers.length : 0;
+              return (
+                <div key={time} className="cal-slot">
+                  <span className="cal-slot-time">{time}</span>
+                  <div className="cal-slot-bar-wrap">
+                    <div className="cal-slot-bar" style={{ width: `${ratio * 100}%`, background: `rgba(22,163,74,${0.2 + ratio * 0.6})` }} />
+                  </div>
+                  <span className="cal-slot-count">{users.length}명</span>
+                </div>
+              );
+            }) : <div className="cal-detail-empty">등록된 시간이 없습니다.</div>}
+          </div>
+        );
+      })()}
+    </div>
+  );
+}
+
 function EventPage() {
   const [eventData, setEventData] = useState(null);
   const [selectedTime, setSelectedTime] = useState([]);
@@ -72,6 +172,7 @@ function EventPage() {
   const [overlappingEvents, setOverlappingEvents] = useState([]);
   const [activeTab, setActiveTab] = useState('my');
   const [dateGroups, setDateGroups] = useState(null);
+  const [allView, setAllView] = useState('grid');
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -521,55 +622,70 @@ function EventPage() {
             <div className="ep-panel">
               <div className="ep-panel-header">
                 <h3 className="ep-panel-title">📅 전체 참가자 일정</h3>
-              </div>
-              {allUsers.length > 0 && (
-                <div className="ep-legend">
-                  {allUsers.map((user, i) => (
-                    <span key={i} className="ep-legend-item">
-                      <span style={{ color: userColorMap[user] }}>●</span> {user}
-                    </span>
-                  ))}
+                <div className="ep-view-toggle">
+                  <button className={`ep-vt-btn${allView === 'grid' ? ' active' : ''}`} onClick={() => setAllView('grid')}>시간대</button>
+                  <button className={`ep-vt-btn${allView === 'cal' ? ' active' : ''}`} onClick={() => setAllView('cal')}>캘린더</button>
                 </div>
-              )}
-              <div className="schedule-selector-wrapper">
-                {dateGroups ? (
-                  <GroupsScroller>
-                    {dateGroups.map(group => (
-                      <div key={group[0]} className="ep-date-group" style={{ width: `${group.length * 82 + 62}px` }}>
-                        <ScheduleSelector
-                          selection={schedule.filter(d => group.includes(format(d, 'yyyy-MM-dd')))}
-                          numDays={group.length}
-                          startDate={makeGroupStart(group[0])}
-                          minTime={minTime}
-                          maxTime={maxTime}
-                          hourlyChunks={1}
-                          cellHeight={44}
-                          rowGap="3px"
-                          columnGap="6px"
-                          renderTimeLabel={renderTimeLabel}
-                          renderDateLabel={renderDateLabel}
-                          renderDateCell={renderAllCell}
-                        />
-                      </div>
-                    ))}
-                  </GroupsScroller>
-                ) : (
-                  <ScheduleSelector
-                    selection={schedule}
-                    numDays={numDays}
-                    startDate={Schedule_Start}
-                    minTime={minTime}
-                    maxTime={maxTime}
-                    hourlyChunks={1}
-                    cellHeight={44}
-                    rowGap="3px"
-                    columnGap="6px"
-                    renderTimeLabel={renderTimeLabel}
-                    renderDateLabel={renderDateLabel}
-                    renderDateCell={renderAllCell}
-                  />
-                )}
               </div>
+              {allView === 'cal' ? (
+                <CalendarView
+                  allSchedules={allSchedules}
+                  allUsers={allUsers}
+                  userSchedules={userSchedules}
+                  Schedule_Start={Schedule_Start}
+                />
+              ) : (
+                <>
+                  {allUsers.length > 0 && (
+                    <div className="ep-legend">
+                      {allUsers.map((user, i) => (
+                        <span key={i} className="ep-legend-item">
+                          <span style={{ color: userColorMap[user] }}>●</span> {user}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <div className="schedule-selector-wrapper">
+                    {dateGroups ? (
+                      <GroupsScroller>
+                        {dateGroups.map(group => (
+                          <div key={group[0]} className="ep-date-group" style={{ width: `${group.length * 82 + 62}px` }}>
+                            <ScheduleSelector
+                              selection={schedule.filter(d => group.includes(format(d, 'yyyy-MM-dd')))}
+                              numDays={group.length}
+                              startDate={makeGroupStart(group[0])}
+                              minTime={minTime}
+                              maxTime={maxTime}
+                              hourlyChunks={1}
+                              cellHeight={44}
+                              rowGap="3px"
+                              columnGap="6px"
+                              renderTimeLabel={renderTimeLabel}
+                              renderDateLabel={renderDateLabel}
+                              renderDateCell={renderAllCell}
+                            />
+                          </div>
+                        ))}
+                      </GroupsScroller>
+                    ) : (
+                      <ScheduleSelector
+                        selection={schedule}
+                        numDays={numDays}
+                        startDate={Schedule_Start}
+                        minTime={minTime}
+                        maxTime={maxTime}
+                        hourlyChunks={1}
+                        cellHeight={44}
+                        rowGap="3px"
+                        columnGap="6px"
+                        renderTimeLabel={renderTimeLabel}
+                        renderDateLabel={renderDateLabel}
+                        renderDateCell={renderAllCell}
+                      />
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -579,6 +695,7 @@ function EventPage() {
           <div className="ep-tabs">
             <button className={`ep-tab${activeTab === 'my' ? ' active' : ''}`} onClick={() => setActiveTab('my')}>내 일정 등록</button>
             <button className={`ep-tab${activeTab === 'all' ? ' active' : ''}`} onClick={() => setActiveTab('all')}>전체 현황</button>
+            <button className={`ep-tab${activeTab === 'cal' ? ' active' : ''}`} onClick={() => setActiveTab('cal')}>캘린더</button>
           </div>
 
           {activeTab === 'my' && (
@@ -636,6 +753,17 @@ function EventPage() {
                   />
                 )}
               </div>
+            </div>
+          )}
+
+          {activeTab === 'cal' && (
+            <div className="ep-panel">
+              <CalendarView
+                allSchedules={allSchedules}
+                allUsers={allUsers}
+                userSchedules={userSchedules}
+                Schedule_Start={Schedule_Start}
+              />
             </div>
           )}
 
