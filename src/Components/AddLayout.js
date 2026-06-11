@@ -24,6 +24,7 @@ const AppLayout = () => {
   const navItems = [
     { key: '/event', label: <Link to="/event">홈</Link> },
     { key: '/create', label: <Link to="/create">새 모임</Link> },
+    { key: '/calendar', label: <Link to="/calendar">📅 내 캘린더</Link> },
     { key: '/help', label: <Link to="/help">도움말</Link> },
   ];
 
