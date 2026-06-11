@@ -23,11 +23,25 @@ const CalendarPage = () => {
   const [kakaoEvents, setKakaoEvents] = useState([]);
   const [isGoogleLinked, setIsGoogleLinked] = useState(false);
   const [isKakaoLinked, setIsKakaoLinked] = useState(false);
+  const [personalEvents, setPersonalEvents] = useState([]);
   const [loadingMoilkka, setLoadingMoilkka] = useState(false);
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [loadingKakao, setLoadingKakao] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addForm, setAddForm] = useState({ title: '', memo: '' });
+  const [savingPersonal, setSavingPersonal] = useState(false);
 
   // ── Fetch helpers ──
+
+  const fetchPersonalEvents = useCallback(async () => {
+    if (!userInfo?.id) return;
+    try {
+      const res = await axios.get(`/api/personal-events?kakaoId=${userInfo.id}`);
+      setPersonalEvents(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error('[CalendarPage] 개인 일정 조회 오류:', err);
+    }
+  }, [userInfo]);
 
   const fetchMoilkkaEvents = useCallback(async () => {
     if (!userInfo) return;
@@ -88,6 +102,7 @@ const CalendarPage = () => {
   useEffect(() => {
     initGoogleAPI();
     fetchMoilkkaEvents();
+    fetchPersonalEvents();
     // Check if Google was already signed in (delayed — gapi init is async)
     const timer = setTimeout(() => {
       try {
@@ -100,6 +115,41 @@ const CalendarPage = () => {
     return () => clearTimeout(timer);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ── Personal event handlers ──
+  const handleOpenAddModal = () => {
+    setAddForm({ title: '', memo: '' });
+    setShowAddModal(true);
+  };
+
+  const handleAddPersonal = async () => {
+    if (!addForm.title.trim() || !selectedDate || !userInfo?.id) return;
+    setSavingPersonal(true);
+    try {
+      await axios.post('/api/personal-events', {
+        kakaoId: userInfo.id,
+        title: addForm.title.trim(),
+        memo: addForm.memo.trim() || undefined,
+        event_date: format(selectedDate, 'yyyy-MM-dd'),
+      });
+      message.success('일정이 저장됐어요!');
+      setShowAddModal(false);
+      await fetchPersonalEvents();
+    } catch {
+      message.error('저장에 실패했습니다.');
+    } finally {
+      setSavingPersonal(false);
+    }
+  };
+
+  const handleDeletePersonal = async (id) => {
+    try {
+      await axios.delete(`/api/personal-events?id=${id}&kakaoId=${userInfo.id}`);
+      setPersonalEvents(prev => prev.filter(e => e.id !== id));
+    } catch {
+      message.error('삭제에 실패했습니다.');
+    }
+  };
 
   // ── Month change: refetch Google/Kakao ──
   const changeMonth = useCallback((newMonth) => {
@@ -172,6 +222,15 @@ const CalendarPage = () => {
     }
   });
 
+  const personalDates = {};
+  personalEvents.forEach(ev => {
+    const key = ev.event_date;
+    if (key) {
+      if (!personalDates[key]) personalDates[key] = [];
+      personalDates[key].push(ev);
+    }
+  });
+
   // ── Tile content ──
   const tileContent = ({ date, view }) => {
     if (view !== 'month') return null;
@@ -179,12 +238,14 @@ const CalendarPage = () => {
     const m = moilkkaDates[key] || [];
     const g = googleDates[key] || [];
     const k = kakaoDates[key] || [];
-    if (m.length + g.length + k.length === 0) return null;
+    const p = personalDates[key] || [];
+    if (m.length + g.length + k.length + p.length === 0) return null;
     return (
       <div className="cp-tile-dots">
         {m.length > 0 && <span className="cp-dot cp-dot-moilkka" />}
         {g.length > 0 && <span className="cp-dot cp-dot-google" />}
         {k.length > 0 && <span className="cp-dot cp-dot-kakao" />}
+        {p.length > 0 && <span className="cp-dot cp-dot-personal" />}
       </div>
     );
   };
@@ -199,9 +260,10 @@ const CalendarPage = () => {
 
   // ── Sidebar ──
   const selKey = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null;
-  const selMoilkka = selKey ? (moilkkaDates[selKey] || []) : [];
-  const selGoogle  = selKey ? (googleDates[selKey]  || []) : [];
-  const selKakao   = selKey ? (kakaoDates[selKey]   || []) : [];
+  const selMoilkka  = selKey ? (moilkkaDates[selKey]  || []) : [];
+  const selGoogle   = selKey ? (googleDates[selKey]   || []) : [];
+  const selKakao    = selKey ? (kakaoDates[selKey]    || []) : [];
+  const selPersonal = selKey ? (personalDates[selKey] || []) : [];
 
   // ── Summary ──
   const y = activeMonth.getFullYear();
@@ -274,6 +336,7 @@ const CalendarPage = () => {
             <span><span className="cp-dot cp-dot-moilkka" />모일까 모임</span>
             {isGoogleLinked && <span><span className="cp-dot cp-dot-google" />구글 일정</span>}
             {isKakaoLinked  && <span><span className="cp-dot cp-dot-kakao"  />카카오 일정</span>}
+            {personalEvents.length > 0 && <span><span className="cp-dot cp-dot-personal" />내 메모</span>}
           </div>
         </div>
 
@@ -281,12 +344,18 @@ const CalendarPage = () => {
         <div className="cp-sidebar">
           {selectedDate ? (
             <>
-              <h3 className="cp-sidebar-title">
-                {format(selectedDate, 'M월 d일 (EEE)', { locale: ko })}
-              </h3>
+              <div className="cp-sidebar-title-row">
+                <h3 className="cp-sidebar-title">
+                  {format(selectedDate, 'M월 d일 (EEE)', { locale: ko })}
+                </h3>
+                <button className="cp-add-btn" onClick={handleOpenAddModal} title="메모 추가">+</button>
+              </div>
 
-              {selMoilkka.length + selGoogle.length + selKakao.length === 0 && (
-                <div className="cp-sidebar-empty">이 날 일정이 없어요</div>
+              {selMoilkka.length + selGoogle.length + selKakao.length + selPersonal.length === 0 && (
+                <div className="cp-sidebar-empty">
+                  이 날 일정이 없어요
+                  <button className="cp-sidebar-add-link" onClick={handleOpenAddModal}>+ 메모 추가</button>
+                </div>
               )}
 
               {/* Moilkka */}
@@ -343,6 +412,22 @@ const CalendarPage = () => {
                   )}
                 </div>
               ))}
+
+              {/* Personal memo */}
+              {selPersonal.map((ev) => (
+                <div key={ev.id} className="cp-event-card cp-event-personal">
+                  <div className="cp-event-header">
+                    <span className="cp-event-dot cp-dot-personal" />
+                    <span className="cp-event-title">{ev.title}</span>
+                    <button
+                      className="cp-personal-del-btn"
+                      onClick={() => handleDeletePersonal(ev.id)}
+                      title="삭제"
+                    >×</button>
+                  </div>
+                  {ev.memo && <div className="cp-event-time">{ev.memo}</div>}
+                </div>
+              ))}
             </>
           ) : (
             <div className="cp-sidebar-placeholder">
@@ -378,6 +463,50 @@ const CalendarPage = () => {
           </>
         )}
       </div>
+
+      {/* ── Add personal memo modal ── */}
+      {showAddModal && (
+        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+          <div className="cp-add-modal" onClick={e => e.stopPropagation()}>
+            <div className="cp-add-modal-header">
+              <h3 className="cp-add-modal-title">
+                {selectedDate && format(selectedDate, 'M월 d일')} 메모 추가
+              </h3>
+              <button className="modal-close" onClick={() => setShowAddModal(false)}>✕</button>
+            </div>
+            <div className="cp-add-modal-body">
+              <label className="cp-form-label">제목 <span className="cp-form-required">*</span></label>
+              <input
+                className="cp-form-input"
+                type="text"
+                placeholder="일정 제목을 입력하세요"
+                value={addForm.title}
+                onChange={e => setAddForm(f => ({ ...f, title: e.target.value }))}
+                autoFocus
+                onKeyDown={e => e.key === 'Enter' && handleAddPersonal()}
+              />
+              <label className="cp-form-label" style={{ marginTop: 12 }}>메모 (선택)</label>
+              <textarea
+                className="cp-form-input cp-form-textarea"
+                placeholder="간단한 메모를 남겨보세요"
+                value={addForm.memo}
+                onChange={e => setAddForm(f => ({ ...f, memo: e.target.value }))}
+                rows={3}
+              />
+            </div>
+            <div className="cp-add-modal-actions">
+              <button className="modal-btn-cancel" onClick={() => setShowAddModal(false)}>취소</button>
+              <button
+                className="modal-btn-primary"
+                onClick={handleAddPersonal}
+                disabled={!addForm.title.trim() || savingPersonal}
+              >
+                {savingPersonal ? '저장 중...' : '저장'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

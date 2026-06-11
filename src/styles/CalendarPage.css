@@ -145,9 +145,10 @@
   flex-shrink: 0;
   display: inline-block;
 }
-.cp-dot-moilkka { background: #1677ff; }
-.cp-dot-google  { background: #ea4335; }
-.cp-dot-kakao   { background: #e6b800; }
+.cp-dot-moilkka  { background: #1677ff; }
+.cp-dot-google   { background: #ea4335; }
+.cp-dot-kakao    { background: #e6b800; }
+.cp-dot-personal { background: #52c41a; }
 
 /* Legend */
 .cp-legend {
@@ -174,16 +175,58 @@
   max-height: 560px;
   overflow-y: auto;
 }
+.cp-sidebar-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  border-bottom: 0.5px solid var(--color-border, #E0E0E0);
+  flex-shrink: 0;
+  gap: 8px;
+}
 .cp-sidebar-title {
   font-size: 15px;
   font-weight: 700;
   color: #111;
   margin: 0;
-  padding-bottom: 10px;
-  border-bottom: 0.5px solid var(--color-border, #E0E0E0);
-  flex-shrink: 0;
 }
-.cp-sidebar-empty { font-size: 13px; color: #bbb; text-align: center; padding: 20px 0; }
+.cp-add-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-border, #E0E0E0);
+  background: var(--color-card, #fff);
+  color: #555;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s;
+}
+.cp-add-btn:hover { background: #f0fff0; border-color: #52c41a; color: #389e0d; }
+.cp-sidebar-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #bbb;
+  text-align: center;
+  padding: 20px 0;
+}
+.cp-sidebar-add-link {
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: #52c41a;
+  cursor: pointer;
+  padding: 0;
+  font-weight: 600;
+}
+.cp-sidebar-add-link:hover { text-decoration: underline; }
 .cp-sidebar-placeholder {
   display: flex;
   flex-direction: column;
@@ -212,6 +255,7 @@
 .cp-event-card.cp-event-moilkka.unconfirmed { border-left-color: #ff4d4f; }
 .cp-event-card.cp-event-google              { border-left-color: #ea4335; }
 .cp-event-card.cp-event-kakao               { border-left-color: #e6b800; }
+.cp-event-card.cp-event-personal            { border-left-color: #52c41a; }
 
 .cp-event-header { display: flex; align-items: center; gap: 6px; }
 .cp-event-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
@@ -245,6 +289,19 @@
 }
 .cp-event-action:hover { opacity: 0.75; text-decoration: underline; }
 
+.cp-personal-del-btn {
+  background: none;
+  border: none;
+  color: #ddd;
+  font-size: 15px;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  transition: color 0.15s;
+  flex-shrink: 0;
+}
+.cp-personal-del-btn:hover { color: #ff4d4f; }
+
 /* ── Summary ── */
 .cp-summary {
   display: flex;
@@ -261,6 +318,60 @@
 .cp-summary-label { font-size: 11px; color: #aaa; font-weight: 500; text-transform: uppercase; letter-spacing: 0.03em; }
 .cp-summary-value { font-size: 17px; font-weight: 700; color: #111; }
 .cp-summary-divider { width: 1px; height: 32px; background: var(--color-border, #E0E0E0); }
+
+/* ── Add memo modal ── */
+.cp-add-modal {
+  background: var(--color-card, #fff);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.16);
+  padding: 24px;
+  width: 100%;
+  max-width: 400px;
+  position: relative;
+}
+.cp-add-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.cp-add-modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111;
+  margin: 0;
+}
+.cp-add-modal-body {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+.cp-form-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 6px;
+  display: block;
+}
+.cp-form-required { color: #ff4d4f; }
+.cp-form-input {
+  padding: 9px 12px;
+  border: 1px solid var(--color-border, #E0E0E0);
+  border-radius: var(--radius-md, 8px);
+  font-size: 14px;
+  font-family: inherit;
+  color: #111;
+  outline: none;
+  transition: border-color 0.15s;
+  background: var(--color-bg, #f7f7f5);
+}
+.cp-form-input:focus { border-color: #52c41a; background: #fff; }
+.cp-form-textarea { resize: vertical; min-height: 72px; }
+.cp-add-modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
 
 /* ── Mobile ── */
 @media (max-width: 768px) {
