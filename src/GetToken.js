@@ -86,7 +86,13 @@ const GetToken = () => {
             console.error('[GetToken] 토큰 저장 실패:', err.response?.data || err.message);
           }
 
-          navigate('/event');
+          const returnTo = sessionStorage.getItem('returnAfterAuth');
+          if (returnTo) {
+            sessionStorage.removeItem('returnAfterAuth');
+            navigate(returnTo === '/calendar' ? '/calendar?kakao_linked=1' : returnTo);
+          } else {
+            navigate('/event');
+          }
         } catch (err) {
           console.error('[GetToken] 카카오 로그인 실패:', err.response?.data || err.message);
         }

@@ -103,6 +103,15 @@ const CalendarPage = () => {
     initGoogleAPI();
     fetchMoilkkaEvents();
     fetchPersonalEvents();
+
+    // 카카오 캘린더 동의 완료 후 돌아온 경우 자동 연동
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('kakao_linked') === '1') {
+      window.history.replaceState({}, '', '/calendar');
+      setIsKakaoLinked(true);
+      fetchKakaoEvents(activeMonth);
+    }
+
     // Check if Google was already signed in (delayed — gapi init is async)
     const timer = setTimeout(() => {
       try {
@@ -174,8 +183,18 @@ const CalendarPage = () => {
   const handleKakaoConnect = async () => {
     const token = localStorage.getItem('kakaoAccessToken');
     if (!token) { message.warning('카카오 로그인이 필요합니다.'); return; }
-    setIsKakaoLinked(true);
-    await fetchKakaoEvents(activeMonth);
+
+    // 이미 연동된 경우 바로 로드
+    if (isKakaoLinked) {
+      await fetchKakaoEvents(activeMonth);
+      return;
+    }
+
+    // talk_calendar 동의 화면으로 이동 (incremental auth)
+    const REST_API_KEY = process.env.REACT_APP_KAKAO_REST_API_KEY;
+    const REDIRECT_URI = process.env.REACT_APP_KAKAO_REDIRECT_URI;
+    sessionStorage.setItem('returnAfterAuth', '/calendar');
+    window.location.href = `https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=talk_calendar&prompt=consent`;
   };
 
   // ── Build date maps ──
