@@ -2,11 +2,23 @@
   "buildCommand": "npm run build",
   "outputDirectory": "build",
   "rewrites": [
-    { "source": "/api/events/user/:kakaoId", "destination": "/api/events/user/kakaoId" },
-    { "source": "/api/events/:uuid",          "destination": "/api/events/uuid" },
-    { "source": "/api/schedules/details/:uuid", "destination": "/api/schedules/details/uuid" },
-    { "source": "/api/schedules/:uuid",        "destination": "/api/schedules/uuid" },
-    { "source": "/(.*)",                       "destination": "/index.html" }
+    { "source": "/api/events/user/:kakaoId",      "destination": "/api/events?kakaoId=:kakaoId" },
+    { "source": "/api/events/:uuid",               "destination": "/api/events?uuid=:uuid" },
+    { "source": "/api/events",                     "destination": "/api/events" },
+    { "source": "/api/schedules/details/:uuid",    "destination": "/api/schedules?uuid=:uuid&details=true" },
+    { "source": "/api/schedules/save",             "destination": "/api/schedules" },
+    { "source": "/api/schedules/:uuid",            "destination": "/api/schedules?uuid=:uuid" },
+    { "source": "/api/schedules",                  "destination": "/api/schedules" },
+    { "source": "/api/tokens/save",                "destination": "/api/tokens" },
+    { "source": "/api/tokens",                     "destination": "/api/tokens" },
+    { "source": "/api/users/save",                 "destination": "/api/users" },
+    { "source": "/api/users",                      "destination": "/api/users" },
+    { "source": "/api/places/vote",                "destination": "/api/places?action=vote" },
+    { "source": "/api/places/:id",                 "destination": "/api/places?id=:id" },
+    { "source": "/api/places",                     "destination": "/api/places" },
+    { "source": "/api/personal-events",            "destination": "/api/personal-events" },
+    { "source": "/api/cron/notify",                "destination": "/api/cron/notify" },
+    { "source": "/((?!api/).*)",                   "destination": "/index.html" }
   ],
   "crons": [
     {

@@ -1,5 +1,5 @@
-const { supabase } = require('../lib/supabase');
-const { encrypt } = require('../lib/crypto');
+const { supabase } = require('./lib/supabase');
+const { encrypt } = require('./lib/crypto');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -11,7 +11,7 @@ module.exports = async (req, res) => {
   const KEY = process.env.ENCRYPTION_SECRET_KEY || '';
   const keyBytes = Buffer.from(KEY).length;
   if (keyBytes !== 32) {
-    console.error(`[tokens/save] ENCRYPTION_SECRET_KEY가 32바이트가 아닙니다. 현재: ${keyBytes}바이트`);
+    console.error(`[tokens] ENCRYPTION_SECRET_KEY가 32바이트가 아닙니다. 현재: ${keyBytes}바이트`);
     return res.status(500).json({ error: `ENCRYPTION_SECRET_KEY는 32바이트여야 합니다. 현재: ${keyBytes}바이트` });
   }
 
@@ -19,24 +19,24 @@ module.exports = async (req, res) => {
   const issuedAt = Math.floor(Date.now() / 1000);
 
   try {
-    const encryptedAccess = encrypt(accessToken);
+    const encryptedAccess  = encrypt(accessToken);
     const encryptedRefresh = encrypt(refreshToken);
 
     const { error } = await supabase.from('tokens').upsert({
-      kakao_id: kakaoId,
-      access_token: encryptedAccess,
+      kakao_id:      kakaoId,
+      access_token:  encryptedAccess,
       refresh_token: encryptedRefresh,
-      issued_at: issuedAt,
-      expires_in: expiresIn,
+      issued_at:     issuedAt,
+      expires_in:    expiresIn,
     }, { onConflict: 'kakao_id' });
 
     if (error) {
-      console.error('[tokens/save] Supabase upsert 오류:', error.message, error.details, error.hint);
+      console.error('[tokens] Supabase upsert 오류:', error.message);
       return res.status(500).json({ error: error.message });
     }
     return res.status(200).json({ success: true });
   } catch (err) {
-    console.error('[tokens/save] 암호화 오류:', err.message);
+    console.error('[tokens] 암호화 오류:', err.message);
     return res.status(500).json({ error: '암호화 중 오류 발생: ' + err.message });
   }
 };
