@@ -98,42 +98,57 @@
 
 /* ── 빈 상태 ── */
 .mk-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
   text-align: center;
-  padding: 60px 0;
-  color: #aaa;
+  padding: 48px 0;
+  color: #bbb;
+  font-size: 14px;
 }
-.mk-empty-icon { font-size: 40px; display: block; margin-bottom: 12px; }
+.mk-empty-icon { font-size: 36px; margin-bottom: 4px; }
+.mk-empty p { margin: 0; font-weight: 600; color: #999; }
+.mk-empty-sub { font-size: 12px; color: #ccc; }
 
 /* ── 카드 (예약 페이지 목록) ── */
 .mk-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
+  gap: 12px;
 }
 .mk-card {
-  background: var(--color-card, #fff);
-  border: 1px solid var(--color-border, #eee);
-  border-radius: var(--radius-lg, 12px);
-  padding: 18px;
-  box-shadow: var(--shadow-sm, 0 1px 4px rgba(0,0,0,0.06));
+  background: #ffffff;
+  border: 1px solid #E0E0E0;
+  border-radius: var(--radius-lg, 16px);
+  padding: 14px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  transition: box-shadow 0.15s;
 }
-.mk-card-title {
-  font-size: 16px;
-  font-weight: 700;
-  margin: 0;
-  color: var(--color-text, #222);
+.mk-card:hover { box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12); }
+.mk-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 20px;
+}
+.mk-card-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111;
+  line-height: 1.3;
 }
 .mk-card-desc {
-  font-size: 13px;
+  font-size: 12px;
   color: #666;
-  margin: 0;
+  overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 .mk-card-meta {
   font-size: 12px;
@@ -422,31 +437,50 @@
   font-weight: 600;
   color: var(--color-header, #0F172A);
 }
+/* 기본: 흰 배경 + 회색 글씨 */
 .bk-cal-card .react-calendar__tile {
   border-radius: 8px;
   font-size: 13px;
   padding: 8px 4px;
+  background: transparent;
+  color: #888;
 }
+/* 예약 가능: 살짝 노란 배경 + 진한 글씨 */
 .bk-cal-card .react-calendar__tile.mk-cal-available {
-  background: #FEE500 !important;
-  color: #3C1E1E !important;
+  background: #FFFBEB !important;
+  color: #1A1A2E !important;
   font-weight: 700 !important;
 }
 .bk-cal-card .react-calendar__tile.mk-cal-available:hover {
-  background: #F5DC00 !important;
+  background: #FEE500 !important;
 }
-.bk-cal-card .react-calendar__tile--active.mk-cal-available,
-.bk-cal-card .react-calendar__tile--active {
-  background: #0F172A !important;
-  color: #FEE500 !important;
+/* 오늘: 파란 테두리 */
+.bk-cal-card .react-calendar__tile--now {
+  background: transparent !important;
+  border: 2px solid #1677ff !important;
+  color: #1677ff !important;
+}
+.bk-cal-card .react-calendar__tile--now.mk-cal-available {
+  background: #FFFBEB !important;
+  border: 2px solid #1677ff !important;
+  color: #1A1A2E !important;
+}
+/* 선택된 날짜: 어두운 배경 + 흰 글씨 */
+.bk-cal-card .react-calendar__tile--active,
+.bk-cal-card .react-calendar__tile--active.mk-cal-available {
+  background: #1A1A2E !important;
+  color: #fff !important;
   font-weight: 700 !important;
+  border: none !important;
 }
 .bk-cal-card .react-calendar__tile--active:hover {
-  background: #1E293B !important;
+  background: #2D2D4E !important;
 }
+/* 예약 불가(과거/꽉참): 흐린 글씨 */
 .bk-cal-card .react-calendar__tile:disabled {
   background: transparent !important;
-  color: #ddd !important;
+  color: #ccc !important;
+  font-weight: 400 !important;
 }
 
 /* 시간 슬롯 카드 */
@@ -585,11 +619,23 @@
 
 /* 로딩 */
 .mk-loading {
-  text-align: center;
-  padding: 60px 0;
-  color: #aaa;
-  font-size: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 0;
+  color: #bbb;
+  font-size: 13px;
 }
+.mk-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e8e8e8;
+  border-top-color: #FEE500;
+  border-radius: 50%;
+  animation: mk-spin 0.75s linear infinite;
+}
+@keyframes mk-spin { to { transform: rotate(360deg); } }
 
 @media (max-width: 600px) {
   .mk-page, .mk-page-wide { padding: 16px 12px 80px; }

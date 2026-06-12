@@ -185,7 +185,7 @@ export default function TimetablePage() {
       </div>
 
       {loading ? (
-        <div className="tt-loading">불러오는 중...</div>
+        <div className="tt-loading"><div className="tt-spinner" /><span>불러오는 중...</span></div>
       ) : (
         <div className="tt-grid-outer">
           <div className="tt-grid-wrap">

@@ -4,7 +4,7 @@
   flex-direction: column;
   gap: 16px;
   padding: 20px 24px;
-  background: var(--color-bg, #f7f7f5);
+  background: transparent;
   min-height: 100%;
   box-sizing: border-box;
 }

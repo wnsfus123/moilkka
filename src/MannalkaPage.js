@@ -134,7 +134,7 @@ export default function MannalkaPage() {
       </div>
 
       {loading ? (
-        <div className="mk-loading">불러오는 중...</div>
+        <div className="mk-loading"><div className="mk-spinner" /><span>불러오는 중...</span></div>
       ) : pages.length === 0 ? (
         <div className="mk-empty">
           <span className="mk-empty-icon">📌</span>
@@ -147,13 +147,15 @@ export default function MannalkaPage() {
         <div className="mk-cards">
           {pages.map(page => (
             <div key={page.uuid} className="mk-card">
-              <h3 className="mk-card-title">{page.title}</h3>
-              {page.description && <p className="mk-card-desc">{page.description}</p>}
-              <p className="mk-card-meta">⏱ {page.duration}분 미팅</p>
-              <div className="mk-card-badges">
-                {page.pending_count   > 0 && <span className="mk-badge mk-badge-pending">대기 {page.pending_count}건</span>}
-                {page.confirmed_count > 0 && <span className="mk-badge mk-badge-confirmed">확정 {page.confirmed_count}건</span>}
+              <div className="mk-card-header">
+                <div className="mk-card-badges">
+                  {page.pending_count   > 0 && <span className="mk-badge mk-badge-pending">대기 {page.pending_count}건</span>}
+                  {page.confirmed_count > 0 && <span className="mk-badge mk-badge-confirmed">확정 {page.confirmed_count}건</span>}
+                </div>
               </div>
+              <div className="mk-card-name">{page.title}</div>
+              {page.description && <div className="mk-card-desc">{page.description}</div>}
+              <div className="mk-card-meta">⏱ {page.duration}분 미팅</div>
               <div className="mk-card-actions">
                 <button className="mk-btn-secondary mk-btn-sm" onClick={() => copyLink(page.uuid)}>🔗 링크 복사</button>
                 <button className="mk-btn-primary  mk-btn-sm" onClick={() => navigate(`/mannalka/manage/${page.uuid}`)}>관리하기</button>

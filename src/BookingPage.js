@@ -143,7 +143,7 @@ export default function BookingPage() {
   const fmtTime = (dt) => dt.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
 
   if (loading) {
-    return <div className="mk-page"><div className="mk-loading">불러오는 중...</div></div>;
+    return <div className="mk-page"><div className="mk-loading"><div className="mk-spinner" /><span>불러오는 중...</span></div></div>;
   }
 
   if (!page || !page.is_active) {

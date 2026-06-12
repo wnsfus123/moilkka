@@ -103,7 +103,7 @@ export default function MannalkaManagePage() {
     );
   }
 
-  if (loading) return <div className="mk-page"><div className="mk-loading">불러오는 중...</div></div>;
+  if (loading) return <div className="mk-page"><div className="mk-loading"><div className="mk-spinner" /><span>불러오는 중...</span></div></div>;
 
   const pending   = requests.filter(r => r.status === 'pending');
   const confirmed = requests.filter(r => r.status === 'confirmed');

@@ -18,7 +18,24 @@
   color: #888;
   margin: 0;
 }
-.tt-loading,
+.tt-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 0;
+  color: #bbb;
+  font-size: 13px;
+}
+.tt-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e8e8e8;
+  border-top-color: #FEE500;
+  border-radius: 50%;
+  animation: tt-spin 0.75s linear infinite;
+}
+@keyframes tt-spin { to { transform: rotate(360deg); } }
 .tt-login-msg {
   text-align: center;
   padding: 60px 0;
