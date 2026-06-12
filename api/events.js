@@ -1,4 +1,25 @@
 const { supabase } = require('./lib/supabase');
+const { decrypt }  = require('./lib/crypto');
+const axios        = require('axios');
+
+const sendKakaoMsg = async (kakaoId, text) => {
+  const baseUrl = process.env.REACT_APP_BASE_URL || '';
+  try {
+    const { data: tokenRow } = await supabase
+      .from('tokens').select('access_token').eq('kakao_id', String(kakaoId)).single();
+    if (!tokenRow) return;
+    const token = decrypt(tokenRow.access_token);
+    await axios.post(
+      'https://kapi.kakao.com/v2/api/talk/memo/default/send',
+      new URLSearchParams({
+        template_object: JSON.stringify({ object_type: 'text', text, link: { web_url: baseUrl } }),
+      }).toString(),
+      { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/x-www-form-urlencoded' } }
+    );
+  } catch (err) {
+    console.error(`[events] 카카오 메시지 전송 실패 (${kakaoId}):`, err.message);
+  }
+};
 
 function getTzOffset(timezone) {
   try {
@@ -20,14 +41,35 @@ function getTzOffset(timezone) {
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, PATCH, PUT, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const { uuid, kakaoId: kakaoIdQuery } = req.query;
+  const { uuid, kakaoId: kakaoIdQuery, action } = req.query;
 
   // ── GET ──────────────────────────────────────────────────
   if (req.method === 'GET') {
+
+    // 일정 등록자 목록 (방장용)
+    if (uuid && action === 'unregistered') {
+      try {
+        const { data: schedules, error } = await supabase
+          .from('schedules').select('kakao_id, nickname').eq('event_uuid', uuid);
+        if (error) return res.status(500).json({ error: error.message });
+        const seen = new Set();
+        const registered = (schedules || []).reduce((acc, s) => {
+          if (s.kakao_id && !seen.has(s.kakao_id)) {
+            seen.add(s.kakao_id);
+            acc.push({ kakao_id: s.kakao_id, nickname: s.nickname });
+          }
+          return acc;
+        }, []);
+        return res.status(200).json(registered);
+      } catch (err) {
+        return res.status(500).json({ error: err.message });
+      }
+    }
+
     // 단건 조회
     if (uuid) {
       try {
@@ -90,8 +132,29 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'uuid 또는 kakaoId 쿼리가 필요합니다.' });
   }
 
-  // ── POST (이벤트 생성) ────────────────────────────────────
+  // ── POST ─────────────────────────────────────────────────
   if (req.method === 'POST') {
+
+    // 미등록자 독촉 알림
+    if (action === 'remind') {
+      try {
+        const { kakaoId, target_kakao_ids } = req.body;
+        if (!uuid || !kakaoId) return res.status(400).json({ error: '필수 값 누락' });
+        const { data: event } = await supabase.from('events').select('kakao_id, name').eq('uuid', uuid).single();
+        if (!event) return res.status(404).json({ error: '이벤트를 찾을 수 없습니다.' });
+        if (String(event.kakao_id) !== String(kakaoId)) return res.status(403).json({ error: '권한이 없습니다.' });
+        const baseUrl = process.env.REACT_APP_BASE_URL || '';
+        const link = `${baseUrl}/meet/?key=${uuid}`;
+        for (const targetId of (target_kakao_ids || [])) {
+          await sendKakaoMsg(targetId, `📢 ${event.name} 모임 일정을 아직 등록하지 않으셨어요!\n마감 전에 빨리 등록해주세요 👉 ${link}`);
+        }
+        return res.status(200).json({ success: true });
+      } catch (err) {
+        return res.status(500).json({ error: err.message });
+      }
+    }
+
+    // 이벤트 생성
     try {
       const { uuid: bodyUuid, eventName, startDay, endDay, startTime, endTime,
               kakaoId, nickname, selectedDates, timezone, is_private } = req.body;
@@ -173,6 +236,53 @@ module.exports = async (req, res) => {
     } catch (err) {
       return res.status(500).json({ error: err.message });
     }
+  }
+
+  // ── PUT (모임 확정) ───────────────────────────────────────
+  if (req.method === 'PUT') {
+    if (action === 'confirm') {
+      try {
+        const { kakaoId, confirmed_time } = req.body;
+        if (!uuid || !kakaoId || !confirmed_time) return res.status(400).json({ error: '필수 값 누락' });
+        const { data: event, error: findError } = await supabase
+          .from('events').select('kakao_id, name').eq('uuid', uuid).single();
+        if (findError) return res.status(404).json({ error: '이벤트를 찾을 수 없습니다.' });
+        if (String(event.kakao_id) !== String(kakaoId)) return res.status(403).json({ error: '권한이 없습니다.' });
+
+        const { error: updateError } = await supabase.from('events').update({
+          status: 'confirmed',
+          confirmed_at: new Date().toISOString(),
+          confirmed_time,
+        }).eq('uuid', uuid);
+        if (updateError) return res.status(500).json({ error: updateError.message });
+
+        const { data: schedules } = await supabase
+          .from('schedules').select('kakao_id').eq('event_uuid', uuid);
+        const participantIds = [...new Set((schedules || []).map(s => s.kakao_id).filter(Boolean))];
+
+        const baseUrl = process.env.REACT_APP_BASE_URL || '';
+        const link = `${baseUrl}/meet/?key=${uuid}`;
+        const confTimeLabel = new Date(confirmed_time).toLocaleString('ko-KR', {
+          timeZone: 'Asia/Seoul', year: 'numeric', month: 'long', day: 'numeric',
+          weekday: 'short', hour: '2-digit', minute: '2-digit',
+        });
+
+        for (const pid of participantIds) {
+          if (String(pid) === String(kakaoId)) continue;
+          await sendKakaoMsg(pid,
+            `🎉 ${event.name} 모임 시간이 확정됐어요!\n📅 ${confTimeLabel}\n지금 바로 캘린더에 추가해보세요 👉 ${link}`
+          );
+        }
+        await sendKakaoMsg(kakaoId,
+          `✅ ${event.name} 모임을 확정했어요!\n참여자들에게 알림을 보냈습니다.`
+        );
+
+        return res.status(200).json({ success: true });
+      } catch (err) {
+        return res.status(500).json({ error: err.message });
+      }
+    }
+    return res.status(400).json({ error: 'action 필요' });
   }
 
   return res.status(405).json({ error: 'Method not allowed' });

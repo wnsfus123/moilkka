@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { QRCodeCanvas } from 'qrcode.react';
 import axios from 'axios';
 import { format, addMinutes, differenceInDays, isBefore, isAfter, parse } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -178,6 +179,16 @@ function EventPage() {
   const [confirmSelections, setConfirmSelections] = useState(new Set());
   const [timetableBlocks, setTimetableBlocks] = useState(new Set());
   const [timetableLoaded, setTimetableLoaded] = useState(false);
+  // 기능1: 모임 확정
+  const [confirmTimeModal,    setConfirmTimeModal]    = useState(false);
+  const [confirmTimeTarget,   setConfirmTimeTarget]   = useState(null);
+  const [confirmingEventTime, setConfirmingEventTime] = useState(false);
+  // 기능2: 독촉
+  const [registeredUsers, setRegisteredUsers] = useState([]);
+  const [remindInput,     setRemindInput]     = useState('');
+  const [reminding,       setReminding]       = useState(false);
+  // 기능3: QR
+  const [showQrModal, setShowQrModal] = useState(false);
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -325,6 +336,80 @@ function EventPage() {
       else message.info('등록된 시간표가 없어요. 내 시간표에서 먼저 등록해 주세요.');
     } catch (err) {
       message.error('시간표를 불러오지 못했어요');
+    }
+  };
+
+  const fetchRegistered = useCallback(async () => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const uuid = urlParams.get('key');
+      const res = await axios.get(`/api/events/${uuid}?action=unregistered`);
+      setRegisteredUsers(res.data || []);
+    } catch (err) {
+      console.error('[EventPage] fetchRegistered 오류:', err);
+    }
+  }, []);
+
+  // 방장일 때 등록자 목록 로드
+  useEffect(() => {
+    if (!eventData?.uuid || !userInfo?.id) return;
+    if (String(userInfo.id) === String(eventData.kakaoId)) fetchRegistered();
+  }, [eventData?.uuid, userInfo?.id, fetchRegistered]); // eslint-disable-line
+
+  const handleConfirmEvent = async () => {
+    if (!confirmTimeTarget) return;
+    setConfirmingEventTime(true);
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const uuid = urlParams.get('key');
+      await axios.put(`/api/events/${uuid}?action=confirm`, {
+        kakaoId: userInfo.id,
+        confirmed_time: confirmTimeTarget.isoString,
+      });
+      await fetchEventData();
+      setConfirmTimeModal(false);
+      message.success('모임이 확정됐어요! 참여자들에게 알림을 보냈어요 🎉');
+    } catch (err) {
+      console.error(err);
+      message.error('확정에 실패했어요');
+    } finally {
+      setConfirmingEventTime(false);
+    }
+  };
+
+  const handleAddConfirmedToGoogle = async () => {
+    if (!isGoogleLoggedIn) { message.warning('먼저 구글 캘린더 연동을 완료해주세요!'); return; }
+    const start = new Date(eventData.confirmed_time);
+    const end = addMinutes(start, 60);
+    try {
+      await addEventToGoogleCalendar({
+        summary: eventData.eventname,
+        start: { dateTime: start.toISOString(), timeZone: 'Asia/Seoul' },
+        end: { dateTime: end.toISOString(), timeZone: 'Asia/Seoul' },
+      });
+      message.success('구글 캘린더에 추가됐어요!');
+    } catch (err) {
+      message.error('추가에 실패했어요');
+    }
+  };
+
+  const handleRemind = async () => {
+    const ids = remindInput.split(',').map(s => s.trim()).filter(Boolean);
+    if (!ids.length) { message.warning('카카오 ID를 입력해주세요'); return; }
+    setReminding(true);
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const uuid = urlParams.get('key');
+      await axios.post(`/api/events/${uuid}?action=remind`, {
+        kakaoId: userInfo.id,
+        target_kakao_ids: ids,
+      });
+      message.success('독촉 메시지를 보냈어요!');
+      setRemindInput('');
+    } catch (err) {
+      message.error('전송에 실패했어요');
+    } finally {
+      setReminding(false);
     }
   };
 
@@ -500,6 +585,13 @@ function EventPage() {
 
   const isCreator = userInfo?.id?.toString() === eventData?.kakaoId;
   const confirmedSlots = eventData.confirmed_slots || [];
+  const isEventConfirmed = eventData.status === 'confirmed';
+
+  // 최적 시간 추천: 참여자 많은 순 상위 5개
+  const topSlots = Object.entries(userSchedules)
+    .filter(([, users]) => users.length > 0)
+    .sort(([, a], [, b]) => b.length - a.length)
+    .slice(0, 5);
   const confirmedSet = new Set(confirmedSlots);
 
   const colors = ['blue', 'red', 'green', 'purple', 'orange', 'pink'];
@@ -664,10 +756,32 @@ function EventPage() {
             );
           })()}
 
+          {/* 확정된 모임 배너 */}
+          {isEventConfirmed && eventData.confirmed_time && (
+            <div className="ep-status-confirmed-banner">
+              <div className="ep-status-confirmed-main">
+                <span className="ep-status-confirmed-icon">✅</span>
+                <div>
+                  <strong className="ep-status-confirmed-label">확정된 모임</strong>
+                  <span className="ep-status-confirmed-time">
+                    {new Date(eventData.confirmed_time).toLocaleString('ko-KR', {
+                      year: 'numeric', month: 'long', day: 'numeric',
+                      weekday: 'short', hour: '2-digit', minute: '2-digit',
+                    })}
+                  </span>
+                </div>
+              </div>
+              <button className="ep-status-gcal-btn" onClick={handleAddConfirmedToGoogle}>
+                📆 구글 캘린더에 추가
+              </button>
+            </div>
+          )}
+
           {/* Share actions */}
           <div className="ep-hero-actions">
             <KakaoShareButton userInfo={userInfo} eventData={eventData} />
             <button className="ep-tool-btn btn-blue" onClick={handleCopyLink}>🔗 링크 복사</button>
+            <button className="ep-tool-btn" onClick={() => setShowQrModal(true)}>🔲 QR코드</button>
             {isCreator && (
               <button className={`ep-tool-btn btn-confirm${confirmedSlots.length > 0 ? ' confirmed' : ''}`} onClick={openConfirmModal}>
                 📌 {confirmedSlots.length > 0 ? '확정 수정' : '모임 확정'}
@@ -847,6 +961,77 @@ function EventPage() {
             <PlaceSection eventData={eventData} userInfo={userInfo} />
           </div>
         </div>
+
+        {/* ── 최적 시간 추천 패널 (방장 + status=open 일 때만) ── */}
+        {isCreator && !isEventConfirmed && topSlots.length > 0 && (
+          <div className="ep-panel ep-recommend-panel">
+            <div className="ep-panel-header">
+              <h3 className="ep-panel-title">🏆 최적 시간 추천</h3>
+              <span className="ep-panel-sub">참여자 많은 순으로 정렬됐어요</span>
+            </div>
+            <div className="ep-recommend-list">
+              {topSlots.map(([timeKey, users]) => {
+                const [datePart, timePart] = timeKey.split(' ');
+                const dateObj = new Date(`${datePart}T${timePart}:00`);
+                const endTime = format(addMinutes(dateObj, 60), 'HH:mm');
+                const label = `${format(dateObj, 'M월 d일 (EEE)', { locale: ko })} ${timePart} ~ ${endTime}`;
+                return (
+                  <div key={timeKey} className="ep-recommend-item">
+                    <div className="ep-recommend-info">
+                      <span className="ep-recommend-time">{label}</span>
+                      <span className="ep-recommend-count">{users.length}명 참여 가능</span>
+                    </div>
+                    <button
+                      className="ep-confirm-time-btn"
+                      onClick={() => {
+                        setConfirmTimeTarget({ label, isoString: dateObj.toISOString(), users });
+                        setConfirmTimeModal(true);
+                      }}
+                    >
+                      이 시간으로 확정
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ── 미등록자 독촉 알림 (방장 전용) ── */}
+        {isCreator && (
+          <div className="ep-panel ep-remind-section">
+            <div className="ep-panel-header">
+              <h3 className="ep-panel-title">📢 미등록자 독촉 알림</h3>
+            </div>
+            {registeredUsers.length > 0 ? (
+              <div className="ep-registered-list">
+                <p className="ep-registered-label">일정 등록 완료:</p>
+                <div className="ep-registered-chips">
+                  {registeredUsers.map((u, i) => (
+                    <span key={i} className="ep-registered-chip">{u.nickname}</span>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="ep-registered-empty">아직 일정을 등록한 참여자가 없어요.</p>
+            )}
+            <div className="ep-remind-input-row">
+              <input
+                className="ep-remind-input"
+                placeholder="카카오 ID (쉼표로 여러 명 입력)"
+                value={remindInput}
+                onChange={e => setRemindInput(e.target.value)}
+              />
+              <button
+                className="ep-remind-btn"
+                onClick={handleRemind}
+                disabled={reminding}
+              >
+                {reminding ? '전송 중...' : '카카오 알림 보내기'}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* ── Mobile: 탭 전환 ── */}
         <div className="ep-schedule-mobile">
@@ -1130,6 +1315,74 @@ function EventPage() {
             scheduleEnd={Schedule_End}
             setOverlappingEvents={setOverlappingEvents}
           />
+        </Modal>
+
+        {/* QR 코드 모달 */}
+        <Modal
+          title="모임 링크 QR코드"
+          open={showQrModal}
+          onCancel={() => setShowQrModal(false)}
+          footer={null}
+          centered
+        >
+          <div className="ep-qr-body">
+            <QRCodeCanvas
+              id="event-qr-canvas"
+              value={`${getBaseUrl()}/meet/?key=${eventData.uuid}`}
+              size={200}
+              includeMargin
+            />
+            <p className="ep-qr-hint">QR코드를 스캔하면 모임 페이지로 바로 이동해요</p>
+            <div className="ep-qr-actions">
+              <button
+                className="ep-tool-btn btn-blue"
+                onClick={() => {
+                  const canvas = document.getElementById('event-qr-canvas');
+                  if (!canvas) return;
+                  const url = canvas.toDataURL('image/png');
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `${eventData.eventname || '모임'}_QR.png`;
+                  a.click();
+                }}
+              >
+                QR코드 저장
+              </button>
+              <button
+                className="ep-tool-btn"
+                onClick={() => {
+                  navigator.clipboard.writeText(`${getBaseUrl()}/meet/?key=${eventData.uuid}`);
+                  message.success('링크가 복사됐어요!');
+                }}
+              >
+                🔗 링크 복사
+              </button>
+            </div>
+          </div>
+        </Modal>
+
+        {/* 모임 확정 확인 모달 */}
+        <Modal
+          title="모임 시간 확정"
+          open={confirmTimeModal}
+          onOk={handleConfirmEvent}
+          onCancel={() => setConfirmTimeModal(false)}
+          okText="확정하기"
+          cancelText="취소"
+          confirmLoading={confirmingEventTime}
+          okButtonProps={{ style: { background: '#52c41a', borderColor: '#52c41a' } }}
+        >
+          {confirmTimeTarget && (
+            <div style={{ padding: '8px 0' }}>
+              <p style={{ fontWeight: 600, fontSize: 16, marginBottom: 8 }}>{confirmTimeTarget.label}</p>
+              <p style={{ color: '#555' }}>
+                참여 가능 인원: <strong>{confirmTimeTarget.users?.length}명</strong>
+              </p>
+              <p style={{ color: '#888', fontSize: 13, marginTop: 12 }}>
+                확정 시 참여자 전원에게 카카오 알림이 발송됩니다.
+              </p>
+            </div>
+          )}
         </Modal>
 
       </main>

@@ -638,6 +638,152 @@
 .cal-legend span { display: flex; align-items: center; gap: 4px; }
 .cal-legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
+/* ── 확정된 모임 배너 ── */
+.ep-status-confirmed-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #F0FFF4;
+  border: 1px solid #9AE6B4;
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.ep-status-confirmed-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.ep-status-confirmed-icon { font-size: 22px; flex-shrink: 0; }
+.ep-status-confirmed-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: #22543D;
+  margin-bottom: 2px;
+}
+.ep-status-confirmed-time {
+  font-size: 13px;
+  color: #276749;
+}
+.ep-status-gcal-btn {
+  padding: 8px 14px;
+  background: #C6F6D5;
+  color: #276749;
+  border: 1px solid #9AE6B4;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.ep-status-gcal-btn:hover { background: #9AE6B4; }
+
+/* ── 최적 시간 추천 패널 ── */
+.ep-recommend-panel .ep-panel-sub {
+  font-size: 12px;
+  color: #888;
+  margin-left: 8px;
+}
+.ep-recommend-list { display: flex; flex-direction: column; gap: 8px; }
+.ep-recommend-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  flex-wrap: wrap;
+}
+.ep-recommend-info { display: flex; flex-direction: column; gap: 2px; }
+.ep-recommend-time { font-size: 14px; font-weight: 600; color: var(--color-text); }
+.ep-recommend-count { font-size: 12px; color: #888; }
+.ep-confirm-time-btn {
+  padding: 7px 14px;
+  background: var(--color-primary);
+  color: var(--color-primary-text);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+.ep-confirm-time-btn:hover { opacity: 0.85; }
+
+/* ── 미등록자 독촉 알림 섹션 ── */
+.ep-remind-section { margin-top: 0; }
+.ep-registered-label { font-size: 13px; color: #888; margin-bottom: 6px; }
+.ep-registered-empty { font-size: 13px; color: #aaa; margin: 4px 0 12px; }
+.ep-registered-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.ep-registered-chip {
+  padding: 4px 10px;
+  background: #EBF8FF;
+  color: #1a56a0;
+  border: 1px solid #90CDF4;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.ep-remind-input-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.ep-remind-input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  background: var(--color-card);
+  color: var(--color-text);
+  outline: none;
+}
+.ep-remind-input:focus { border-color: #91CAFF; box-shadow: 0 0 0 2px rgba(145,202,255,0.2); }
+.ep-remind-btn {
+  padding: 8px 16px;
+  background: var(--color-primary);
+  color: var(--color-primary-text);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+.ep-remind-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.ep-remind-btn:not(:disabled):hover { opacity: 0.85; }
+
+/* ── QR 코드 모달 ── */
+.ep-qr-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+  gap: 12px;
+}
+.ep-qr-hint { font-size: 13px; color: #888; text-align: center; margin: 0; }
+.ep-qr-actions {
+  display: flex;
+  gap: 8px;
+}
+
+@media (max-width: 600px) {
+  .ep-status-confirmed-banner { flex-direction: column; align-items: flex-start; }
+  .ep-recommend-item { flex-direction: column; align-items: flex-start; }
+  .ep-remind-input-row { flex-direction: column; }
+  .ep-remind-btn { width: 100%; }
+}
+
 .cal-detail {
   border: 1px solid #e8e8e8; border-radius: 10px;
   padding: 12px 14px; background: #fafafa;
