@@ -788,6 +788,15 @@
   margin: 4px 0 0 0;
   padding: 0 16px;
 }
+.ep-unsaved-hint {
+  font-size: 11px;
+  color: #d46b08;
+  background: #fff7e6;
+  border-radius: 6px;
+  margin: 6px 16px 0;
+  padding: 5px 10px;
+  font-weight: 500;
+}
 
 /* ── FAB 버튼 ── */
 .ep-fab {

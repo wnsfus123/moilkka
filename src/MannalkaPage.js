@@ -197,8 +197,11 @@ export default function MannalkaPage() {
               <div className="mk-card-name">{page.title}</div>
               {page.description && <div className="mk-card-desc">{page.description}</div>}
               <div className="mk-card-meta">⏱ {page.duration}분 미팅</div>
+              <button className="mk-card-link" onClick={() => copyLink(page.uuid)}>
+                <span className="mk-card-link-text">{getBaseUrl()}/book/{page.uuid}</span>
+                <span className="mk-card-link-copy">복사</span>
+              </button>
               <div className="mk-card-actions">
-                <button className="mk-btn-secondary mk-btn-sm" onClick={() => copyLink(page.uuid)}>🔗 링크 복사</button>
                 <button className="mk-btn-primary  mk-btn-sm" onClick={() => navigate(`/mannalka/manage/${page.uuid}`)}>관리하기</button>
                 <button className="mk-btn-danger   mk-btn-sm" onClick={() => handleDelete(page)}>삭제</button>
               </div>

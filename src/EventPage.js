@@ -195,6 +195,7 @@ function EventPage() {
   // 저장 피드백
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [savedAt, setSavedAt] = useState(null);
+  const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -283,6 +284,16 @@ function EventPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchEventData(); }, [userInfo]);
 
+  useEffect(() => {
+    const handler = (e) => {
+      if (!isDirty) return;
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty]);
+
   const handleConfirm = async () => {
     try {
       setConfirmLoading(true);
@@ -305,6 +316,7 @@ function EventPage() {
       message.success('✅ 일정이 저장됐어요!');
       setSaveSuccess(true);
       setSavedAt(new Date());
+      setIsDirty(false);
       setTimeout(() => setSaveSuccess(false), 2000);
     } catch (error) {
       console.error('일정 저장 오류:', error);
@@ -319,6 +331,7 @@ function EventPage() {
       ? newSchedule.filter(d => !timetableBlocks.has(`${(d.getDay() + 6) % 7}-${d.getHours()}`))
       : newSchedule;
     setSchedule(filtered);
+    setIsDirty(true);
     const selectedTimeByDate = {};
     filtered.forEach(time => {
       const date = format(time, 'yyyy-MM-dd');
@@ -851,7 +864,8 @@ function EventPage() {
                   </button>
                 </div>
               </div>
-              {savedAt && <p className="ep-saved-hint">마지막 저장: 방금 전</p>}
+              {isDirty && <p className="ep-unsaved-hint">⚠️ 저장되지 않은 변경사항이 있어요</p>}
+              {savedAt && !isDirty && <p className="ep-saved-hint">마지막 저장: 방금 전</p>}
               <div className="schedule-selector-wrapper">
                 {dateGroups ? (
                   <GroupsScroller>
