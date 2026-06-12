@@ -1,11 +1,6 @@
 import React from "react";
 import "./App.css";
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom"; // BrowserRouter를 사용하기 위해 수정
-
-const TestRedirect = () => {
-  const location = useLocation();
-  return <Navigate replace to={`/meet${location.pathname.replace(/^\/test/, '')}${location.search}`} />;
-};
 import CreateEvent from "./CreateEvent";
 import EventPage from "./EventPage";
 import HelpSection from "./HelpSection";
@@ -20,6 +15,11 @@ import TimetablePage from "./TimetablePage";
 import MannalkaPage from "./MannalkaPage";
 import MannalkaManagePage from "./MannalkaManagePage";
 import BookingPage from "./BookingPage";
+
+const TestRedirect = () => {
+  const location = useLocation();
+  return <Navigate replace to={`/meet${location.pathname.replace(/^\/test/, '')}${location.search}`} />;
+};
 
 const App = () => {
   return (
