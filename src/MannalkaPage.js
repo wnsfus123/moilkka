@@ -68,8 +68,7 @@ export default function MannalkaPage() {
         next[e.day_of_week] = {
           ...next[e.day_of_week],
           enabled: true,
-          start_time: e.start_time.substring(0, 5),
-          end_time: e.end_time.substring(0, 5),
+          // 시간은 기본값(09:00-18:00) 유지 — 시간표 시간은 예약 불가 표시용으로만 쓰임
         };
       });
       setDaySlots(next);
