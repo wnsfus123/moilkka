@@ -60,7 +60,7 @@ const PlaceSection = ({ eventData, userInfo }) => {
     script.onload = () => {
       window.kakao.maps.load(() => initMap());
     };
-    script.onerror = () => console.warn('[PlaceSection] 카카오맵 SDK 로드 실패');
+    script.onerror = () => console.warn('[PlaceSection] 카카오맵 SDK 로드 실패 — Kakao Developers 콘솔에서 JavaScript 키와 사이트 도메인을 확인하세요. 현재 도메인:', window.location.origin);
     document.head.appendChild(script);
   }, [MAP_KEY, initMap]);
 

@@ -1,0 +1,554 @@
+/* ══════════════════════════════════════════════════════
+   공통 래퍼
+══════════════════════════════════════════════════════ */
+.mk-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 16px 80px;
+}
+.mk-page-wide {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 16px 80px;
+}
+.mk-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: var(--color-text, #222);
+}
+.mk-subtitle {
+  font-size: 13px;
+  color: #888;
+  margin: 0 0 24px;
+}
+.mk-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+/* ── 버튼 ── */
+.mk-btn-primary {
+  background: var(--color-primary, #1677ff);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md, 8px);
+  padding: 9px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+.mk-btn-primary:hover { opacity: 0.88; }
+.mk-btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+.mk-btn-secondary {
+  background: none;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: var(--radius-md, 8px);
+  padding: 7px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #555;
+  transition: background 0.12s;
+}
+.mk-btn-secondary:hover { background: var(--color-bg, #f5f5f5); }
+.mk-btn-danger {
+  background: none;
+  border: 1px solid #ffa39e;
+  border-radius: var(--radius-md, 8px);
+  padding: 7px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #cf1322;
+  transition: background 0.12s;
+}
+.mk-btn-danger:hover { background: #fff1f0; }
+.mk-btn-confirm {
+  background: #52c41a;
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md, 8px);
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.mk-btn-confirm:hover { opacity: 0.88; }
+.mk-btn-sm {
+  font-size: 12px;
+  padding: 5px 10px;
+}
+
+/* ── 뱃지 ── */
+.mk-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.mk-badge-pending  { background: #fff7e6; color: #d46b08; border: 1px solid #ffd591; }
+.mk-badge-confirmed { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; }
+.mk-badge-cancelled { background: #f5f5f5; color: #999; border: 1px solid #ddd; }
+
+/* ── 빈 상태 ── */
+.mk-empty {
+  text-align: center;
+  padding: 60px 0;
+  color: #aaa;
+}
+.mk-empty-icon { font-size: 40px; display: block; margin-bottom: 12px; }
+
+/* ── 카드 (예약 페이지 목록) ── */
+.mk-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.mk-card {
+  background: var(--color-card, #fff);
+  border: 1px solid var(--color-border, #eee);
+  border-radius: var(--radius-lg, 12px);
+  padding: 18px;
+  box-shadow: var(--shadow-sm, 0 1px 4px rgba(0,0,0,0.06));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mk-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-text, #222);
+}
+.mk-card-desc {
+  font-size: 13px;
+  color: #666;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.mk-card-meta {
+  font-size: 12px;
+  color: #aaa;
+}
+.mk-card-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.mk-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+/* ── 모달 ── */
+.mk-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+.mk-modal {
+  background: var(--color-card, #fff);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.mk-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--color-border, #eee);
+  position: sticky;
+  top: 0;
+  background: var(--color-card, #fff);
+  z-index: 1;
+}
+.mk-modal-head h3 { margin: 0; font-size: 17px; font-weight: 700; }
+.mk-modal-close {
+  background: none; border: none; font-size: 20px;
+  cursor: pointer; color: #aaa; line-height: 1; padding: 0 4px;
+}
+.mk-modal-close:hover { color: #333; }
+.mk-modal-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.mk-modal-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px 18px;
+  border-top: 1px solid var(--color-border, #eee);
+}
+
+/* ── 폼 필드 ── */
+.mk-field { display: flex; flex-direction: column; gap: 6px; }
+.mk-field label { font-size: 12px; font-weight: 600; color: #666; }
+.mk-field-row { display: flex; align-items: center; gap: 8px; }
+.mk-input {
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: var(--radius-md, 8px);
+  padding: 8px 12px; font-size: 14px; outline: none;
+  width: 100%; box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+.mk-input:focus { border-color: var(--color-primary, #1677ff); }
+.mk-textarea {
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: var(--radius-md, 8px);
+  padding: 8px 12px; font-size: 13px; outline: none;
+  resize: none; width: 100%; box-sizing: border-box; font-family: inherit;
+}
+.mk-textarea:focus { border-color: var(--color-primary, #1677ff); }
+.mk-select {
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: var(--radius-md, 8px);
+  padding: 7px 10px; font-size: 13px; outline: none;
+  background: #fff; cursor: pointer;
+}
+.mk-req { color: #ff4d4f; }
+
+/* ── 슬롯 설정 테이블 ── */
+.mk-slot-hint {
+  font-size: 12px; color: #aaa; margin: 0;
+}
+.mk-slot-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.mk-slot-table th {
+  padding: 6px 8px;
+  font-weight: 600;
+  color: #888;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border, #eee);
+}
+.mk-slot-row td {
+  padding: 6px 8px;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--color-border, #eee);
+}
+.mk-slot-row td:first-child { width: 30px; }
+.mk-slot-row td:nth-child(2) { width: 36px; font-weight: 600; }
+.mk-slot-check {
+  width: 16px; height: 16px; cursor: pointer;
+  accent-color: var(--color-primary, #1677ff);
+}
+.mk-slot-select {
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 6px;
+  padding: 4px 6px;
+  font-size: 12px;
+  background: #fff;
+  width: 72px;
+}
+.mk-slot-row.disabled td { opacity: 0.35; }
+.mk-slot-row.disabled td:first-child { opacity: 1; }
+.mk-timetable-btn {
+  background: none;
+  border: 1px dashed var(--color-border, #ddd);
+  border-radius: var(--radius-md, 8px);
+  padding: 7px 12px;
+  font-size: 12px;
+  color: #888;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+.mk-timetable-btn:hover { border-color: var(--color-primary, #1677ff); color: var(--color-primary, #1677ff); }
+
+/* ════════════════════════════════════════════════
+   MannalkaManagePage
+════════════════════════════════════════════════ */
+.mk-back-btn {
+  background: none; border: none; cursor: pointer;
+  font-size: 13px; color: #888; padding: 0; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 4px;
+}
+.mk-back-btn:hover { color: var(--color-primary, #1677ff); }
+.mk-summary-box {
+  background: var(--color-card, #fff);
+  border: 1px solid var(--color-border, #eee);
+  border-radius: var(--radius-lg, 12px);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm, 0 1px 4px rgba(0,0,0,0.06));
+}
+.mk-summary-title { font-weight: 700; font-size: 15px; margin: 0 0 6px; }
+.mk-summary-text { font-size: 13px; color: #666; margin: 0 0 10px; }
+.mk-summary-counts { display: flex; gap: 12px; flex-wrap: wrap; }
+.mk-request-list { display: flex; flex-direction: column; gap: 12px; }
+.mk-request-card {
+  background: var(--color-card, #fff);
+  border: 1px solid var(--color-border, #eee);
+  border-radius: var(--radius-lg, 12px);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-sm, 0 1px 4px rgba(0,0,0,0.06));
+}
+.mk-request-card.status-confirmed { border-left: 3px solid #52c41a; }
+.mk-request-card.status-cancelled { opacity: 0.55; }
+.mk-request-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.mk-request-name { font-size: 15px; font-weight: 700; }
+.mk-request-date { font-size: 13px; color: #555; margin-bottom: 4px; }
+.mk-request-memo { font-size: 12px; color: #888; margin-bottom: 10px; }
+.mk-request-actions { display: flex; gap: 8px; }
+
+/* ════════════════════════════════════════════════
+   BookingPage
+════════════════════════════════════════════════ */
+.bk-root {
+  min-height: 100vh;
+  background: var(--color-bg, #f7f8fa);
+}
+.bk-nav {
+  background: #3c1e1e;
+  padding: 0 20px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+}
+.bk-nav-logo {
+  font-size: 16px;
+  font-weight: 700;
+  color: #FEE500;
+  text-decoration: none;
+}
+.bk-body {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 16px 80px;
+}
+
+/* 호스트 정보 */
+.bk-host-card {
+  background: var(--color-card, #fff);
+  border: 1px solid var(--color-border, #eee);
+  border-radius: var(--radius-lg, 12px);
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm, 0 1px 4px rgba(0,0,0,0.06));
+}
+.bk-host-name {
+  font-size: 14px;
+  color: #888;
+  margin: 0 0 4px;
+}
+.bk-page-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+.bk-page-desc {
+  font-size: 13px;
+  color: #666;
+  margin: 0 0 8px;
+}
+.bk-avail-text {
+  font-size: 13px;
+  color: var(--color-primary, #1677ff);
+  font-weight: 600;
+}
+
+/* 달력 + 슬롯 레이아웃 */
+.bk-cal-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+@media (min-width: 600px) {
+  .bk-cal-layout {
+    grid-template-columns: 340px 1fr;
+  }
+}
+.bk-cal-wrap {
+  background: var(--color-card, #fff);
+  border: 1px solid var(--color-border, #eee);
+  border-radius: var(--radius-lg, 12px);
+  padding: 12px;
+  box-shadow: var(--shadow-sm, 0 1px 4px rgba(0,0,0,0.06));
+}
+/* react-calendar 오버라이드 */
+.bk-cal-wrap .react-calendar {
+  border: none;
+  width: 100%;
+  font-family: inherit;
+  background: transparent;
+}
+.bk-cal-wrap .react-calendar__navigation button {
+  font-size: 14px;
+  font-weight: 600;
+}
+.bk-cal-wrap .react-calendar__tile {
+  border-radius: 50%;
+  font-size: 13px;
+}
+.bk-cal-wrap .react-calendar__tile.mk-cal-available {
+  background: #FEE500 !important;
+  color: #333 !important;
+  font-weight: 700 !important;
+}
+.bk-cal-wrap .react-calendar__tile.mk-cal-available:hover {
+  background: #ffd700 !important;
+}
+.bk-cal-wrap .react-calendar__tile--active.mk-cal-available,
+.bk-cal-wrap .react-calendar__tile--active {
+  background: var(--color-primary, #1677ff) !important;
+  color: #fff !important;
+}
+.bk-cal-wrap .react-calendar__tile:disabled {
+  background: transparent !important;
+  color: #ddd !important;
+}
+
+/* 시간 슬롯 */
+.bk-slots-wrap {
+  background: var(--color-card, #fff);
+  border: 1px solid var(--color-border, #eee);
+  border-radius: var(--radius-lg, 12px);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-sm, 0 1px 4px rgba(0,0,0,0.06));
+}
+.bk-slots-date {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: var(--color-text, #222);
+}
+.bk-slots-hint {
+  font-size: 12px;
+  color: #aaa;
+  margin: 0 0 12px;
+}
+.bk-no-slots {
+  font-size: 13px;
+  color: #aaa;
+  padding: 20px 0;
+  text-align: center;
+}
+.bk-time-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 8px;
+}
+.bk-time-btn {
+  border-radius: var(--radius-md, 8px);
+  border: 1.5px solid #FEE500;
+  background: #fffde7;
+  color: #333;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 0;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.12s;
+}
+.bk-time-btn:hover { background: #FEE500; }
+.bk-time-btn.selected {
+  background: var(--color-primary, #1677ff) !important;
+  border-color: var(--color-primary, #1677ff) !important;
+  color: #fff !important;
+}
+.bk-time-btn.booked {
+  background: var(--color-bg, #f5f5f5);
+  border-color: #ddd;
+  color: #bbb;
+  cursor: not-allowed;
+  font-weight: 400;
+}
+
+/* 예약 폼 */
+.bk-form-card {
+  background: var(--color-card, #fff);
+  border: 1px solid var(--color-border, #eee);
+  border-radius: var(--radius-lg, 12px);
+  padding: 20px 24px;
+  box-shadow: var(--shadow-sm, 0 1px 4px rgba(0,0,0,0.06));
+}
+.bk-form-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 16px;
+}
+.bk-form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.bk-summary-box {
+  background: var(--color-bg, #f7f8fa);
+  border-radius: var(--radius-md, 8px);
+  padding: 12px 16px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  color: #444;
+  line-height: 1.7;
+}
+.bk-summary-box strong { color: var(--color-text, #222); }
+
+/* 완료 화면 */
+.bk-done {
+  text-align: center;
+  padding: 60px 20px;
+  background: var(--color-card, #fff);
+  border-radius: var(--radius-lg, 12px);
+  border: 1px solid var(--color-border, #eee);
+  box-shadow: var(--shadow-sm, 0 1px 4px rgba(0,0,0,0.06));
+}
+.bk-done-icon { font-size: 52px; margin-bottom: 16px; }
+.bk-done-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+.bk-done-sub { font-size: 14px; color: #888; margin: 0 0 20px; }
+.bk-done-summary {
+  display: inline-block;
+  background: var(--color-bg, #f7f8fa);
+  border-radius: var(--radius-md, 8px);
+  padding: 12px 20px;
+  font-size: 13px;
+  color: #444;
+  text-align: left;
+  line-height: 1.8;
+}
+
+/* 로딩 */
+.mk-loading {
+  text-align: center;
+  padding: 60px 0;
+  color: #aaa;
+  font-size: 15px;
+}
+
+@media (max-width: 600px) {
+  .mk-page, .mk-page-wide { padding: 16px 12px 80px; }
+  .mk-title { font-size: 18px; }
+  .bk-body { padding: 16px 12px 60px; }
+  .mk-cards { grid-template-columns: 1fr; }
+}

@@ -12,6 +12,9 @@ import GoogleCalendar from "./GoogleCalendar";
 import CombinedPage from "./CombinedPage";
 import CalendarPage from "./CalendarPage";
 import TimetablePage from "./TimetablePage";
+import MannalkaPage from "./MannalkaPage";
+import MannalkaManagePage from "./MannalkaManagePage";
+import BookingPage from "./BookingPage";
 
 const App = () => {
   return (
@@ -30,7 +33,10 @@ const App = () => {
               <Route path='/event' element={<CombinedPage />} />
               <Route path='/calendar' element={<CalendarPage />} />
               <Route path='/timetable' element={<TimetablePage />} />
+              <Route path='/mannalka' element={<MannalkaPage />} />
+              <Route path='/mannalka/manage/:uuid' element={<MannalkaManagePage />} />
             </Route>
+            <Route path='/book/:uuid' element={<BookingPage />} />
             <Route index={true} element={<Navigate replace to={"/main"}/>} />
           </Routes>
         </Router> {/* Router 태그 종료 */}
