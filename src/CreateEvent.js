@@ -13,7 +13,6 @@ import { ko } from 'date-fns/locale';
 import {
   checkKakaoLoginStatus,
   getUserInfoFromLocalStorage,
-  clearUserInfoFromLocalStorage,
   getBaseUrl,
   redirectToLogin,
 } from './Components/authUtils';
