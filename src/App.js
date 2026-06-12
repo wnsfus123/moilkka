@@ -15,6 +15,7 @@ import TimetablePage from "./TimetablePage";
 import MannalkaPage from "./MannalkaPage";
 import MannalkaManagePage from "./MannalkaManagePage";
 import BookingPage from "./BookingPage";
+import ProfilePage from "./ProfilePage";
 
 const TestRedirect = () => {
   const location = useLocation();
@@ -43,6 +44,7 @@ const App = () => {
               <Route path='/mannalka' element={<MannalkaPage />} />
               <Route path='/mannalka/manage/:uuid' element={<MannalkaManagePage />} />
               <Route path='/book/:uuid' element={<BookingPage />} />
+              <Route path='/profile' element={<ProfilePage />} />
             </Route>
             <Route index={true} element={<Navigate replace to={"/main"}/>} />
           </Routes>

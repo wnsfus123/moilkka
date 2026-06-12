@@ -1,18 +1,38 @@
 import React from "react";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Layout, Menu, Avatar, Dropdown } from "antd";
 import { getUserInfoFromLocalStorage } from './authUtils';
 import './AddLayout.css';
 
 const { Header } = Layout;
 
+const BOTTOM_TABS = [
+  { key: '/event',    icon: '🏠', label: '홈' },
+  { key: '/calendar', icon: '📅', label: '캘린더' },
+  { key: '/create',   icon: '+',  label: '모임', isFab: true },
+  { key: '/mannalka', icon: '📌', label: '만날까' },
+  { key: '/profile',  icon: '👤', label: '내정보' },
+];
+
+const getActiveTab = (pathname) => {
+  if (pathname.startsWith('/mannalka')) return '/mannalka';
+  if (pathname === '/create')   return '/create';
+  if (pathname === '/calendar') return '/calendar';
+  if (pathname === '/profile')  return '/profile';
+  if (pathname === '/event')    return '/event';
+  return '';
+};
+
 const AppLayout = () => {
   const location = useLocation();
-  const userInfo = getUserInfoFromLocalStorage();
-  const nickname =
+  const navigate  = useNavigate();
+  const userInfo  = getUserInfoFromLocalStorage();
+  const nickname  =
     userInfo?.kakao_account?.profile?.nickname ||
     userInfo?.properties?.nickname ||
     '';
+
+  const activeTab = getActiveTab(location.pathname);
 
   const handleLogout = () => {
     localStorage.removeItem('kakaoAccessToken');
@@ -22,12 +42,12 @@ const AppLayout = () => {
   };
 
   const navItems = [
-    { key: '/event', label: <Link to="/event">홈</Link> },
-    { key: '/create', label: <Link to="/create">새 모임</Link> },
-    { key: '/calendar', label: <Link to="/calendar">📅 내 캘린더</Link> },
+    { key: '/event',     label: <Link to="/event">홈</Link> },
+    { key: '/create',    label: <Link to="/create">새 모임</Link> },
+    { key: '/calendar',  label: <Link to="/calendar">📅 내 캘린더</Link> },
     { key: '/timetable', label: <Link to="/timetable">📋 내 시간표</Link> },
-    { key: '/mannalka', label: <Link to="/mannalka">📌 만날까</Link> },
-    { key: '/help', label: <Link to="/help">도움말</Link> },
+    { key: '/mannalka',  label: <Link to="/mannalka">📌 만날까</Link> },
+    { key: '/help',      label: <Link to="/help">도움말</Link> },
   ];
 
   const userDropdownItems = [
@@ -48,6 +68,7 @@ const AppLayout = () => {
           mode="horizontal"
           selectedKeys={[location.pathname]}
           items={navItems}
+          className="desktop-nav"
           style={{
             flex: 1,
             minWidth: 0,
@@ -86,9 +107,25 @@ const AppLayout = () => {
       </main>
 
       <footer className="app-footer">
-        모일까 ©{new Date().getFullYear()} Created by 모일까
+        모일까 &copy;{new Date().getFullYear()} Created by 모일까
       </footer>
 
+      <nav className="mobile-bottom-nav">
+        {BOTTOM_TABS.map(tab => (
+          <button
+            key={tab.key}
+            className={[
+              'bottom-tab',
+              tab.isFab  ? 'bottom-tab-fab' : '',
+              activeTab === tab.key ? 'active' : '',
+            ].filter(Boolean).join(' ')}
+            onClick={() => navigate(tab.key)}
+          >
+            <span className="bottom-tab-icon">{tab.icon}</span>
+            <span className="bottom-tab-label">{tab.label}</span>
+          </button>
+        ))}
+      </nav>
     </div>
   );
 };
