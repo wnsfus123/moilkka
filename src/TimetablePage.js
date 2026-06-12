@@ -163,6 +163,18 @@ export default function TimetablePage() {
     }
   };
 
+  const handleBlockQuickDelete = async (e, entry) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (!userId) return;
+    try {
+      await axios.delete(`/api/timetable?id=${entry.id}&kakaoId=${userId}`);
+      await fetchTimetable();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const updateForm = patch => setForm(f => ({ ...f, ...patch }));
 
   const endHourOptions = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
@@ -179,10 +191,23 @@ export default function TimetablePage() {
   return (
     <div className="tt-page">
       <div className="tt-top">
-        <h2 className="tt-title">📋 내 시간표</h2>
-        <p className="tt-subtitle">
-          매주 반복되는 나의 일정을 등록하세요. 모임 일정 등록 시 해당 시간을 자동으로 막아드려요.
-        </p>
+        <div className="tt-header-card">
+          <div className="tt-header-info">
+            <h2 className="tt-title">📋 내 시간표</h2>
+            <p className="tt-subtitle">
+              매주 반복되는 나의 일정을 등록하세요. 모임 일정 등록 시 해당 시간을 자동으로 막아드려요.
+            </p>
+          </div>
+          <button
+            className="tt-btn-add"
+            onClick={() => {
+              setModal({ open: true, mode: 'add', dayIdx: todayIdx, entry: null });
+              setForm(EMPTY_FORM);
+            }}
+          >
+            + 일정 추가
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -200,16 +225,17 @@ export default function TimetablePage() {
               </div>
             ))}
 
-            {HOURS.map(hour => (
+            {HOURS.map((hour, hourIdx) => (
               <React.Fragment key={hour}>
-                <div className="tt-time-label">{`${pad(hour)}:00`}</div>
+                <div className={`tt-time-label${hourIdx % 2 === 0 ? ' row-even' : ''}`}>{`${pad(hour)}:00`}</div>
                 {DAYS.map((_, dayIdx) => {
                   const block = blockMap[dayIdx]?.[hour];
                   const drag  = isDragCell(dayIdx, hour);
                   let cls = 'tt-cell';
-                  if (drag)  cls += ' tt-cell-drag';
-                  if (block) cls += ' tt-cell-block';
+                  if (drag)         cls += ' tt-cell-drag';
+                  if (block)        cls += ' tt-cell-block';
                   if (dayIdx === todayIdx) cls += ' col-today';
+                  if (hourIdx % 2 === 0)  cls += ' row-even';
                   return (
                     <div
                       key={dayIdx}
@@ -220,6 +246,15 @@ export default function TimetablePage() {
                     >
                       {block?.isFirst && (
                         <span className="tt-block-label">{block.title}</span>
+                      )}
+                      {block?.isFirst && (
+                        <button
+                          className="tt-block-del"
+                          onMouseDown={e => handleBlockQuickDelete(e, block)}
+                          title="삭제"
+                        >
+                          ✕
+                        </button>
                       )}
                     </div>
                   );

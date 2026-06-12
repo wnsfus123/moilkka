@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { message } from 'antd';
 import axios from 'axios';
 import { format, differenceInDays } from 'date-fns';
@@ -7,7 +7,13 @@ import { getBaseUrl } from './authUtils';
 import EmptyState from './EmptyState';
 import './ExistingEvents.css';
 
+const STATUS_LABEL = { pending: '대기중', confirmed: '확정', cancelled: '취소' };
+const STATUS_CLASS  = { pending: 'badge-pending', confirmed: 'badge-confirmed', cancelled: 'badge-cancelled' };
+
 const ExistingEvents = ({ userInfo }) => {
+  const [eeTab, setEeTab] = useState('events');
+
+  // 모임 목록
   const [existingEvents, setExistingEvents] = useState([]);
   const [selectedEventDetails, setSelectedEventDetails] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -17,12 +23,39 @@ const ExistingEvents = ({ userInfo }) => {
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [loadingList, setLoadingList] = useState(false);
 
+  // 예약 목록
+  const [mannalkaPages, setMannalkaPages] = useState([]);
+  const [myBookings,    setMyBookings]    = useState([]);
+  const [loadingBookings, setLoadingBookings] = useState(false);
+
   useEffect(() => {
     if (userInfo) {
       setLoadingList(true);
       fetchExistingEvents(userInfo.id.toString());
     }
   }, [userInfo]);
+
+  const fetchMannalkaData = useCallback(async (kakaoId) => {
+    setLoadingBookings(true);
+    try {
+      const [pagesRes, bookingsRes] = await Promise.all([
+        axios.get(`/api/mannalka?action=list&kakaoId=${kakaoId}`),
+        axios.get(`/api/mannalka?action=mybookings&kakaoId=${kakaoId}`),
+      ]);
+      setMannalkaPages(Array.isArray(pagesRes.data) ? pagesRes.data : []);
+      setMyBookings(Array.isArray(bookingsRes.data) ? bookingsRes.data : []);
+    } catch (err) {
+      console.error('[ExistingEvents] 예약 데이터 오류:', err);
+    } finally {
+      setLoadingBookings(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (eeTab === 'bookings' && userInfo) {
+      fetchMannalkaData(userInfo.id.toString());
+    }
+  }, [eeTab, userInfo, fetchMannalkaData]);
 
   const fetchExistingEvents = (kakaoId) => {
     console.log('[ExistingEvents] 이벤트 목록 조회 kakaoId:', kakaoId);
@@ -138,18 +171,38 @@ const ExistingEvents = ({ userInfo }) => {
     return [...seen.values()];
   };
 
+  const copyBookingLink = (uuid) => {
+    const url = `${getBaseUrl()}/book/${uuid}`;
+    navigator.clipboard.writeText(url)
+      .then(() => message.success('링크가 복사됐어요!'))
+      .catch(() => message.error('복사에 실패했어요'));
+  };
+
   return (
     <div className="existing-events">
-      <div className="ee-header">
-        <h2 className="ee-title">내 모임 목록</h2>
-        <button
-          className={`ee-delete-toggle${showDeleteButtons ? ' active' : ''}`}
-          onClick={() => setShowDeleteButtons(v => !v)}
-        >
-          {showDeleteButtons ? '취소' : '삭제'}
-        </button>
+      {/* 상단 탭 */}
+      <div className="ee-tab-row">
+        <div className="ee-tabs">
+          <button className={`ee-tab${eeTab === 'events' ? ' active' : ''}`} onClick={() => setEeTab('events')}>
+            📅 모임 목록
+          </button>
+          <button className={`ee-tab${eeTab === 'bookings' ? ' active' : ''}`} onClick={() => setEeTab('bookings')}>
+            📌 예약 목록
+          </button>
+        </div>
+        {eeTab === 'events' && (
+          <button
+            className={`ee-delete-toggle${showDeleteButtons ? ' active' : ''}`}
+            onClick={() => setShowDeleteButtons(v => !v)}
+          >
+            {showDeleteButtons ? '취소' : '삭제'}
+          </button>
+        )}
       </div>
 
+      {/* ── 모임 목록 탭 ── */}
+      {eeTab === 'events' && (
+        <>
       {loadingList ? (
         <div className="ee-loading">
           <div className="ee-spinner" />
@@ -215,6 +268,80 @@ const ExistingEvents = ({ userInfo }) => {
             );
           })}
         </div>
+      )}
+        </>
+      )}
+
+      {/* ── 예약 목록 탭 ── */}
+      {eeTab === 'bookings' && (
+        <>
+          {loadingBookings ? (
+            <div className="ee-loading"><div className="ee-spinner" /><p>예약 목록을 불러오는 중...</p></div>
+          ) : (
+            <>
+              {/* 내 예약 페이지 (호스트) */}
+              <div className="ee-section-label">내 예약 페이지</div>
+              {mannalkaPages.length === 0 ? (
+                <EmptyState icon="📌" title="만날까 페이지가 없어요" description="예약 링크를 만들어보세요" />
+              ) : (
+                <div className="ee-list">
+                  {mannalkaPages.map(page => (
+                    <div key={page.uuid} className="ee-card">
+                      <div className="ee-card-header">
+                        <div className="ee-badges">
+                          {page.pending_count > 0 && (
+                            <span className="badge badge-pending">대기 {page.pending_count}건</span>
+                          )}
+                          {page.confirmed_count > 0 && (
+                            <span className="badge badge-confirmed">확정 {page.confirmed_count}건</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="ee-card-name">{page.title}</div>
+                      {page.description && <div className="ee-card-date">{page.description}</div>}
+                      <div className="ee-card-actions">
+                        <button className="ee-btn-outline" onClick={() => copyBookingLink(page.uuid)}>
+                          🔗 링크 복사
+                        </button>
+                        <a className="ee-btn-primary" href={`/mannalka/manage/${page.uuid}`}>
+                          관리하기
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* 내가 신청한 예약 (게스트) */}
+              <div className="ee-section-label" style={{ marginTop: 20 }}>내가 신청한 예약</div>
+              {myBookings.length === 0 ? (
+                <EmptyState icon="📋" title="신청한 예약이 없어요" description="만날까 링크로 예약을 신청해보세요" />
+              ) : (
+                <div className="ee-list">
+                  {myBookings.map(bk => {
+                    const pageTitle = bk.booking_pages?.title || bk.page_uuid;
+                    const bookedDate = bk.booked_at ? new Date(bk.booked_at) : null;
+                    return (
+                      <div key={bk.id} className="ee-card">
+                        <div className="ee-card-header">
+                          <span className={`badge ${STATUS_CLASS[bk.status] || 'badge-participant'}`}>
+                            {STATUS_LABEL[bk.status] || bk.status}
+                          </span>
+                        </div>
+                        <div className="ee-card-name">{pageTitle}</div>
+                        {bookedDate && (
+                          <div className="ee-card-date">
+                            {format(bookedDate, 'M월 d일 (EEE) HH:mm', { locale: ko })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          )}
+        </>
       )}
 
       {/* Delete confirm modal */}

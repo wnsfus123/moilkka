@@ -1,5 +1,49 @@
 .existing-events { width: 100%; padding: 0; margin: 0; }
 
+/* ── 탭 행 ── */
+.ee-tab-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 8px;
+}
+.ee-tabs {
+  display: flex;
+  background: var(--color-bg, #F0F0EE);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 3px;
+}
+.ee-tab {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 500;
+  color: #888;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.ee-tab.active {
+  background: #fff;
+  color: var(--color-text, #1E293B);
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+/* 섹션 레이블 */
+.ee-section-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
 .ee-header {
   display: flex;
   align-items: center;
@@ -113,6 +157,9 @@
 .badge-dday.today { background: #E8F5E9; color: #2E7D32; }
 .badge-dday.past { background: #F5F5F5; color: #9E9E9E; }
 .badge-private { background: #F5F5F5; color: #555; }
+.badge-pending { background: #FFF0F0; color: #C53030; }
+.badge-confirmed { background: #F0FFF4; color: #276749; }
+.badge-cancelled { background: #F5F5F5; color: #999; }
 
 .ee-delete-btn {
   background: none;

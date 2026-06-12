@@ -189,6 +189,9 @@ function EventPage() {
   const [reminding,       setReminding]       = useState(false);
   // 기능3: QR
   const [showQrModal, setShowQrModal] = useState(false);
+  // FAB 팝업
+  const [showRecommendPop, setShowRecommendPop] = useState(false);
+  const [showRemindPop, setShowRemindPop] = useState(false);
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -962,75 +965,103 @@ function EventPage() {
           </div>
         </div>
 
-        {/* ── 최적 시간 추천 패널 (방장 + status=open 일 때만) ── */}
-        {isCreator && !isEventConfirmed && topSlots.length > 0 && (
-          <div className="ep-panel ep-recommend-panel">
-            <div className="ep-panel-header">
-              <h3 className="ep-panel-title">🏆 최적 시간 추천</h3>
-              <span className="ep-panel-sub">참여자 많은 순으로 정렬됐어요</span>
-            </div>
-            <div className="ep-recommend-list">
-              {topSlots.map(([timeKey, users]) => {
-                const [datePart, timePart] = timeKey.split(' ');
-                const dateObj = new Date(`${datePart}T${timePart}:00`);
-                const endTime = format(addMinutes(dateObj, 60), 'HH:mm');
-                const label = `${format(dateObj, 'M월 d일 (EEE)', { locale: ko })} ${timePart} ~ ${endTime}`;
-                return (
-                  <div key={timeKey} className="ep-recommend-item">
-                    <div className="ep-recommend-info">
-                      <span className="ep-recommend-time">{label}</span>
-                      <span className="ep-recommend-count">{users.length}명 참여 가능</span>
-                    </div>
-                    <button
-                      className="ep-confirm-time-btn"
-                      onClick={() => {
-                        setConfirmTimeTarget({ label, isoString: dateObj.toISOString(), users });
-                        setConfirmTimeModal(true);
-                      }}
-                    >
-                      이 시간으로 확정
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* ── 미등록자 독촉 알림 (방장 전용) ── */}
+        {/* ── FAB 버튼 + 슬라이드업 팝업 (방장 전용) ── */}
         {isCreator && (
-          <div className="ep-panel ep-remind-section">
-            <div className="ep-panel-header">
-              <h3 className="ep-panel-title">📢 미등록자 독촉 알림</h3>
-            </div>
-            {registeredUsers.length > 0 ? (
-              <div className="ep-registered-list">
-                <p className="ep-registered-label">일정 등록 완료:</p>
-                <div className="ep-registered-chips">
-                  {registeredUsers.map((u, i) => (
-                    <span key={i} className="ep-registered-chip">{u.nickname}</span>
-                  ))}
+          <>
+            {/* 독촉 FAB */}
+            <button
+              className="ep-fab ep-fab-remind"
+              title="미등록자 독촉 알림"
+              onClick={() => { setShowRemindPop(p => !p); setShowRecommendPop(false); }}
+            >
+              📢
+            </button>
+
+            {/* 최적 시간 FAB (확정 전, 슬롯 있을 때만) */}
+            {!isEventConfirmed && topSlots.length > 0 && (
+              <button
+                className="ep-fab ep-fab-recommend"
+                title="최적 시간 추천"
+                onClick={() => { setShowRecommendPop(p => !p); setShowRemindPop(false); }}
+              >
+                🏆
+              </button>
+            )}
+
+            {/* 독촉 팝업 */}
+            {showRemindPop && (
+              <div className="ep-fab-popup ep-fab-popup-remind">
+                <div className="ep-fab-popup-header">
+                  <span className="ep-fab-popup-title">📢 미등록자 독촉 알림</span>
+                  <button className="ep-fab-popup-close" onClick={() => setShowRemindPop(false)}>✕</button>
+                </div>
+                {registeredUsers.length > 0 ? (
+                  <div className="ep-registered-list">
+                    <p className="ep-registered-label">일정 등록 완료:</p>
+                    <div className="ep-registered-chips">
+                      {registeredUsers.map((u, i) => (
+                        <span key={i} className="ep-registered-chip">{u.nickname}</span>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="ep-registered-empty">아직 일정을 등록한 참여자가 없어요.</p>
+                )}
+                <div className="ep-remind-input-row">
+                  <input
+                    className="ep-remind-input"
+                    placeholder="카카오 ID (쉼표로 여러 명)"
+                    value={remindInput}
+                    onChange={e => setRemindInput(e.target.value)}
+                  />
+                  <button
+                    className="ep-remind-btn"
+                    onClick={handleRemind}
+                    disabled={reminding}
+                  >
+                    {reminding ? '전송 중...' : '알림 보내기'}
+                  </button>
                 </div>
               </div>
-            ) : (
-              <p className="ep-registered-empty">아직 일정을 등록한 참여자가 없어요.</p>
             )}
-            <div className="ep-remind-input-row">
-              <input
-                className="ep-remind-input"
-                placeholder="카카오 ID (쉼표로 여러 명 입력)"
-                value={remindInput}
-                onChange={e => setRemindInput(e.target.value)}
-              />
-              <button
-                className="ep-remind-btn"
-                onClick={handleRemind}
-                disabled={reminding}
-              >
-                {reminding ? '전송 중...' : '카카오 알림 보내기'}
-              </button>
-            </div>
-          </div>
+
+            {/* 최적 시간 팝업 */}
+            {showRecommendPop && !isEventConfirmed && topSlots.length > 0 && (
+              <div className="ep-fab-popup ep-fab-popup-recommend">
+                <div className="ep-fab-popup-header">
+                  <span className="ep-fab-popup-title">🏆 최적 시간 추천</span>
+                  <button className="ep-fab-popup-close" onClick={() => setShowRecommendPop(false)}>✕</button>
+                </div>
+                <p className="ep-fab-popup-sub">참여자 많은 순으로 정렬됐어요</p>
+                <div className="ep-recommend-list">
+                  {topSlots.map(([timeKey, users]) => {
+                    const [datePart, timePart] = timeKey.split(' ');
+                    const dateObj = new Date(`${datePart}T${timePart}:00`);
+                    const endTime = format(addMinutes(dateObj, 60), 'HH:mm');
+                    const label = `${format(dateObj, 'M월 d일 (EEE)', { locale: ko })} ${timePart} ~ ${endTime}`;
+                    return (
+                      <div key={timeKey} className="ep-recommend-item">
+                        <div className="ep-recommend-info">
+                          <span className="ep-recommend-time">{label}</span>
+                          <span className="ep-recommend-count">{users.length}명 참여 가능</span>
+                        </div>
+                        <button
+                          className="ep-confirm-time-btn"
+                          onClick={() => {
+                            setConfirmTimeTarget({ label, isoString: dateObj.toISOString(), users });
+                            setConfirmTimeModal(true);
+                            setShowRecommendPop(false);
+                          }}
+                        >
+                          이 시간으로 확정
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         {/* ── Mobile: 탭 전환 ── */}

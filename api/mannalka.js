@@ -130,6 +130,22 @@ module.exports = async (req, res) => {
       }
     }
 
+    // 내가 신청한 예약 목록 (게스트용)
+    if (action === 'mybookings') {
+      if (!kakaoId) return res.status(400).json({ error: 'kakaoId 필요' });
+      try {
+        const { data, error } = await supabase
+          .from('bookings')
+          .select('id, page_uuid, guest_name, status, booked_at, booking_pages(title, uuid)')
+          .eq('guest_kakao', String(kakaoId))
+          .order('booked_at', { ascending: false });
+        if (error) return res.status(500).json({ error: error.message });
+        return res.status(200).json(data || []);
+      } catch (err) {
+        return res.status(500).json({ error: err.message });
+      }
+    }
+
     return res.status(400).json({ error: 'action 필요' });
   }
 
