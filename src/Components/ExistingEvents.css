@@ -158,6 +158,26 @@
 .badge-dday.past { background: #F5F5F5; color: #9E9E9E; }
 .badge-private { background: #F5F5F5; color: #555; }
 .badge-pending { background: #FFF0F0; color: #C53030; }
+
+/* ── 지난 모임 섹션 ── */
+.ee-past-section { margin-top: 16px; }
+.ee-past-toggle {
+  background: none;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  color: #888;
+  font-size: 13px;
+  padding: 8px 14px;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: background 0.15s;
+}
+.ee-past-toggle:hover { background: #f5f5f5; }
+.ee-list-past .ee-card {
+  opacity: 0.6;
+  filter: grayscale(0.3);
+}
 .badge-confirmed { background: #F0FFF4; color: #276749; }
 .badge-cancelled { background: #F5F5F5; color: #999; }
 

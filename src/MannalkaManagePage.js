@@ -84,7 +84,17 @@ export default function MannalkaManagePage() {
     setActing(bookingId);
     try {
       await axios.post('/api/mannalka?action=confirm', { booking_id: bookingId, kakao_id: userId });
-      message.success('예약을 확정했어요! 게스트에게 카카오 알림을 보냈어요.');
+      const req = requests.find(r => r.id === bookingId);
+      if (req?.booked_at) {
+        try {
+          await axios.post('/api/personal-events', {
+            kakaoId: userId,
+            title: `${page?.title || '예약'} 예약`,
+            event_date: req.booked_at,
+          });
+        } catch {}
+      }
+      message.success('예약 확정! 내 캘린더에 자동 등록됐어요.');
       fetchAll();
     } catch {
       message.error('확정에 실패했어요');
@@ -112,7 +122,14 @@ export default function MannalkaManagePage() {
     setActing(bookingId);
     try {
       await axios.post('/api/mannalka?action=confirm', { booking_id: bookingId, kakao_id: userId, confirmed_time: confirmedTime });
-      message.success('예약을 확정했어요! 게스트에게 알림을 보냈어요.');
+      try {
+        await axios.post('/api/personal-events', {
+          kakaoId: userId,
+          title: `${page?.title || '예약'} 예약`,
+          event_date: confirmedTime,
+        });
+      } catch {}
+      message.success('예약 확정! 내 캘린더에 자동 등록됐어요.');
       fetchAll();
     } catch {
       message.error('확정에 실패했어요');

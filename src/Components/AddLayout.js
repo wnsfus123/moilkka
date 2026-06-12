@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Layout, Menu, Avatar, Dropdown } from "antd";
 import { getUserInfoFromLocalStorage, checkKakaoLoginStatus, clearUserInfoFromLocalStorage } from './authUtils';
@@ -36,6 +36,18 @@ const AppLayout = () => {
     '';
 
   const activeTab = getActiveTab(location.pathname);
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    if (!userInfo?.id) return;
+    fetch(`/api/mannalka?action=list&kakaoId=${userInfo.id}`)
+      .then(r => r.json())
+      .then(pages => {
+        const total = Array.isArray(pages) ? pages.reduce((s, p) => s + (p.pending_count || 0), 0) : 0;
+        setPendingCount(total);
+      })
+      .catch(() => {});
+  }, [userInfo?.id]); // eslint-disable-line
 
   // 보호 라우트 인증 가드: 토큰 없거나 만료되면 로그인 페이지로
   useEffect(() => {
@@ -143,7 +155,12 @@ const AppLayout = () => {
             ].filter(Boolean).join(' ')}
             onClick={() => navigate(tab.key)}
           >
-            <span className="bottom-tab-icon">{tab.icon}</span>
+            <span className="bottom-tab-icon">
+              {tab.icon}
+              {tab.key === '/mannalka' && pendingCount > 0 && (
+                <span className="bottom-tab-badge">{pendingCount > 9 ? '9+' : pendingCount}</span>
+              )}
+            </span>
             <span className="bottom-tab-label">{tab.label}</span>
           </button>
         ))}

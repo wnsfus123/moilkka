@@ -27,6 +27,7 @@ const ExistingEvents = ({ userInfo }) => {
   const [mannalkaPages, setMannalkaPages] = useState([]);
   const [myBookings,    setMyBookings]    = useState([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
+  const [showPast, setShowPast] = useState(false);
 
   useEffect(() => {
     if (userInfo) {
@@ -214,61 +215,87 @@ const ExistingEvents = ({ userInfo }) => {
           title="아직 모임이 없어요"
           description="새 모임을 만들거나 코드로 참여해보세요"
         />
-      ) : (
-        <div className="ee-list">
-          {existingEvents.map(event => {
-            const dday = getDDay(event.startday);
-            const creator = isCreator(event);
-            return (
-              <div key={event.uuid} className="ee-card">
-                <div className="ee-card-header">
-                  <div className="ee-badges">
-                    {creator
-                      ? <span className="badge badge-creator">주최자</span>
-                      : <span className="badge badge-participant">참여자</span>
-                    }
-                    {event.is_private && (
-                      <span className="badge badge-private">🔒 비공개</span>
-                    )}
-                    {dday && (
-                      <span className={`badge badge-dday${dday === 'D-Day' ? ' today' : dday.startsWith('D+') ? ' past' : ''}`}>
-                        {dday}
-                      </span>
-                    )}
-                  </div>
-                  {showDeleteButtons && (
-                    <button
-                      className="ee-delete-btn"
-                      onClick={() => confirmDeleteEvent(event.uuid)}
-                    >
-                      ✕
-                    </button>
+      ) : (() => {
+        const todayMidnight = new Date(); todayMidnight.setHours(0,0,0,0);
+        const isPastEvent = (ev) => {
+          if (!ev.endday) return false;
+          const d = new Date(ev.endday.replace ? ev.endday.replace(' ', 'T') : ev.endday);
+          return !isNaN(d) && d < todayMidnight;
+        };
+        const upcoming = existingEvents.filter(e => !isPastEvent(e));
+        const past = existingEvents.filter(e => isPastEvent(e));
+        const renderCard = (event) => {
+          const dday = getDDay(event.startday);
+          const creator = isCreator(event);
+          return (
+            <div key={event.uuid} className="ee-card">
+              <div className="ee-card-header">
+                <div className="ee-badges">
+                  {creator
+                    ? <span className="badge badge-creator">주최자</span>
+                    : <span className="badge badge-participant">참여자</span>
+                  }
+                  {event.is_private && (
+                    <span className="badge badge-private">🔒 비공개</span>
+                  )}
+                  {dday && (
+                    <span className={`badge badge-dday${dday === 'D-Day' ? ' today' : dday.startsWith('D+') ? ' past' : ''}`}>
+                      {dday}
+                    </span>
                   )}
                 </div>
-
-                <div className="ee-card-name">{event.eventname}</div>
-                <div className="ee-card-date">
-                  {formatDate(event.startday)} ~ {formatDate(event.endday)}
-                </div>
-
-                <div className="ee-card-actions">
-                  <button className="ee-btn-outline" onClick={() => showEventDetails(event.uuid)}>
-                    상세보기
-                  </button>
-                  <a
-                    className="ee-btn-primary"
-                    href={`${getBaseUrl()}/meet/?key=${event.uuid}`}
-                    target="_blank"
-                    rel="noreferrer"
+                {showDeleteButtons && (
+                  <button
+                    className="ee-delete-btn"
+                    onClick={() => confirmDeleteEvent(event.uuid)}
                   >
-                    모임 바로가기
-                  </a>
-                </div>
+                    ✕
+                  </button>
+                )}
               </div>
-            );
-          })}
-        </div>
-      )}
+              <div className="ee-card-name">{event.eventname}</div>
+              <div className="ee-card-date">
+                {formatDate(event.startday)} ~ {formatDate(event.endday)}
+              </div>
+              <div className="ee-card-actions">
+                <button className="ee-btn-outline" onClick={() => showEventDetails(event.uuid)}>
+                  상세보기
+                </button>
+                <a
+                  className="ee-btn-primary"
+                  href={`${getBaseUrl()}/meet/?key=${event.uuid}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  모임 바로가기
+                </a>
+              </div>
+            </div>
+          );
+        };
+        return (
+          <>
+            {upcoming.length > 0 ? (
+              <div className="ee-list">{upcoming.map(renderCard)}</div>
+            ) : (
+              <EmptyState icon="📭" title="진행 중인 모임이 없어요" description="새 모임을 만들어보세요" />
+            )}
+            {past.length > 0 && (
+              <div className="ee-past-section">
+                <button
+                  className="ee-past-toggle"
+                  onClick={() => setShowPast(v => !v)}
+                >
+                  {showPast ? '▾' : '▸'} 지난 모임 {past.length}개
+                </button>
+                {showPast && (
+                  <div className="ee-list ee-list-past">{past.map(renderCard)}</div>
+                )}
+              </div>
+            )}
+          </>
+        );
+      })()}
         </>
       )}
 

@@ -196,6 +196,9 @@ function EventPage() {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [savedAt, setSavedAt] = useState(null);
   const [isDirty, setIsDirty] = useState(false);
+  // 모임 삭제
+  const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -323,6 +326,26 @@ function EventPage() {
       message.error('일정 저장 오류');
     } finally {
       setConfirmLoading(false);
+    }
+  };
+
+  const handleResetSchedule = () => {
+    setSchedule([]);
+    setSelectedTime({});
+    setIsDirty(true);
+  };
+
+  const handleDeleteEvent = async () => {
+    setDeleting(true);
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const uuid = urlParams.get('key');
+      await axios.delete(`/api/events/${uuid}`, { data: { kakaoId: userInfo.id.toString() } });
+      message.success('모임이 삭제됐어요');
+      window.location.replace('/event');
+    } catch (err) {
+      message.error('삭제에 실패했어요');
+      setDeleting(false);
     }
   };
 
@@ -809,6 +832,11 @@ function EventPage() {
                 📌 {confirmedSlots.length > 0 ? '확정 수정' : '모임 확정'}
               </button>
             )}
+            {isCreator && (
+              <button className="ep-tool-btn btn-red" onClick={() => setDeleteConfirmVisible(true)}>
+                🗑 모임 삭제
+              </button>
+            )}
             <Dropdown
               menu={{
                 items: [
@@ -858,6 +886,7 @@ function EventPage() {
                   >
                     {timetableLoaded ? '📋 시간표 ✓' : '📋 시간표'}
                   </button>
+                  <button className="ep-btn-outline" onClick={handleResetSchedule} title="선택 초기화">초기화</button>
                   <button className="ep-btn-outline" onClick={showModal}>등록된 일정 확인</button>
                   <button className="ep-btn-save" onClick={handleConfirm} disabled={confirmLoading}>
                     {confirmLoading ? '저장 중...' : saveSuccess ? '✅ 저장됨' : '💾 저장'}
@@ -1129,6 +1158,7 @@ function EventPage() {
                   >
                     {timetableLoaded ? '📋 ✓' : '📋'}
                   </button>
+                  <button className="ep-btn-outline" onClick={handleResetSchedule} title="선택 초기화">↺</button>
                   <button className="ep-btn-outline" onClick={showModal}>내 일정 보기</button>
                   <button className="ep-btn-save" onClick={handleConfirm} disabled={confirmLoading}>
                     {confirmLoading ? '저장 중...' : saveSuccess ? '✅ 저장됨' : '💾 저장'}
@@ -1450,6 +1480,21 @@ function EventPage() {
               </p>
             </div>
           )}
+        </Modal>
+
+        {/* 모임 삭제 확인 모달 */}
+        <Modal
+          title="모임 삭제"
+          open={deleteConfirmVisible}
+          onOk={handleDeleteEvent}
+          onCancel={() => setDeleteConfirmVisible(false)}
+          okText="삭제"
+          cancelText="취소"
+          confirmLoading={deleting}
+          okButtonProps={{ danger: true }}
+        >
+          <p style={{ marginBottom: 8 }}>정말로 이 모임을 삭제할까요?</p>
+          <p style={{ color: '#888', fontSize: 13 }}>삭제하면 모임과 모든 일정 데이터가 사라지며 복구할 수 없어요.</p>
         </Modal>
 
       </main>
