@@ -297,7 +297,7 @@ export default function BookingPage() {
                 value={selectedDate}
                 minDate={new Date()}
                 locale="ko-KR"
-                calendarType="gregory"
+                calendarType="iso8601"
                 formatDay={(locale, date) => date.getDate().toString()}
                 tileClassName={({ date, view }) => {
                   if (view !== 'month') return null;

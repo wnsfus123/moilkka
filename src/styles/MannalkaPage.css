@@ -412,8 +412,15 @@
   margin-bottom: 20px;
   align-items: start;
 }
-@media (max-width: 639px) {
+@media (max-width: 768px) {
   .bk-grid { grid-template-columns: 1fr; }
+  .bk-slot-btn { width: 100%; }
+  .bk-form-actions button { width: 100%; }
+  .mk-top-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .mk-btn-primary { width: 100%; }
+  .mk-cards { grid-template-columns: 1fr; }
+  .mk-card-actions { flex-direction: column; gap: 6px; }
+  .mk-card-actions button { width: 100%; }
 }
 
 /* 달력 카드 */
@@ -480,9 +487,9 @@
   color: #D1D5DB !important;
   font-weight: 400 !important;
 }
-/* 요일 헤더 색상 (일월화수목금토 순, 일=1 토=7) */
-.bk-cal-card .react-calendar__month-view__weekdays__weekday:nth-child(7) abbr { color: #2563EB !important; }
-.bk-cal-card .react-calendar__month-view__weekdays__weekday:nth-child(1) abbr { color: #DC2626 !important; }
+/* 요일 헤더 색상 (월화수목금토일 순, 토=6 일=7) */
+.bk-cal-card .react-calendar__month-view__weekdays__weekday:nth-child(6) abbr { color: #2563EB !important; }
+.bk-cal-card .react-calendar__month-view__weekdays__weekday:nth-child(7) abbr { color: #DC2626 !important; }
 /* 토/일 날짜 글씨 색상 */
 .bk-cal-card .react-calendar__tile.cal-saturday { color: #2563EB !important; }
 .bk-cal-card .react-calendar__tile.cal-saturday.mk-cal-available { color: #1a4dbf !important; }

@@ -807,11 +807,18 @@
   .ep-hero { padding: 18px; }
   .ep-event-name { font-size: 18px; }
   .ep-detail-row { display: none; }
-  .ep-toolbar { gap: 6px; }
-  .ep-tool-btn { font-size: 12px; padding: 8px 10px; }
-  .ep-tab { font-size: 12px; padding: 9px 6px; }
-  .ep-panel { padding: 16px; }
+  .ep-toolbar { gap: 6px; flex-wrap: wrap; }
+  .ep-tool-btn { font-size: 12px; padding: 7px 10px; }
+  .ep-hero-actions { gap: 6px; }
+  .ep-hero-actions .ep-tool-btn { flex: 1 0 auto; min-width: 0; text-align: center; }
+  .ep-tab { font-size: 11px; padding: 8px 4px; }
+  .ep-panel { padding: 14px; }
+  .ep-panel-title { font-size: 14px; }
+  .schedule-selector-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
   .ep-schedule-desktop { display: none; }
   .ep-schedule-mobile { display: block; }
+
+  /* 모바일 empty state */
+  .ep-recommend-panel { display: none; }
 }

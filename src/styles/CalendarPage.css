@@ -126,9 +126,9 @@
 }
 .react-calendar__tile--active abbr { color: #1677ff !important; font-weight: 700 !important; }
 
-/* Weekday header colors (일월화수목금토 순, 일=1 토=7) */
-.react-calendar__month-view__weekdays__weekday:nth-child(7) abbr { color: #2563EB !important; }
-.react-calendar__month-view__weekdays__weekday:nth-child(1) abbr { color: #DC2626 !important; }
+/* Weekday header colors (월화수목금토일 순, 토=6 일=7) */
+.react-calendar__month-view__weekdays__weekday:nth-child(6) abbr { color: #2563EB !important; }
+.react-calendar__month-view__weekdays__weekday:nth-child(7) abbr { color: #DC2626 !important; }
 
 /* Sunday/Saturday coloring via custom classes */
 .cp-tile-sat abbr { color: #2563EB !important; }

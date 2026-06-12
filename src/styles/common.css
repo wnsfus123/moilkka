@@ -15,3 +15,69 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
+
+/* ── 페이지 공통 ── */
+.page-wrapper {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+.page-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 4px;
+}
+.page-subtitle {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 0 0 24px;
+}
+.section-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 12px;
+}
+.card {
+  background: var(--color-card);
+  border: 0.5px solid var(--color-border);
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+
+/* ── EmptyState 공통 ── */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  background: var(--color-bg);
+  border-radius: 12px;
+}
+.empty-state-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-text);
+  margin: 0 0 8px;
+}
+.empty-state-desc {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 0 0 20px;
+}
+.empty-state-btn {
+  padding: 9px 20px;
+  background: var(--color-primary);
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary-text);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.empty-state-btn:hover { opacity: 0.88; }
+
+@media (max-width: 768px) {
+  .page-wrapper { padding: 16px 12px; }
+}

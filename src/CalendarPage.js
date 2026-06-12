@@ -8,6 +8,7 @@ import { gapi } from 'gapi-script';
 import { message } from 'antd';
 import { getUserInfoFromLocalStorage, getBaseUrl } from './Components/authUtils';
 import { initGoogleAPI, signInWithGoogle, isGoogleSignedIn } from './googleAuth';
+import EmptyState from './Components/EmptyState';
 import './styles/CalendarPage.css';
 
 const CalendarPage = () => {
@@ -349,7 +350,7 @@ const CalendarPage = () => {
             tileContent={tileContent}
             tileClassName={tileClassName}
             formatDay={(locale, date) => date.getDate().toString()}
-            calendarType="gregory"
+            calendarType="iso8601"
             locale="ko-KR"
           />
           <div className="cp-legend">
@@ -483,6 +484,17 @@ const CalendarPage = () => {
           </>
         )}
       </div>
+
+      {/* ── 이번 달 모임 없을 때 Empty State ── */}
+      {!loadingMoilkka && monthMoilkka.length === 0 && (
+        <EmptyState
+          icon="📅"
+          title="이번 달 모임이 없어요"
+          description="새 모임을 만들어보세요"
+          actionLabel="새 모임 만들기"
+          onAction={() => { window.location.href = '/create'; }}
+        />
+      )}
 
       {/* ── Add personal memo modal ── */}
       {showAddModal && (

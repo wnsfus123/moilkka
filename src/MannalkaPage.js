@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { message } from 'antd';
 import { getUserInfoFromLocalStorage, getBaseUrl } from './Components/authUtils';
+import EmptyState from './Components/EmptyState';
 import './styles/MannalkaPage.css';
 
 const DAY_NAMES = ['월', '화', '수', '목', '금', '토', '일'];
@@ -137,13 +138,13 @@ export default function MannalkaPage() {
       {loading ? (
         <div className="mk-loading"><div className="mk-spinner" /><span>불러오는 중...</span></div>
       ) : pages.length === 0 ? (
-        <div className="mk-empty">
-          <span className="mk-empty-icon">📌</span>
-          <p>아직 예약 페이지가 없어요</p>
-          <button className="mk-btn-primary" style={{ marginTop: 8 }} onClick={() => setShowCreate(true)}>
-            첫 예약 페이지 만들기
-          </button>
-        </div>
+        <EmptyState
+          icon="📌"
+          title="만날까 페이지가 없어요"
+          description="예약 링크를 만들어 1:1 미팅을 쉽게 잡아보세요"
+          actionLabel="+ 새 예약 페이지"
+          onAction={() => setShowCreate(true)}
+        />
       ) : (
         <div className="mk-cards">
           {pages.map(page => (

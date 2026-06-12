@@ -4,6 +4,7 @@ import axios from 'axios';
 import { format, differenceInDays } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { getBaseUrl } from './authUtils';
+import EmptyState from './EmptyState';
 import './ExistingEvents.css';
 
 const ExistingEvents = ({ userInfo }) => {
@@ -155,11 +156,11 @@ const ExistingEvents = ({ userInfo }) => {
           <p>모임 목록을 불러오는 중...</p>
         </div>
       ) : existingEvents.length === 0 ? (
-        <div className="ee-empty">
-          <span className="ee-empty-icon">📭</span>
-          <p>아직 참여한 모임이 없어요</p>
-          <span className="ee-empty-sub">새 모임을 만들거나 초대 링크로 참여해보세요</span>
-        </div>
+        <EmptyState
+          icon="📭"
+          title="아직 모임이 없어요"
+          description="새 모임을 만들거나 코드로 참여해보세요"
+        />
       ) : (
         <div className="ee-list">
           {existingEvents.map(event => {

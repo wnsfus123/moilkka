@@ -3,10 +3,24 @@
 /* 단독 페이지(/create)에서 데스크탑 여백 */
 @media (min-width: 769px) {
   .create-event {
-    max-width: 520px;
+    max-width: 860px;
     margin: 24px auto;
     padding: 0 16px;
   }
+}
+
+/* ── 2컬럼 레이아웃 ── */
+.ce-two-col {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 20px;
+  align-items: start;
+}
+.ce-col-date { display: flex; flex-direction: column; gap: 12px; }
+.ce-col-time { display: flex; flex-direction: column; gap: 14px; }
+
+@media (max-width: 768px) {
+  .ce-two-col { grid-template-columns: 1fr; }
 }
 
 /* ── Tabs ── */
@@ -354,4 +368,73 @@ input[type="time"] {
 @media (max-width: 768px) {
   .ce-tab { font-size: 13px; padding: 9px 6px; }
   .wd-day-btn { font-size: 12px; padding: 7px 2px; }
+  .ce-col-time .ce-input { width: 100%; }
 }
+
+/* ── MonthCalendar 요일 색상 ── */
+.mc-dow-sat { color: #2563EB !important; }
+.mc-dow-sun { color: #DC2626 !important; }
+.mc-day.mc-sat { color: #2563EB; }
+.mc-day.mc-sun { color: #DC2626; }
+
+/* ── react-datepicker 커스텀 스타일 ── */
+.react-datepicker {
+  border: 1px solid #e8e8e8 !important;
+  border-radius: 10px !important;
+  font-family: inherit !important;
+  box-shadow: none !important;
+  width: 100%;
+}
+.react-datepicker__month-container { width: 100%; }
+.react-datepicker__header {
+  background: #fafafa !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+  border-radius: 10px 10px 0 0 !important;
+}
+.react-datepicker__current-month {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: #111 !important;
+}
+.react-datepicker__day-name {
+  font-size: 11px !important;
+  color: #aaa !important;
+  width: 2rem !important;
+}
+/* 토요일 헤더 (7번째) */
+.react-datepicker__day-names .react-datepicker__day-name:nth-child(7) { color: #2563EB !important; }
+/* 일요일 헤더 (1번째 — 월요일 시작 시 마지막) */
+.react-datepicker__day-names .react-datepicker__day-name:last-child { color: #DC2626 !important; }
+.react-datepicker__day {
+  font-size: 13px !important;
+  width: 2rem !important;
+  line-height: 2rem !important;
+  border-radius: 6px !important;
+  color: #333 !important;
+}
+.react-datepicker__day:hover {
+  background: #fffde7 !important;
+  color: #3C1E1E !important;
+}
+.react-datepicker__day--selected,
+.react-datepicker__day--range-start,
+.react-datepicker__day--range-end {
+  background: #FEE500 !important;
+  color: #3C1E1E !important;
+  font-weight: 700 !important;
+}
+.react-datepicker__day--in-range,
+.react-datepicker__day--in-selecting-range {
+  background: #FFFDE7 !important;
+  color: #3C1E1E !important;
+}
+.react-datepicker__day--disabled { color: #ccc !important; }
+/* 토(6번째)/일(7번째=마지막) 날짜 색상 */
+.react-datepicker__week .react-datepicker__day:nth-child(6).rdp-sat,
+.react-datepicker__day.rdp-sat { color: #2563EB !important; }
+.react-datepicker__week .react-datepicker__day:nth-child(7).rdp-sun,
+.react-datepicker__day.rdp-sun { color: #DC2626 !important; }
+.react-datepicker__navigation-icon::before {
+  border-color: #555 !important;
+}
+.react-datepicker__day--outside-month { color: #ccc !important; }

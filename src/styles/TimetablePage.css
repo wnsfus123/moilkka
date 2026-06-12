@@ -364,4 +364,11 @@
 @media (max-width: 600px) {
   .tt-page { padding: 16px 10px 60px; }
   .tt-title { font-size: 18px; }
+  .tt-subtitle { font-size: 12px; }
+  .tt-time-label { font-size: 10px; }
+  .tt-day-header { font-size: 11px; padding: 6px 2px; }
+  .tt-block-label { font-size: 10px; }
+  .tt-grid-outer { margin: 0 -10px; padding: 0 10px; }
+  .tt-hint { font-size: 12px; }
+  .empty-state { padding: 32px 16px; }
 }

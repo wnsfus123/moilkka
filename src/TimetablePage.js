@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import axios from 'axios';
 import { getUserInfoFromLocalStorage } from './Components/authUtils';
+import EmptyState from './Components/EmptyState';
 import './styles/TimetablePage.css';
 
 const HOURS  = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
@@ -229,6 +230,13 @@ export default function TimetablePage() {
         </div>
       )}
 
+      {!loading && timetable.length === 0 && (
+        <EmptyState
+          icon="📋"
+          title="시간표가 비어있어요"
+          description="셀을 드래그하여 매주 반복되는 일정을 등록해보세요"
+        />
+      )}
       <p className="tt-hint">셀을 드래그하여 일정을 추가하고, 기존 일정을 클릭하면 수정할 수 있어요.</p>
 
       {modal.open && (
