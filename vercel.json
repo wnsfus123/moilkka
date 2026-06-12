@@ -21,6 +21,8 @@
     { "source": "/api/mannalka/:path*",            "destination": "/api/mannalka" },
     { "source": "/api/mannalka",                   "destination": "/api/mannalka" },
     { "source": "/api/cron/notify",                "destination": "/api/cron/notify" },
+    { "source": "/api/og",                         "destination": "/api/og" },
+    { "source": "/og/:uuid",                       "destination": "/api/og?uuid=:uuid" },
     { "source": "/((?!api/).*)",                   "destination": "/index.html" }
   ],
   "crons": [

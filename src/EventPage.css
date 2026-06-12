@@ -763,6 +763,32 @@
 .ep-remind-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .ep-remind-btn:not(:disabled):hover { opacity: 0.85; }
 
+/* ── 참여자 현황 바 ── */
+.ep-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  background: var(--color-card, #fff);
+  border-bottom: 1px solid var(--color-border, #F0F0EE);
+  font-size: 13px;
+  color: #555;
+  flex-wrap: wrap;
+}
+.ep-status-bar-clickable { cursor: pointer; }
+.ep-status-bar-clickable:hover { background: var(--color-bg, #F0F0EE); }
+.ep-sb-dot { width: 3px; height: 3px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
+.ep-sb-remind { margin-left: auto; color: #1A1A2E; font-weight: 600; font-size: 12px; }
+.ep-sb-item strong { color: #1A1A2E; }
+
+/* ── 저장 피드백 ── */
+.ep-saved-hint {
+  font-size: 11px;
+  color: #52c41a;
+  margin: 4px 0 0 0;
+  padding: 0 16px;
+}
+
 /* ── FAB 버튼 ── */
 .ep-fab {
   position: fixed;

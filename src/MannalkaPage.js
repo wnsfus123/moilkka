@@ -4,6 +4,7 @@ import axios from 'axios';
 import { message } from 'antd';
 import { getUserInfoFromLocalStorage, getBaseUrl } from './Components/authUtils';
 import EmptyState from './Components/EmptyState';
+import SharePopup from './Components/SharePopup';
 import './styles/MannalkaPage.css';
 
 const DAY_NAMES = ['월', '화', '수', '목', '금', '토', '일'];
@@ -28,6 +29,7 @@ export default function MannalkaPage() {
   const [loading,    setLoading]    = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [creating,   setCreating]   = useState(false);
+  const [shareData,  setShareData]  = useState(null);
   const [createForm, setCreateForm] = useState({
     title: '', description: '', duration: 60, showTimetable: false,
     bookingMode: 'host_open',
@@ -89,7 +91,7 @@ export default function MannalkaPage() {
     setCreating(true);
     try {
       const slots = isGuestPropose ? [] : daySlots.filter(s => s.enabled);
-      await axios.post('/api/mannalka?action=create', {
+      const res = await axios.post('/api/mannalka?action=create', {
         kakao_id:        userId,
         title:           createForm.title.trim(),
         description:     createForm.description.trim() || null,
@@ -101,11 +103,20 @@ export default function MannalkaPage() {
         available_end:   createForm.availableEnd,
         slots:           slots.map(s => ({ day_of_week: s.day_of_week, start_time: s.start_time, end_time: s.end_time })),
       });
-      message.success('예약 페이지가 만들어졌어요!');
+      const newUuid = res.data?.uuid;
       setShowCreate(false);
       setCreateForm({ title: '', description: '', duration: 60, showTimetable: false, bookingMode: 'host_open', availableDays: [0,1,2,3,4], availableStart: '09:00', availableEnd: '22:00' });
       setDaySlots(initDaySlots());
       fetchPages();
+      if (newUuid) {
+        setShareData({
+          url: `${getBaseUrl()}/book/${newUuid}`,
+          uuid: newUuid,
+          title: createForm.title.trim(),
+        });
+      } else {
+        message.success('예약 페이지가 만들어졌어요!');
+      }
     } catch (err) {
       message.error(err.response?.data?.error || '생성에 실패했어요');
     } finally {
@@ -144,6 +155,18 @@ export default function MannalkaPage() {
 
   return (
     <div className="mk-page">
+      {shareData && (
+        <SharePopup
+          isOpen
+          onClose={() => setShareData(null)}
+          title={`${shareData.title} 예약 페이지가 만들어졌어요!`}
+          subtitle="예약 링크를 공유해보세요"
+          shareUrl={shareData.url}
+          navigateLabel="→ 예약 페이지 보기"
+          onNavigate={() => { setShareData(null); navigate(`/book/${shareData.uuid}`); }}
+          userInfo={userInfo}
+        />
+      )}
       <div className="mk-top-row">
         <div>
           <h2 className="mk-title">📌 만날까</h2>

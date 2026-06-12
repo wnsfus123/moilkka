@@ -1,0 +1,80 @@
+.ob-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 600;
+  padding: 16px;
+}
+.ob-modal {
+  background: var(--color-card, #fff);
+  border-radius: 20px;
+  padding: 28px 24px 24px;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.22);
+  text-align: center;
+  position: relative;
+  animation: obSlideUp 0.28s ease;
+}
+@keyframes obSlideUp {
+  from { transform: translateY(28px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.ob-skip {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: #aaa;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+.ob-skip:hover { color: #555; }
+.ob-step-label { font-size: 11px; color: #aaa; margin-bottom: 20px; }
+.ob-icon       { font-size: 52px; margin-bottom: 16px; }
+.ob-title      { font-size: 18px; font-weight: 700; color: #1A1A2E; margin: 0 0 10px; }
+.ob-desc       { font-size: 14px; color: #666; line-height: 1.6; margin: 0 0 24px; }
+.ob-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.ob-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #E5E5E3;
+  transition: background 0.2s, width 0.2s;
+}
+.ob-dot.active {
+  background: #1A1A2E;
+  width: 20px;
+  border-radius: 4px;
+}
+.ob-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.ob-btn {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: var(--radius-md, 10px);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.ob-btn:hover { opacity: 0.85; }
+.ob-btn-prev  { background: var(--color-bg, #F0F0EE); color: #555; flex: 0 0 auto; padding: 12px 20px; }
+.ob-btn-next  { background: #1A1A2E; color: #FEE500; }
+.ob-btn-start { background: #FEE500; color: #1A1A2E; }

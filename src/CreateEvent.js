@@ -16,6 +16,7 @@ import {
   clearUserInfoFromLocalStorage,
   getBaseUrl,
 } from './Components/authUtils';
+import SharePopup from './Components/SharePopup';
 import './CreateEvent.css';
 
 dayjs.locale('ko');
@@ -180,6 +181,7 @@ const CreateEvent = () => {
   const [calMonth,         setCalMonth]         = useState(dayjs());
   const [selectedWeekdays, setSelectedWeekdays] = useState(new Set());
   const [wdMonth,          setWdMonth]          = useState(dayjs());
+  const [shareData,        setShareData]        = useState(null);
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -249,8 +251,16 @@ const CreateEvent = () => {
       startTime, endTime, kakaoId, nickname, createDay,
       selectedDates: dateList, timezone, is_private: isPrivate,
     })
-      .then(() => { window.location.href = `${getBaseUrl()}/meet/?key=${eventUUID}`; })
-      .catch(err => console.error('이벤트 생성 오류:', err));
+      .then(() => {
+        const dateRange = `${dateList[0]} ~ ${dateList[dateList.length - 1]}`;
+        setShareData({
+          url: `${getBaseUrl()}/meet/?key=${eventUUID}`,
+          title: `${eventName}이(가) 만들어졌어요!`,
+          subtitle: dateRange,
+          goUrl: `${getBaseUrl()}/meet/?key=${eventUUID}`,
+        });
+      })
+      .catch(err => { console.error('이벤트 생성 오류:', err); message.error('모임 생성에 실패했어요'); });
   };
 
   const dateList = getDateList();
@@ -343,6 +353,18 @@ const CreateEvent = () => {
 
   return (
     <ConfigProvider locale={koKR}>
+      {shareData && (
+        <SharePopup
+          isOpen
+          onClose={() => { window.location.href = shareData.goUrl; }}
+          title={shareData.title}
+          subtitle={shareData.subtitle}
+          shareUrl={shareData.url}
+          navigateLabel="→ 모임 바로가기"
+          onNavigate={() => { window.location.href = shareData.goUrl; }}
+          userInfo={userInfo}
+        />
+      )}
       <div className="create-event">
         <div className="ce-tabs">
           <button className={`ce-tab${activeTab === 'create' ? ' active' : ''}`} onClick={() => setActiveTab('create')}>

@@ -1,13 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import EventDashboard from './EventDashboard';
 import CreateEvent from './CreateEvent';
+import OnboardingModal from './Components/OnboardingModal';
 import './CombinedPage.css';
 
 const CombinedPage = () => {
   const [activeTab, setActiveTab] = useState('events');
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (!localStorage.getItem('onboarded')) {
+      setShowOnboarding(true);
+    }
+  }, []);
 
   return (
     <div className="combined-page">
+      {showOnboarding && <OnboardingModal onClose={() => setShowOnboarding(false)} />}
       <div className="combined-desktop">
         <div className="combined-panel">
           <EventDashboard />

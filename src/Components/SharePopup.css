@@ -1,0 +1,50 @@
+.sp-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  padding: 16px;
+}
+.sp-modal {
+  background: var(--color-card, #fff);
+  border-radius: 20px;
+  padding: 32px 24px 24px;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.22);
+  text-align: center;
+  animation: spSlideUp 0.25s ease;
+}
+@keyframes spSlideUp {
+  from { transform: translateY(24px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.sp-emoji    { font-size: 40px; margin-bottom: 12px; }
+.sp-title    { font-size: 18px; font-weight: 700; color: #1A1A2E; margin: 0 0 6px; }
+.sp-subtitle { font-size: 13px; color: #888; margin: 0 0 16px; }
+.sp-link-box {
+  background: var(--color-bg, #F0F0EE);
+  border-radius: var(--radius-md, 10px);
+  padding: 10px 14px;
+  margin-bottom: 20px;
+}
+.sp-link-text { font-size: 11px; color: #555; word-break: break-all; }
+.sp-actions   { display: flex; flex-direction: column; gap: 8px; }
+.sp-btn {
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: var(--radius-md, 10px);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.sp-btn:hover  { opacity: 0.88; }
+.sp-btn:active { transform: scale(0.98); }
+.sp-btn-kakao { background: #FEE500; color: #3C1E1E; }
+.sp-btn-copy  { background: #1A1A2E; color: #FEE500; }
+.sp-btn-go    { background: none; border: 1px solid var(--color-border, #CBD5E1); color: #555; }

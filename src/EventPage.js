@@ -192,6 +192,9 @@ function EventPage() {
   // FAB 팝업
   const [showRecommendPop, setShowRecommendPop] = useState(false);
   const [showRemindPop, setShowRemindPop] = useState(false);
+  // 저장 피드백
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [savedAt, setSavedAt] = useState(null);
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -299,7 +302,10 @@ function EventPage() {
         }
       }
       await fetchEventData();
-      message.success('일정이 즉시 적용되었습니다');
+      message.success('✅ 일정이 저장됐어요!');
+      setSaveSuccess(true);
+      setSavedAt(new Date());
+      setTimeout(() => setSaveSuccess(false), 2000);
     } catch (error) {
       console.error('일정 저장 오류:', error);
       message.error('일정 저장 오류');
@@ -809,6 +815,21 @@ function EventPage() {
           </div>
         </div>
 
+        {/* ── 참여자 현황 바 ── */}
+        {allUsers.length > 0 && (
+          <div
+            className={`ep-status-bar${isCreator ? ' ep-status-bar-clickable' : ''}`}
+            onClick={isCreator ? () => { setShowRemindPop(p => !p); setShowRecommendPop(false); } : undefined}
+          >
+            <span className="ep-sb-item">👥 <strong>{allUsers.length}</strong>명 참여 중</span>
+            <span className="ep-sb-dot" />
+            <span className="ep-sb-item">✅ <strong>{allUsers.length}</strong>명 등록</span>
+            {isCreator && (
+              <span className="ep-sb-remind">📢 독촉하기 →</span>
+            )}
+          </div>
+        )}
+
         {/* ── Desktop: 두 셀렉터 나란히 + 최적시간 아래 ── */}
         <div className="ep-schedule-desktop">
           <div className="ep-schedule-grid">
@@ -826,10 +847,11 @@ function EventPage() {
                   </button>
                   <button className="ep-btn-outline" onClick={showModal}>등록된 일정 확인</button>
                   <button className="ep-btn-save" onClick={handleConfirm} disabled={confirmLoading}>
-                    {confirmLoading ? '저장 중...' : '💾 저장'}
+                    {confirmLoading ? '저장 중...' : saveSuccess ? '✅ 저장됨' : '💾 저장'}
                   </button>
                 </div>
               </div>
+              {savedAt && <p className="ep-saved-hint">마지막 저장: 방금 전</p>}
               <div className="schedule-selector-wrapper">
                 {dateGroups ? (
                   <GroupsScroller>
@@ -1095,7 +1117,7 @@ function EventPage() {
                   </button>
                   <button className="ep-btn-outline" onClick={showModal}>내 일정 보기</button>
                   <button className="ep-btn-save" onClick={handleConfirm} disabled={confirmLoading}>
-                    {confirmLoading ? '저장 중...' : '💾 저장'}
+                    {confirmLoading ? '저장 중...' : saveSuccess ? '✅ 저장됨' : '💾 저장'}
                   </button>
                 </div>
               </div>
