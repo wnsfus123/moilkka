@@ -119,7 +119,7 @@ const ExistingEvents = ({ userInfo }) => {
     event.kakao_id?.toString() === userInfo?.id?.toString();
 
   const handleCopyEventLink = (uuid) => {
-    const link = `${getBaseUrl()}/test/?key=${uuid}`;
+    const link = `${getBaseUrl()}/meet/?key=${uuid}`;
     navigator.clipboard.writeText(link)
       .then(() => message.success('링크가 복사되었습니다!'))
       .catch(() => message.error('복사에 실패했습니다.'));
@@ -203,7 +203,7 @@ const ExistingEvents = ({ userInfo }) => {
                   </button>
                   <a
                     className="ee-btn-primary"
-                    href={`${getBaseUrl()}/test/?key=${event.uuid}`}
+                    href={`${getBaseUrl()}/meet/?key=${event.uuid}`}
                     target="_blank"
                     rel="noreferrer"
                   >
@@ -267,7 +267,7 @@ const ExistingEvents = ({ userInfo }) => {
                   <div className="detail-quick-actions">
                     <a
                       className="detail-action-btn primary"
-                      href={`${getBaseUrl()}/test/?key=${selectedEventDetails.uuid}`}
+                      href={`${getBaseUrl()}/meet/?key=${selectedEventDetails.uuid}`}
                       target="_blank"
                       rel="noreferrer"
                     >

@@ -1,6 +1,11 @@
 import React from "react";
 import "./App.css";
-import { BrowserRouter as Router, Routes, Route, Navigate} from "react-router-dom"; // BrowserRouter를 사용하기 위해 수정
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom"; // BrowserRouter를 사용하기 위해 수정
+
+const TestRedirect = () => {
+  const location = useLocation();
+  return <Navigate replace to={`/meet${location.pathname.replace(/^\/test/, '')}${location.search}`} />;
+};
 import CreateEvent from "./CreateEvent";
 import EventPage from "./EventPage";
 import HelpSection from "./HelpSection";
@@ -24,8 +29,10 @@ const App = () => {
             <Route path="/" element={<AddLayout />}>
               <Route path="/create" element={<CreateEvent />} />
               <Route path="/main" element={<Loginpage />} />
-              <Route path="/test" element={<EventPage />} />
-              <Route path="/test/:uuid" element={<EventPage />} />
+              <Route path="/meet" element={<EventPage />} />
+              <Route path="/meet/:uuid" element={<EventPage />} />
+              <Route path="/test" element={<TestRedirect />} />
+              <Route path="/test/*" element={<TestRedirect />} />
               <Route path="/help" element={<HelpSection />} />
               <Route path='/auth' element={<GetToken />} />
               <Route path='/LoginSuccess' element={<LoginSuccess/>} />

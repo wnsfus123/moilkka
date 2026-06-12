@@ -5,7 +5,7 @@ const KakaoShareButton = ({ userInfo, eventData }) => {
   const handleKakaoShare = () => {
     if (!eventData || !userInfo) return;
 
-    const shareUrl = `${getBaseUrl()}/test/?key=${eventData.uuid}`;
+    const shareUrl = `${getBaseUrl()}/meet/?key=${eventData.uuid}`;
     const senderName =
       userInfo?.kakao_account?.profile?.nickname ||
       userInfo?.properties?.nickname ||

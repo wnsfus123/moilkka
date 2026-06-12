@@ -204,7 +204,7 @@ const CreateEvent = () => {
     if (!userInfo) { message.error('로그인이 필요합니다.'); return; }
     axios.get(`/api/events/${uuid}`)
       .then(res => {
-        if (res.data) window.location.href = `${getBaseUrl()}/test/?key=${uuid}`;
+        if (res.data) window.location.href = `${getBaseUrl()}/meet/?key=${uuid}`;
         else message.warning('해당 UUID에 맞는 모임이 없습니다!');
       })
       .catch(() => message.warning('해당 UUID에 맞는 모임이 없습니다!'));
@@ -240,7 +240,7 @@ const CreateEvent = () => {
       timezone,
       is_private: isPrivate,
     })
-      .then(() => { window.location.href = `${getBaseUrl()}/test/?key=${eventUUID}`; })
+      .then(() => { window.location.href = `${getBaseUrl()}/meet/?key=${eventUUID}`; })
       .catch(err => console.error('이벤트 생성 오류:', err));
   };
 

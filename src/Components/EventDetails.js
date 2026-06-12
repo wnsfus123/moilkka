@@ -7,7 +7,7 @@ import { getBaseUrl } from './authUtils';
 const { Title, Text } = Typography;
 
 const EventDetails = ({ eventData, userInfo, handleCopyLink }) => {
-  const shareUrl = `${getBaseUrl()}/test/?key=${eventData.uuid}`;
+  const shareUrl = `${getBaseUrl()}/meet/?key=${eventData.uuid}`;
 
   return (
     <Row gutter={16}>

@@ -329,7 +329,7 @@ function EventPage() {
   };
 
   const handleCopyLink = () => {
-    const link = `${getBaseUrl()}/test/?key=${eventData.uuid}`;
+    const link = `${getBaseUrl()}/meet/?key=${eventData.uuid}`;
     navigator.clipboard.writeText(link)
       .then(() => message.success('링크가 클립보드에 복사되었습니다!'))
       .catch(() => message.error('링크 복사에 실패했습니다.'));
@@ -409,7 +409,7 @@ function EventPage() {
   const handleConfirmShare = () => {
     if (confirmedSlots.length === 0) return;
     const senderName = userInfo?.kakao_account?.profile?.nickname || userInfo?.properties?.nickname || '누군가';
-    const shareUrl = `${getBaseUrl()}/test/?key=${eventData.uuid}`;
+    const shareUrl = `${getBaseUrl()}/meet/?key=${eventData.uuid}`;
 
     const parsed = confirmedSlots
       .map(s => parse(s, 'yyyy-MM-dd HH:mm', new Date()))

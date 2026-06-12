@@ -389,7 +389,7 @@ const CalendarPage = () => {
                     </div>
                     <a
                       className="cp-event-action"
-                      href={`${getBaseUrl()}/test/?key=${ev.uuid}`}
+                      href={`${getBaseUrl()}/meet/?key=${ev.uuid}`}
                       target="_blank"
                       rel="noreferrer"
                     >
