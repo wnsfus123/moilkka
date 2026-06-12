@@ -139,7 +139,7 @@ module.exports = async (req, res) => {
     // 예약 페이지 생성
     if (action === 'create') {
       try {
-        const { kakao_id, title, description, duration, slots } = req.body;
+        const { kakao_id, title, description, duration, slots, show_timetable } = req.body;
         if (!kakao_id || !title) return res.status(400).json({ error: '필수 값 누락' });
 
         let pageUuid;
@@ -152,7 +152,7 @@ module.exports = async (req, res) => {
 
         const { data: page, error } = await supabase
           .from('booking_pages')
-          .insert([{ uuid: pageUuid, kakao_id: String(kakao_id), title, description: description || null, duration: duration || 60 }])
+          .insert([{ uuid: pageUuid, kakao_id: String(kakao_id), title, description: description || null, duration: duration || 60, show_timetable: show_timetable || false }])
           .select().single();
         if (error) return res.status(500).json({ error: error.message });
 

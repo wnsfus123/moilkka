@@ -482,6 +482,16 @@
   color: #ccc !important;
   font-weight: 400 !important;
 }
+/* 요일 헤더 색상 */
+.bk-cal-card .react-calendar__month-view__weekdays__weekday:nth-child(6) abbr { color: #2563EB !important; }
+.bk-cal-card .react-calendar__month-view__weekdays__weekday:nth-child(7) abbr { color: #DC2626 !important; }
+/* 토/일 날짜 글씨 색상 */
+.bk-cal-card .react-calendar__tile.cal-saturday { color: #2563EB !important; }
+.bk-cal-card .react-calendar__tile.cal-saturday.mk-cal-available { color: #1a4dbf !important; }
+.bk-cal-card .react-calendar__tile.cal-sunday { color: #DC2626 !important; }
+.bk-cal-card .react-calendar__tile.cal-sunday.mk-cal-available { color: #b91c1c !important; }
+/* 클릭 시 scale 제거 */
+.bk-cal-card .react-calendar__tile:active { transform: none !important; }
 
 /* 시간 슬롯 카드 */
 .bk-slots-card {
@@ -636,6 +646,127 @@
   animation: mk-spin 0.75s linear infinite;
 }
 @keyframes mk-spin { to { transform: rotate(360deg); } }
+
+/* ── 뷰 전환 토글 (BookingPage) ─────────────────────────── */
+.bk-view-toggle {
+  display: flex;
+  gap: 4px;
+  background: var(--color-bg, #F0F0EE);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 16px;
+  width: fit-content;
+}
+.bk-view-btn {
+  background: none;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #666;
+  transition: background 0.15s;
+}
+.bk-view-btn.active {
+  background: #fff;
+  color: #1A1A2E;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* ── 읽기전용 시간표 (BookingPage show_timetable) ─────── */
+.bk-tt-outer {
+  background: var(--color-card, #fff);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: var(--radius-lg, 16px);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.bk-tt-legend {
+  display: flex;
+  gap: 16px;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  font-size: 12px;
+  color: #666;
+  align-items: center;
+}
+.bk-tt-legend > span { display: flex; align-items: center; gap: 6px; }
+.bk-tt-legend-busy {
+  display: inline-block;
+  width: 14px; height: 14px;
+  background: rgba(254,229,0,0.4);
+  border: 1px solid #FEE500;
+  border-radius: 3px;
+}
+.bk-tt-legend-avail {
+  display: inline-block;
+  width: 14px; height: 14px;
+  background: #FFFBEB;
+  border: 1px solid #FEE500;
+  border-radius: 3px;
+}
+.bk-tt-grid-wrap {
+  overflow-x: auto;
+  display: grid;
+  grid-template-columns: 46px repeat(7, minmax(40px, 1fr));
+  min-width: 360px;
+}
+.bk-tt-corner {
+  background: #1A1A2E;
+  border-right: 1px solid rgba(0,0,0,0.12);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  box-sizing: border-box;
+}
+.bk-tt-day-header {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  background: #1A1A2E;
+  border-right: 1px solid rgba(0,0,0,0.12);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  box-sizing: border-box;
+}
+.bk-tt-day-header:last-child { border-right: none; }
+.bk-tt-day-header.sat { background: #1E3A8A; }
+.bk-tt-day-header.sun { background: #7F1D1D; }
+.bk-tt-time-label {
+  height: 32px;
+  display: flex;
+  align-items: flex-start;
+  padding: 3px 4px 0;
+  font-size: 10px;
+  color: #999;
+  background: #fafafa;
+  border-right: 1px solid rgba(0,0,0,0.06);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  box-sizing: border-box;
+}
+.bk-tt-cell {
+  height: 32px;
+  border-right: 1px solid rgba(0,0,0,0.06);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  position: relative;
+  box-sizing: border-box;
+}
+.bk-tt-cell:last-child { border-right: none; }
+.bk-tt-cell-avail { background: #FFFBEB; }
+.bk-tt-cell-block { overflow: hidden; }
+.bk-tt-block-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 500;
+  color: #333;
+  padding: 3px 4px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
 
 @media (max-width: 600px) {
   .mk-page, .mk-page-wide { padding: 16px 12px 80px; }

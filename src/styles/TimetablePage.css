@@ -47,7 +47,7 @@
 .tt-grid-outer {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  border: 1px solid var(--color-border, #eee);
+  border: 1px solid rgba(0,0,0,0.06);
   border-radius: var(--radius-lg, 12px);
   background: var(--color-card, #fff);
   user-select: none;
@@ -60,29 +60,34 @@
 
 /* ── 헤더 행 ───────────────────────────────────────────────── */
 .tt-corner {
-  border-bottom: 1px solid var(--color-border, #eee);
-  border-right: 1px solid var(--color-border, #eee);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  border-right: 1px solid rgba(0,0,0,0.12);
+  background: #1A1A2E;
 }
 .tt-day-header {
-  padding: 10px 0;
-  text-align: center;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 13px;
   font-weight: 600;
-  color: #555;
-  border-bottom: 1px solid var(--color-border, #eee);
-  border-right: 1px solid var(--color-border, #eee);
+  color: #fff;
+  background: #1A1A2E;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  border-right: 1px solid rgba(0,0,0,0.12);
 }
 .tt-day-header:last-child {
   border-right: none;
 }
 .tt-day-header.today {
-  color: var(--color-primary, #1677ff);
+  background: #1677ff;
+  color: #fff;
 }
-.tt-day-header.weekend {
-  color: #cf1322;
+.tt-day-header.saturday {
+  background: #1E3A8A;
 }
-.tt-day-header.today.weekend {
-  color: #cf1322;
+.tt-day-header.sunday {
+  background: #7F1D1D;
 }
 
 /* ── 시간 라벨 ────────────────────────────────────────────── */
@@ -93,16 +98,16 @@
   align-items: flex-start;
   padding-top: 4px;
   font-size: 11px;
-  color: #aaa;
-  border-right: 1px solid var(--color-border, #eee);
-  border-bottom: 1px solid var(--color-border, #eee);
+  color: #999;
+  border-right: 1px solid rgba(0,0,0,0.06);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
 }
 
 /* ── 셀 ────────────────────────────────────────────────────── */
 .tt-cell {
   height: 46px;
-  border-right: 1px solid var(--color-border, #eee);
-  border-bottom: 1px solid var(--color-border, #eee);
+  border-right: 1px solid rgba(0,0,0,0.06);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
   cursor: crosshair;
   position: relative;
   transition: background 0.1s;
@@ -117,7 +122,19 @@
   border-bottom: none;
 }
 .tt-cell:hover {
-  background: #f5f5f5;
+  background: rgba(254,229,0,0.1);
+}
+.tt-cell:not(.tt-cell-block):not(.tt-cell-drag):hover::after {
+  content: '+';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+  color: rgba(0,0,0,0.2);
+  pointer-events: none;
+  font-weight: 300;
+  line-height: 1;
 }
 .tt-cell.col-today {
   background: rgba(22, 119, 255, 0.03);
@@ -139,12 +156,12 @@
 }
 .tt-block-label {
   display: block;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding: 4px 5px 0;
+  padding: 6px 8px;
   color: #333;
   pointer-events: none;
 }

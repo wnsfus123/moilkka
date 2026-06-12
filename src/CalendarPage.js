@@ -348,6 +348,7 @@ const CalendarPage = () => {
             showNeighboringMonth={false}
             tileContent={tileContent}
             tileClassName={tileClassName}
+            formatDay={(locale, date) => date.getDate().toString()}
             calendarType="gregory"
             locale="ko-KR"
           />

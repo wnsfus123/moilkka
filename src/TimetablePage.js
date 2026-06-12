@@ -22,15 +22,15 @@ function getBlockStyle(block) {
   };
   if (block.isFirst) {
     style.borderTop = `2px solid ${c}`;
-    style.borderTopLeftRadius = '4px';
-    style.borderTopRightRadius = '4px';
+    style.borderTopLeftRadius = '6px';
+    style.borderTopRightRadius = '6px';
   } else {
     style.borderTop = 'none';
   }
   if (block.isLast) {
     style.borderBottom = `2px solid ${c}`;
-    style.borderBottomLeftRadius = '4px';
-    style.borderBottomRightRadius = '4px';
+    style.borderBottomLeftRadius = '12px';
+    style.borderBottomRightRadius = '12px';
   } else {
     style.borderBottom = 'none';
   }
@@ -193,7 +193,7 @@ export default function TimetablePage() {
             {DAYS.map((day, i) => (
               <div
                 key={i}
-                className={`tt-day-header${i === todayIdx ? ' today' : ''}${i >= 5 ? ' weekend' : ''}`}
+                className={`tt-day-header${i === todayIdx ? ' today' : ''}${i === 5 ? ' saturday' : i === 6 ? ' sunday' : ''}`}
               >
                 {day}
               </div>

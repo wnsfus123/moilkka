@@ -26,7 +26,7 @@ export default function MannalkaPage() {
   const [loading,    setLoading]    = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [creating,   setCreating]   = useState(false);
-  const [createForm, setCreateForm] = useState({ title: '', description: '', duration: 60 });
+  const [createForm, setCreateForm] = useState({ title: '', description: '', duration: 60, showTimetable: false });
   const [daySlots,   setDaySlots]   = useState(initDaySlots);
 
   const fetchPages = useCallback(async () => {
@@ -76,15 +76,16 @@ export default function MannalkaPage() {
     setCreating(true);
     try {
       await axios.post('/api/mannalka?action=create', {
-        kakao_id:    userId,
-        title:       createForm.title.trim(),
-        description: createForm.description.trim() || null,
-        duration:    createForm.duration,
-        slots:       slots.map(s => ({ day_of_week: s.day_of_week, start_time: s.start_time, end_time: s.end_time })),
+        kakao_id:       userId,
+        title:          createForm.title.trim(),
+        description:    createForm.description.trim() || null,
+        duration:       createForm.duration,
+        show_timetable: createForm.showTimetable,
+        slots:          slots.map(s => ({ day_of_week: s.day_of_week, start_time: s.start_time, end_time: s.end_time })),
       });
       message.success('예약 페이지가 만들어졌어요!');
       setShowCreate(false);
-      setCreateForm({ title: '', description: '', duration: 60 });
+      setCreateForm({ title: '', description: '', duration: 60, showTimetable: false });
       setDaySlots(initDaySlots());
       fetchPages();
     } catch (err) {
@@ -213,6 +214,19 @@ export default function MannalkaPage() {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              <div className="mk-field">
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={createForm.showTimetable}
+                    onChange={e => setCreateForm(f => ({ ...f, showTimetable: e.target.checked }))}
+                    style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#FEE500' }}
+                  />
+                  <span>시간표 공개</span>
+                </label>
+                <p className="mk-slot-hint">켜면 예약자가 내 주간 시간표를 볼 수 있어요</p>
               </div>
 
               <div className="mk-field">

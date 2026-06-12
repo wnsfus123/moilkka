@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, Fragment } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { message } from 'antd';
@@ -6,6 +6,10 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { getUserInfoFromLocalStorage } from './Components/authUtils';
 import './styles/MannalkaPage.css';
+
+const BK_HOURS = [7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22];
+const BK_DAYS  = ['월','화','수','목','금','토','일'];
+const pad2 = n => String(n).padStart(2, '0');
 
 const DAY_NAMES = ['월', '화', '수', '목', '금', '토', '일'];
 const pad = n => String(n).padStart(2, '0');
@@ -60,7 +64,10 @@ export default function BookingPage() {
   const [step,         setStep]         = useState('calendar');
   const [form,         setForm]         = useState({ guest_name: guestNick, guest_kakao: guestKakao || '', memo: '' });
   const [submitting,   setSubmitting]   = useState(false);
-  const [doneBooking,  setDoneBooking]  = useState(null);
+  const [doneBooking,      setDoneBooking]      = useState(null);
+  const [showTimetableView, setShowTimetableView] = useState(false);
+  const [hostTimetable,     setHostTimetable]     = useState([]);
+  const [loadingTimetable,  setLoadingTimetable]  = useState(false);
 
   const fetchAll = useCallback(async () => {
     if (!uuid) return;
@@ -90,6 +97,15 @@ export default function BookingPage() {
       guest_kakao: guestKakao || f.guest_kakao,
     }));
   }, [guestNick, guestKakao]);
+
+  useEffect(() => {
+    if (!page?.show_timetable || !page?.kakao_id) return;
+    setLoadingTimetable(true);
+    axios.get(`/api/timetable?kakaoId=${page.kakao_id}`)
+      .then(res => setHostTimetable(res.data || []))
+      .catch(() => setHostTimetable([]))
+      .finally(() => setLoadingTimetable(false));
+  }, [page?.show_timetable, page?.kakao_id]);
 
   const duration = page?.duration || 60;
 
@@ -167,6 +183,87 @@ export default function BookingPage() {
         </div>
       </div>
 
+      {/* 시간표 / 날짜선택 뷰 전환 */}
+      {page.show_timetable && step !== 'done' && (
+        <div className="bk-view-toggle">
+          <button
+            className={`bk-view-btn${!showTimetableView ? ' active' : ''}`}
+            onClick={() => setShowTimetableView(false)}
+          >
+            📅 날짜 선택
+          </button>
+          <button
+            className={`bk-view-btn${showTimetableView ? ' active' : ''}`}
+            onClick={() => setShowTimetableView(true)}
+          >
+            📋 시간표 보기
+          </button>
+        </div>
+      )}
+
+      {/* 읽기전용 시간표 */}
+      {showTimetableView && step !== 'done' && (
+        loadingTimetable ? (
+          <div className="mk-loading"><div className="mk-spinner" /><span>시간표 불러오는 중...</span></div>
+        ) : (() => {
+          const slotSet = new Set();
+          slots.forEach(s => {
+            const sh = parseInt(s.start_time);
+            const eh = parseInt(s.end_time);
+            for (let h = sh; h < eh; h++) slotSet.add(`${s.day_of_week}-${h}`);
+          });
+          const bmap = {};
+          hostTimetable.forEach(entry => {
+            const sh = parseInt(entry.start_time);
+            const eh = parseInt(entry.end_time);
+            for (let h = sh; h < eh; h++) {
+              if (!bmap[entry.day_of_week]) bmap[entry.day_of_week] = {};
+              bmap[entry.day_of_week][h] = { ...entry, isFirst: h === sh, isLast: h === eh - 1 };
+            }
+          });
+          return (
+            <div className="bk-tt-outer">
+              <div className="bk-tt-legend">
+                <span><span className="bk-tt-legend-busy" />바쁜 시간</span>
+                <span><span className="bk-tt-legend-avail" />예약 가능</span>
+              </div>
+              <div className="bk-tt-grid-wrap">
+                <div className="bk-tt-corner" />
+                {BK_DAYS.map((day, i) => (
+                  <div key={i} className={`bk-tt-day-header${i === 5 ? ' sat' : i === 6 ? ' sun' : ''}`}>{day}</div>
+                ))}
+                {BK_HOURS.map(hour => (
+                  <Fragment key={hour}>
+                    <div className="bk-tt-time-label">{pad2(hour)}:00</div>
+                    {BK_DAYS.map((_, dayIdx) => {
+                      const block = bmap[dayIdx]?.[hour];
+                      const isAvail = slotSet.has(`${dayIdx}-${hour}`);
+                      let cls = 'bk-tt-cell';
+                      if (isAvail && !block) cls += ' bk-tt-cell-avail';
+                      if (block) cls += ' bk-tt-cell-block';
+                      const c = block?.color || '#FEE500';
+                      const style = block ? {
+                        background: c + '33',
+                        borderLeft: `2px solid ${c}`,
+                        borderRight: `2px solid ${c}`,
+                        ...(block.isFirst && { borderTop: `2px solid ${c}`, borderTopLeftRadius: 4, borderTopRightRadius: 4 }),
+                        ...(block.isLast  && { borderBottom: `2px solid ${c}`, borderBottomLeftRadius: 4, borderBottomRightRadius: 4 }),
+                        boxSizing: 'border-box',
+                      } : {};
+                      return (
+                        <div key={dayIdx} className={cls} style={style}>
+                          {block?.isFirst && <span className="bk-tt-block-label">{block.title}</span>}
+                        </div>
+                      );
+                    })}
+                  </Fragment>
+                ))}
+              </div>
+            </div>
+          );
+        })()
+      )}
+
       {/* 완료 화면 */}
       {step === 'done' && doneBooking && (
         <div className="bk-done">
@@ -182,7 +279,7 @@ export default function BookingPage() {
         </div>
       )}
 
-      {step !== 'done' && (
+      {step !== 'done' && !showTimetableView && (
         <>
           <p className="bk-step-heading">
             {!selectedDate
@@ -200,9 +297,16 @@ export default function BookingPage() {
                 value={selectedDate}
                 minDate={new Date()}
                 locale="ko-KR"
+                calendarType="gregory"
+                formatDay={(locale, date) => date.getDate().toString()}
                 tileClassName={({ date, view }) => {
                   if (view !== 'month') return null;
-                  return isAvailableDate(date) ? 'mk-cal-available' : null;
+                  const classes = [];
+                  if (isAvailableDate(date)) classes.push('mk-cal-available');
+                  const dow = date.getDay();
+                  if (dow === 6) classes.push('cal-saturday');
+                  if (dow === 0) classes.push('cal-sunday');
+                  return classes.length ? classes.join(' ') : null;
                 }}
                 tileDisabled={({ date, view }) => {
                   if (view !== 'month') return false;
