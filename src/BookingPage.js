@@ -289,8 +289,8 @@ export default function BookingPage() {
                 : '✏️ 예약 정보를 입력해주세요'}
           </p>
 
-          {/* 달력 + 슬롯 (날짜 선택 시 슬롯 패널 슬라이드 인) */}
-          <div className={`bk-grid${selectedDate ? ' bk-grid--with-slots' : ''}`}>
+          {/* 달력 + 슬롯 (2단 고정 레이아웃) */}
+          <div className="bk-grid">
             <div className="bk-cal-card">
               <Calendar
                 onChange={handleDateChange}
@@ -315,29 +315,36 @@ export default function BookingPage() {
               />
             </div>
 
-            {selectedDate && (
-              <div key={selectedDate.toDateString()} className="bk-slots-card bk-animate-in">
-                <p className="bk-slots-heading">{fmtDate(selectedDate)}</p>
-                <p className="bk-slots-hint">⏱ {duration}분 미팅</p>
-                {timeSlots.length === 0 ? (
-                  <div className="bk-no-slots">이 날은 가능한 시간이 없어요</div>
-                ) : (
-                  <div className="bk-time-grid">
-                    {timeSlots.map((slot, i) => (
-                      <button
-                        key={i}
-                        className={`bk-time-btn${slot.isBooked ? ' booked' : ''}${selectedSlot?.time === slot.time ? ' selected' : ''}`}
-                        onClick={() => handleSlotSelect(slot)}
-                        disabled={slot.isBooked}
-                      >
-                        {slot.time}
-                        {slot.isBooked && <span className="bk-time-btn-label">예약됨</span>}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+            <div className="bk-slots-card">
+              {!selectedDate ? (
+                <div className="bk-slots-placeholder">
+                  <span>📅</span>
+                  <p>날짜를 선택해주세요</p>
+                </div>
+              ) : (
+                <div key={selectedDate.toDateString()} className="bk-animate-in">
+                  <p className="bk-slots-heading">{fmtDate(selectedDate)}</p>
+                  <p className="bk-slots-hint">⏱ {duration}분 미팅</p>
+                  {timeSlots.length === 0 ? (
+                    <div className="bk-no-slots">이 날은 가능한 시간이 없어요</div>
+                  ) : (
+                    <div className="bk-time-grid">
+                      {timeSlots.map((slot, i) => (
+                        <button
+                          key={i}
+                          className={`bk-time-btn${slot.isBooked ? ' booked' : ''}${selectedSlot?.time === slot.time ? ' selected' : ''}`}
+                          onClick={() => handleSlotSelect(slot)}
+                          disabled={slot.isBooked}
+                        >
+                          {slot.time}
+                          {slot.isBooked && <span className="bk-time-btn-label">예약됨</span>}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* 예약 폼 — 슬롯 선택 시 슬라이드 인 */}
