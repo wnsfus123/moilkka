@@ -6,6 +6,18 @@ import { getUserInfoFromLocalStorage } from './Components/authUtils';
 import './styles/MannalkaPage.css';
 
 const DAY_NAMES = ['월', '화', '수', '목', '금', '토', '일'];
+const pad = n => String(n).padStart(2, '0');
+
+const fmtProposedTime = (isoStr) => {
+  const d = new Date(isoStr);
+  const mon = d.getMonth() + 1;
+  const day = d.getDate();
+  const dow = DAY_NAMES[(d.getDay() + 6) % 7];
+  const h   = pad(d.getHours());
+  const m   = pad(d.getMinutes());
+  const he  = pad(d.getHours() + 1);
+  return `${mon}월 ${day}일(${dow}) ${h}:${m}~${he}:${m}`;
+};
 
 const formatDateTime = (iso) => {
   const d = new Date(iso);
@@ -95,6 +107,20 @@ export default function MannalkaManagePage() {
     }
   };
 
+  const handlePickTime = async (bookingId, confirmedTime) => {
+    if (!window.confirm(`${fmtProposedTime(confirmedTime)}으로 확정할까요?`)) return;
+    setActing(bookingId);
+    try {
+      await axios.post('/api/mannalka?action=confirm', { booking_id: bookingId, kakao_id: userId, confirmed_time: confirmedTime });
+      message.success('예약을 확정했어요! 게스트에게 알림을 보냈어요.');
+      fetchAll();
+    } catch {
+      message.error('확정에 실패했어요');
+    } finally {
+      setActing(null);
+    }
+  };
+
   if (!userInfo) {
     return (
       <div className="mk-page">
@@ -133,34 +159,77 @@ export default function MannalkaManagePage() {
         </div>
       ) : (
         <div className="mk-request-list">
-          {ordered.map(req => (
-            <div key={req.id} className={`mk-request-card status-${req.status}`}>
-              <div className="mk-request-head">
-                <span className="mk-request-name">{req.guest_name}</span>
-                <span className={`mk-badge mk-badge-${req.status}`}>{STATUS_LABEL[req.status] || req.status}</span>
-              </div>
-              <div className="mk-request-date">📅 {formatDateTime(req.booked_at)}</div>
-              {req.memo && <div className="mk-request-memo">💬 {req.memo}</div>}
-              {req.status === 'pending' && (
-                <div className="mk-request-actions">
-                  <button
-                    className="mk-btn-confirm mk-btn-sm"
-                    onClick={() => handleConfirm(req.id)}
-                    disabled={acting === req.id}
-                  >
-                    {acting === req.id ? '처리 중...' : '✅ 확정'}
-                  </button>
-                  <button
-                    className="mk-btn-danger mk-btn-sm"
-                    onClick={() => handleCancel(req.id)}
-                    disabled={acting === req.id}
-                  >
-                    거절
-                  </button>
+          {ordered.map(req => {
+            const isPropose = page?.booking_mode === 'guest_propose' && req.proposed_times?.length > 0;
+            return (
+              <div key={req.id} className={`mk-request-card status-${req.status}`}>
+                <div className="mk-request-head">
+                  <span className="mk-request-name">{req.guest_name}</span>
+                  <span className={`mk-badge mk-badge-${req.status}`}>{STATUS_LABEL[req.status] || req.status}</span>
                 </div>
-              )}
-            </div>
-          ))}
+
+                {isPropose ? (
+                  /* ── guest_propose 카드 ── */
+                  <div className="mk-propose-card">
+                    <p className="mk-propose-label">제안한 시간 {req.proposed_times.length}개:</p>
+                    <div className="mk-propose-list">
+                      {req.proposed_times.map((iso, i) => (
+                        <div key={i} className="mk-propose-item">
+                          <span className="mk-propose-time">○ {fmtProposedTime(iso)}</span>
+                          {req.status === 'pending' && (
+                            <button
+                              className="mk-btn-confirm mk-btn-sm"
+                              onClick={() => handlePickTime(req.id, iso)}
+                              disabled={acting === req.id}
+                            >
+                              {acting === req.id ? '...' : '확정'}
+                            </button>
+                          )}
+                          {req.confirmed_time && new Date(req.confirmed_time).toISOString() === new Date(iso).toISOString() && (
+                            <span className="mk-propose-confirmed-badge">✅ 확정됨</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  /* ── host_open 카드 ── */
+                  <div className="mk-request-date">📅 {formatDateTime(req.booked_at)}</div>
+                )}
+
+                {req.memo && <div className="mk-request-memo">💬 {req.memo}</div>}
+                {req.status === 'pending' && !isPropose && (
+                  <div className="mk-request-actions">
+                    <button
+                      className="mk-btn-confirm mk-btn-sm"
+                      onClick={() => handleConfirm(req.id)}
+                      disabled={acting === req.id}
+                    >
+                      {acting === req.id ? '처리 중...' : '✅ 확정'}
+                    </button>
+                    <button
+                      className="mk-btn-danger mk-btn-sm"
+                      onClick={() => handleCancel(req.id)}
+                      disabled={acting === req.id}
+                    >
+                      거절
+                    </button>
+                  </div>
+                )}
+                {req.status === 'pending' && isPropose && (
+                  <div className="mk-request-actions" style={{ marginTop: 8 }}>
+                    <button
+                      className="mk-btn-danger mk-btn-sm"
+                      onClick={() => handleCancel(req.id)}
+                      disabled={acting === req.id}
+                    >
+                      거절
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

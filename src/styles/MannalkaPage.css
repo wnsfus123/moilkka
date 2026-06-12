@@ -785,8 +785,181 @@
   pointer-events: none;
 }
 
+/* ── 예약 모드 선택 ─────────────────────────────────────── */
+.mk-booking-mode-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mk-mode-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: var(--radius-md, 8px);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.mk-mode-option input[type="radio"] {
+  margin-top: 3px;
+  flex-shrink: 0;
+  accent-color: #1A1A2E;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+.mk-mode-option.active {
+  border-color: #1A1A2E;
+  background: #F8F8FF;
+}
+.mk-mode-title {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1E293B;
+}
+.mk-mode-desc {
+  display: block;
+  font-size: 11px;
+  color: #aaa;
+  margin-top: 2px;
+}
+
+/* ── 가능 요일 체크박스 ──────────────────────────────────── */
+.mk-avail-days {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.mk-avail-day {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  user-select: none;
+}
+.mk-avail-day input { display: none; }
+.mk-avail-day.checked {
+  background: #1A1A2E;
+  border-color: #1A1A2E;
+  color: #FEE500;
+  font-weight: 700;
+}
+
+/* ── 가능 시간 범위 ──────────────────────────────────────── */
+.mk-avail-time-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── guest_propose 제안 선택 UI (BookingPage) ───────────── */
+.bk-gp-notice {
+  background: #FFFDE7;
+  border: 1px solid #FEE500;
+  border-radius: var(--radius-md, 10px);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+.bk-gp-notice-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #3C1E1E;
+  margin: 0 0 4px;
+}
+.bk-gp-notice-sub {
+  font-size: 12px;
+  color: #856404;
+  margin: 0;
+}
+
+/* ── 제안 요약 ───────────────────────────────────────────── */
+.bk-proposed-summary {
+  background: var(--color-card, #fff);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: var(--radius-lg, 16px);
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.bk-proposed-summary-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1E293B;
+  margin: 0 0 10px;
+}
+.bk-proposed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.bk-proposed-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #333;
+}
+.bk-proposed-check { font-size: 14px; flex-shrink: 0; }
+.bk-proposed-remove {
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: #bbb;
+  cursor: pointer;
+  margin-left: auto;
+  padding: 2px 4px;
+  border-radius: 4px;
+  line-height: 1;
+}
+.bk-proposed-remove:hover { color: #cf1322; background: #fff1f0; }
+
+/* ── guest_propose 관리 카드 (MannalkaManagePage) ──────── */
+.mk-propose-card { margin: 4px 0 8px; }
+.mk-propose-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #888;
+  margin: 0 0 8px;
+}
+.mk-propose-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.mk-propose-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--color-bg, #F0F0EE);
+  border-radius: var(--radius-md, 8px);
+  font-size: 13px;
+}
+.mk-propose-time { flex: 1; color: #333; }
+.mk-propose-confirmed-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #276749;
+  background: #F0FFF4;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid #9AE6B4;
+  flex-shrink: 0;
+}
+
 @media (max-width: 600px) {
   .mk-page, .mk-page-wide { padding: 16px 12px 80px; }
   .mk-title { font-size: 18px; }
   .mk-cards { grid-template-columns: 1fr; }
+  .mk-booking-mode-row { gap: 6px; }
+  .mk-propose-item { flex-wrap: wrap; }
 }

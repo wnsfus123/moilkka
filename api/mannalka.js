@@ -155,7 +155,8 @@ module.exports = async (req, res) => {
     // 예약 페이지 생성
     if (action === 'create') {
       try {
-        const { kakao_id, title, description, duration, slots, show_timetable } = req.body;
+        const { kakao_id, title, description, duration, slots, show_timetable,
+                booking_mode, available_days, available_start, available_end } = req.body;
         if (!kakao_id || !title) return res.status(400).json({ error: '필수 값 누락' });
 
         let pageUuid;
@@ -168,7 +169,18 @@ module.exports = async (req, res) => {
 
         const { data: page, error } = await supabase
           .from('booking_pages')
-          .insert([{ uuid: pageUuid, kakao_id: String(kakao_id), title, description: description || null, duration: duration || 60, show_timetable: show_timetable || false }])
+          .insert([{
+            uuid: pageUuid,
+            kakao_id: String(kakao_id),
+            title,
+            description: description || null,
+            duration: duration || 60,
+            show_timetable: show_timetable || false,
+            booking_mode: booking_mode || 'host_open',
+            available_days: available_days || [],
+            available_start: available_start || '09:00',
+            available_end: available_end || '22:00',
+          }])
           .select().single();
         if (error) return res.status(500).json({ error: error.message });
 
@@ -186,8 +198,26 @@ module.exports = async (req, res) => {
     // 예약 신청 (게스트)
     if (action === 'book') {
       try {
-        const { page_uuid, guest_name, guest_kakao, booked_at, memo } = req.body;
-        if (!page_uuid || !guest_name || !booked_at) return res.status(400).json({ error: '필수 값 누락' });
+        const { page_uuid, guest_name, guest_kakao, booked_at, memo, booking_mode: bm, proposed_times } = req.body;
+        if (!page_uuid || !guest_name) return res.status(400).json({ error: '필수 값 누락' });
+
+        // ── guest_propose 모드 ──
+        if (bm === 'guest_propose') {
+          if (!proposed_times || !proposed_times.length) return res.status(400).json({ error: 'proposed_times 필요' });
+          const { data, error } = await supabase
+            .from('bookings')
+            .insert([{ page_uuid, guest_name, guest_kakao: guest_kakao || null, booked_at: new Date().toISOString(), status: 'pending', memo: memo || null, proposed_times }])
+            .select().single();
+          if (error) return res.status(500).json({ error: error.message });
+          const { data: pg } = await supabase.from('booking_pages').select('kakao_id, title').eq('uuid', page_uuid).single();
+          if (pg) {
+            await sendKakaoMsg(pg.kakao_id, `📌 만날까\n${guest_name}님이 ${proposed_times.length}개 시간을 제안했어요!\n확인하고 시간을 확정해주세요 👉 모일까 앱에서 확인`);
+          }
+          return res.status(200).json(data);
+        }
+
+        // ── host_open 모드 (기존 로직 유지) ──
+        if (!booked_at) return res.status(400).json({ error: '필수 값 누락' });
 
         const { data: conflict } = await supabase
           .from('bookings').select('id')
@@ -197,7 +227,7 @@ module.exports = async (req, res) => {
 
         const { data, error } = await supabase
           .from('bookings')
-          .insert([{ page_uuid, guest_name, guest_kakao: guest_kakao || null, booked_at, status: 'pending', memo: memo || null }])
+          .insert([{ page_uuid, guest_name, guest_kakao: guest_kakao || null, booked_at, status: 'pending', memo: memo || null, proposed_times: [] }])
           .select().single();
         if (error) return res.status(500).json({ error: error.message });
 
@@ -217,7 +247,7 @@ module.exports = async (req, res) => {
     // 예약 확정 (호스트)
     if (action === 'confirm') {
       try {
-        const { booking_id, kakao_id } = req.body;
+        const { booking_id, kakao_id, confirmed_time } = req.body;
         if (!booking_id || !kakao_id) return res.status(400).json({ error: '필수 값 누락' });
 
         const { data: bk } = await supabase.from('bookings').select('*').eq('id', booking_id).single();
@@ -225,14 +255,22 @@ module.exports = async (req, res) => {
         const { data: pg } = await supabase.from('booking_pages').select('kakao_id, title').eq('uuid', bk.page_uuid).single();
         if (!pg || String(pg.kakao_id) !== String(kakao_id)) return res.status(403).json({ error: '권한 없음' });
 
-        const { error } = await supabase.from('bookings').update({ status: 'confirmed' }).eq('id', booking_id);
+        // confirmed_time이 있으면 (guest_propose 모드) 함께 저장
+        const updateData = { status: 'confirmed' };
+        if (confirmed_time) updateData.confirmed_time = confirmed_time;
+
+        const { error } = await supabase.from('bookings').update(updateData).eq('id', booking_id);
         if (error) return res.status(500).json({ error: error.message });
 
         if (bk.guest_kakao) {
-          const d = new Date(bk.booked_at);
+          const timeToShow = confirmed_time || bk.booked_at;
+          const d = new Date(timeToShow);
           const ds = d.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' });
           const ts = d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-          await sendKakaoMsg(bk.guest_kakao, `✅ 만날까\n${pg.title} 예약이 확정됐어요!\n📅 ${ds} ${ts}\n기다리고 있을게요 😊`);
+          const msg = confirmed_time
+            ? `예약이 확정됐어요! 🎉\n📅 ${ds} ${ts}\n${pg.title} — ${pg.host_nickname || '호스트'}님이 기다리고 있어요`
+            : `✅ 만날까\n${pg.title} 예약이 확정됐어요!\n📅 ${ds} ${ts}\n기다리고 있을게요 😊`;
+          await sendKakaoMsg(bk.guest_kakao, msg);
         }
         return res.status(200).json({ success: true });
       } catch (err) {

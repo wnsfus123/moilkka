@@ -10,6 +10,7 @@ const DAY_NAMES = ['월', '화', '수', '목', '금', '토', '일'];
 const DURATION_OPTIONS = [30, 60, 90, 120];
 const START_HOURS = Array.from({ length: 17 }, (_, i) => i + 6);
 const END_HOURS   = Array.from({ length: 17 }, (_, i) => i + 7);
+const AVAIL_HOURS = Array.from({ length: 24 }, (_, i) => i);
 const pad = n => String(n).padStart(2, '0');
 
 const initDaySlots = () =>
@@ -27,7 +28,13 @@ export default function MannalkaPage() {
   const [loading,    setLoading]    = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [creating,   setCreating]   = useState(false);
-  const [createForm, setCreateForm] = useState({ title: '', description: '', duration: 60, showTimetable: false });
+  const [createForm, setCreateForm] = useState({
+    title: '', description: '', duration: 60, showTimetable: false,
+    bookingMode: 'host_open',
+    availableDays: [0,1,2,3,4],
+    availableStart: '09:00',
+    availableEnd: '22:00',
+  });
   const [daySlots,   setDaySlots]   = useState(initDaySlots);
 
   const fetchPages = useCallback(async () => {
@@ -72,21 +79,31 @@ export default function MannalkaPage() {
 
   const handleCreate = async () => {
     if (!createForm.title.trim()) { message.warning('제목을 입력해주세요'); return; }
-    const slots = daySlots.filter(s => s.enabled);
-    if (!slots.length) { message.warning('가능한 요일을 하나 이상 선택해주세요'); return; }
+    const isGuestPropose = createForm.bookingMode === 'guest_propose';
+    if (isGuestPropose) {
+      if (!createForm.availableDays.length) { message.warning('가능한 요일을 하나 이상 선택해주세요'); return; }
+    } else {
+      const slots = daySlots.filter(s => s.enabled);
+      if (!slots.length) { message.warning('가능한 요일을 하나 이상 선택해주세요'); return; }
+    }
     setCreating(true);
     try {
+      const slots = isGuestPropose ? [] : daySlots.filter(s => s.enabled);
       await axios.post('/api/mannalka?action=create', {
-        kakao_id:       userId,
-        title:          createForm.title.trim(),
-        description:    createForm.description.trim() || null,
-        duration:       createForm.duration,
-        show_timetable: createForm.showTimetable,
-        slots:          slots.map(s => ({ day_of_week: s.day_of_week, start_time: s.start_time, end_time: s.end_time })),
+        kakao_id:        userId,
+        title:           createForm.title.trim(),
+        description:     createForm.description.trim() || null,
+        duration:        createForm.duration,
+        show_timetable:  createForm.showTimetable,
+        booking_mode:    createForm.bookingMode,
+        available_days:  createForm.availableDays,
+        available_start: createForm.availableStart,
+        available_end:   createForm.availableEnd,
+        slots:           slots.map(s => ({ day_of_week: s.day_of_week, start_time: s.start_time, end_time: s.end_time })),
       });
       message.success('예약 페이지가 만들어졌어요!');
       setShowCreate(false);
-      setCreateForm({ title: '', description: '', duration: 60, showTimetable: false });
+      setCreateForm({ title: '', description: '', duration: 60, showTimetable: false, bookingMode: 'host_open', availableDays: [0,1,2,3,4], availableStart: '09:00', availableEnd: '22:00' });
       setDaySlots(initDaySlots());
       fetchPages();
     } catch (err) {
@@ -230,55 +247,142 @@ export default function MannalkaPage() {
                 <p className="mk-slot-hint">켜면 예약자가 내 주간 시간표를 볼 수 있어요</p>
               </div>
 
+              {/* ── 예약 모드 선택 ── */}
               <div className="mk-field">
-                <label>가능한 요일 / 시간</label>
-                <button className="mk-timetable-btn" onClick={loadFromTimetable}>
-                  📋 내 시간표에서 불러오기
-                </button>
-                <p className="mk-slot-hint">시간표가 없으면 아래에서 직접 설정해 주세요</p>
-                <table className="mk-slot-table">
-                  <thead>
-                    <tr><th /><th>요일</th><th>시작</th><th>종료</th></tr>
-                  </thead>
-                  <tbody>
-                    {daySlots.map((slot, idx) => (
-                      <tr key={idx} className={`mk-slot-row${slot.enabled ? '' : ' disabled'}`}>
-                        <td>
+                <label>예약 모드</label>
+                <div className="mk-booking-mode-row">
+                  <label className={`mk-mode-option${createForm.bookingMode === 'host_open' ? ' active' : ''}`}>
+                    <input
+                      type="radio"
+                      name="bookingMode"
+                      value="host_open"
+                      checked={createForm.bookingMode === 'host_open'}
+                      onChange={() => setCreateForm(f => ({ ...f, bookingMode: 'host_open' }))}
+                    />
+                    <div>
+                      <span className="mk-mode-title">내가 가능한 시간 오픈</span>
+                      <span className="mk-mode-desc">내가 열어둔 시간 중에서 예약자가 선택</span>
+                    </div>
+                  </label>
+                  <label className={`mk-mode-option${createForm.bookingMode === 'guest_propose' ? ' active' : ''}`}>
+                    <input
+                      type="radio"
+                      name="bookingMode"
+                      value="guest_propose"
+                      checked={createForm.bookingMode === 'guest_propose'}
+                      onChange={() => setCreateForm(f => ({ ...f, bookingMode: 'guest_propose' }))}
+                    />
+                    <div>
+                      <span className="mk-mode-title">고객이 가능한 시간 제안</span>
+                      <span className="mk-mode-desc">예약자가 원하는 시간을 제안, 내가 확정</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* ── guest_propose: 가능 요일 + 시간 범위 ── */}
+              {createForm.bookingMode === 'guest_propose' ? (
+                <>
+                  <div className="mk-field">
+                    <label>가능한 요일</label>
+                    <div className="mk-avail-days">
+                      {DAY_NAMES.map((name, idx) => (
+                        <label key={idx} className={`mk-avail-day${createForm.availableDays.includes(idx) ? ' checked' : ''}`}>
                           <input
                             type="checkbox"
-                            className="mk-slot-check"
-                            checked={slot.enabled}
-                            onChange={e => handleUpdateSlot(idx, { enabled: e.target.checked })}
+                            checked={createForm.availableDays.includes(idx)}
+                            onChange={e => {
+                              const days = createForm.availableDays;
+                              setCreateForm(f => ({
+                                ...f,
+                                availableDays: e.target.checked ? [...days, idx].sort() : days.filter(d => d !== idx),
+                              }));
+                            }}
                           />
-                        </td>
-                        <td>{DAY_NAMES[idx]}</td>
-                        <td>
-                          <select
-                            className="mk-slot-select"
-                            value={slot.start_time}
-                            disabled={!slot.enabled}
-                            onChange={e => handleUpdateSlot(idx, { start_time: e.target.value })}
-                          >
-                            {START_HOURS.map(h => <option key={h} value={`${pad(h)}:00`}>{pad(h)}:00</option>)}
-                          </select>
-                        </td>
-                        <td>
-                          <select
-                            className="mk-slot-select"
-                            value={slot.end_time}
-                            disabled={!slot.enabled}
-                            onChange={e => handleUpdateSlot(idx, { end_time: e.target.value })}
-                          >
-                            {END_HOURS
-                              .filter(h => h > parseInt(slot.start_time.split(':')[0]))
-                              .map(h => <option key={h} value={`${pad(h)}:00`}>{pad(h)}:00</option>)}
-                          </select>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                          {name}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="mk-field">
+                    <label>가능한 시간 범위</label>
+                    <div className="mk-avail-time-row">
+                      <select
+                        className="mk-slot-select"
+                        value={createForm.availableStart}
+                        onChange={e => setCreateForm(f => ({ ...f, availableStart: e.target.value }))}
+                        style={{ width: 80 }}
+                      >
+                        {AVAIL_HOURS.map(h => <option key={h} value={`${pad(h)}:00`}>{pad(h)}시</option>)}
+                      </select>
+                      <span style={{ color: '#aaa' }}>~</span>
+                      <select
+                        className="mk-slot-select"
+                        value={createForm.availableEnd}
+                        onChange={e => setCreateForm(f => ({ ...f, availableEnd: e.target.value }))}
+                        style={{ width: 80 }}
+                      >
+                        {AVAIL_HOURS.filter(h => h > parseInt(createForm.availableStart.split(':')[0])).map(h => (
+                          <option key={h} value={`${pad(h)}:00`}>{pad(h)}시</option>
+                        ))}
+                      </select>
+                    </div>
+                    <p className="mk-slot-hint">시간표에 등록된 일정은 자동으로 예약 불가 처리됩니다</p>
+                  </div>
+                </>
+              ) : (
+                /* ── host_open: 기존 슬롯 테이블 ── */
+                <div className="mk-field">
+                  <label>가능한 요일 / 시간</label>
+                  <button className="mk-timetable-btn" onClick={loadFromTimetable}>
+                    📋 내 시간표에서 불러오기
+                  </button>
+                  <p className="mk-slot-hint">시간표가 없으면 아래에서 직접 설정해 주세요</p>
+                  <table className="mk-slot-table">
+                    <thead>
+                      <tr><th /><th>요일</th><th>시작</th><th>종료</th></tr>
+                    </thead>
+                    <tbody>
+                      {daySlots.map((slot, idx) => (
+                        <tr key={idx} className={`mk-slot-row${slot.enabled ? '' : ' disabled'}`}>
+                          <td>
+                            <input
+                              type="checkbox"
+                              className="mk-slot-check"
+                              checked={slot.enabled}
+                              onChange={e => handleUpdateSlot(idx, { enabled: e.target.checked })}
+                            />
+                          </td>
+                          <td>{DAY_NAMES[idx]}</td>
+                          <td>
+                            <select
+                              className="mk-slot-select"
+                              value={slot.start_time}
+                              disabled={!slot.enabled}
+                              onChange={e => handleUpdateSlot(idx, { start_time: e.target.value })}
+                            >
+                              {START_HOURS.map(h => <option key={h} value={`${pad(h)}:00`}>{pad(h)}:00</option>)}
+                            </select>
+                          </td>
+                          <td>
+                            <select
+                              className="mk-slot-select"
+                              value={slot.end_time}
+                              disabled={!slot.enabled}
+                              onChange={e => handleUpdateSlot(idx, { end_time: e.target.value })}
+                            >
+                              {END_HOURS
+                                .filter(h => h > parseInt(slot.start_time.split(':')[0]))
+                                .map(h => <option key={h} value={`${pad(h)}:00`}>{pad(h)}:00</option>)}
+                            </select>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <p className="mk-slot-hint" style={{ marginTop: 6 }}>시간표에 등록된 일정은 자동으로 예약 불가 처리됩니다</p>
+                </div>
+              )}
             </div>
 
             <div className="mk-modal-foot">
