@@ -15,6 +15,7 @@ import {
   getUserInfoFromLocalStorage,
   clearUserInfoFromLocalStorage,
   getBaseUrl,
+  redirectToLogin,
 } from './Components/authUtils';
 import SharePopup from './Components/SharePopup';
 import './CreateEvent.css';
@@ -192,8 +193,7 @@ const CreateEvent = () => {
           const storedUserInfo = getUserInfoFromLocalStorage();
           if (storedUserInfo) setUserInfo(storedUserInfo);
         } else {
-          clearUserInfoFromLocalStorage();
-          setUserInfo(null);
+          redirectToLogin(); return;
         }
       }
     };
@@ -223,7 +223,7 @@ const CreateEvent = () => {
 
   const handleConfirm = () => {
     if (!uuid) { message.warning('UUID를 입력해주세요!'); return; }
-    if (!userInfo) { message.error('로그인이 필요합니다.'); return; }
+    if (!userInfo) { redirectToLogin(); return; }
     axios.get(`/api/events/${uuid}`)
       .then(res => {
         if (res.data) window.location.href = `${getBaseUrl()}/meet/?key=${uuid}`;
@@ -237,7 +237,7 @@ const CreateEvent = () => {
     if (dateList.length === 0) { message.warning('날짜를 선택해주세요'); return; }
     if (!startTime || !endTime)  { message.warning('시간을 선택해주세요'); return; }
     if (!eventName.trim())       { message.warning('모임 이름을 입력해주세요'); return; }
-    if (!userInfo)               { message.error('로그인이 필요합니다.'); return; }
+    if (!userInfo)               { redirectToLogin(); return; }
 
     const startDay    = dateList[0];
     const endDay      = dateList[dateList.length - 1];

@@ -1,10 +1,13 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Layout, Menu, Avatar, Dropdown } from "antd";
-import { getUserInfoFromLocalStorage } from './authUtils';
+import { getUserInfoFromLocalStorage, checkKakaoLoginStatus, clearUserInfoFromLocalStorage } from './authUtils';
 import './AddLayout.css';
 
 const { Header } = Layout;
+
+// 로그인 필수 경로 (게스트가 접근 가능한 /meet, /book 제외)
+const PROTECTED_PATHS = ['/event', '/calendar', '/timetable', '/mannalka', '/profile', '/create'];
 
 const BOTTOM_TABS = [
   { key: '/event',    icon: '🏠', label: '홈' },
@@ -33,6 +36,25 @@ const AppLayout = () => {
     '';
 
   const activeTab = getActiveTab(location.pathname);
+
+  // 보호 라우트 인증 가드: 토큰 없거나 만료되면 로그인 페이지로
+  useEffect(() => {
+    const path = location.pathname;
+    const isProtected = PROTECTED_PATHS.some(p => path === p || path.startsWith(p + '/'));
+    if (!isProtected) return;
+
+    const token = localStorage.getItem('kakaoAccessToken');
+    if (!token) {
+      window.location.replace('/main');
+      return;
+    }
+    checkKakaoLoginStatus(token).then(valid => {
+      if (!valid) {
+        clearUserInfoFromLocalStorage();
+        window.location.replace('/main');
+      }
+    });
+  }, [location.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleLogout = () => {
     localStorage.removeItem('kakaoAccessToken');

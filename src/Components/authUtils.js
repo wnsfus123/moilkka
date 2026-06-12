@@ -29,3 +29,8 @@ export const clearUserInfoFromLocalStorage = () => {
   localStorage.removeItem('kakaoAccessToken');
   localStorage.removeItem('userInfo');
 };
+
+export const redirectToLogin = () => {
+  clearUserInfoFromLocalStorage();
+  window.location.replace('/main');
+};
