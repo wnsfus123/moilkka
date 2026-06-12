@@ -482,9 +482,9 @@
   color: #ccc !important;
   font-weight: 400 !important;
 }
-/* 요일 헤더 색상 */
-.bk-cal-card .react-calendar__month-view__weekdays__weekday:nth-child(6) abbr { color: #2563EB !important; }
-.bk-cal-card .react-calendar__month-view__weekdays__weekday:nth-child(7) abbr { color: #DC2626 !important; }
+/* 요일 헤더 색상 (일월화수목금토 순, 일=1 토=7) */
+.bk-cal-card .react-calendar__month-view__weekdays__weekday:nth-child(7) abbr { color: #2563EB !important; }
+.bk-cal-card .react-calendar__month-view__weekdays__weekday:nth-child(1) abbr { color: #DC2626 !important; }
 /* 토/일 날짜 글씨 색상 */
 .bk-cal-card .react-calendar__tile.cal-saturday { color: #2563EB !important; }
 .bk-cal-card .react-calendar__tile.cal-saturday.mk-cal-available { color: #1a4dbf !important; }
