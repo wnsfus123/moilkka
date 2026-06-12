@@ -35,8 +35,8 @@ const App = () => {
               <Route path='/timetable' element={<TimetablePage />} />
               <Route path='/mannalka' element={<MannalkaPage />} />
               <Route path='/mannalka/manage/:uuid' element={<MannalkaManagePage />} />
+              <Route path='/book/:uuid' element={<BookingPage />} />
             </Route>
-            <Route path='/book/:uuid' element={<BookingPage />} />
             <Route index={true} element={<Navigate replace to={"/main"}/>} />
           </Routes>
         </Router> {/* Router 태그 종료 */}
