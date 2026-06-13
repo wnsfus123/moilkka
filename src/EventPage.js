@@ -4,7 +4,7 @@ import axios from 'axios';
 import { format, addMinutes, differenceInDays, isBefore, isAfter, parse } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import dayjs from 'dayjs';
-import { message, Tooltip, Modal, DatePicker, TimePicker, Dropdown } from 'antd';
+import { message, Tooltip, Modal, DatePicker, TimePicker, Dropdown, Input } from 'antd';
 import { formatInTimeZone } from 'date-fns-tz';
 import { TIMEZONE_OPTIONS } from './Components/timezones';
 import ScheduleSelector from 'react-schedule-selector';
@@ -199,6 +199,10 @@ function EventPage() {
   // 모임 삭제
   const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  // 모임 수정
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -333,6 +337,31 @@ function EventPage() {
     setSchedule([]);
     setSelectedTime({});
     setIsDirty(true);
+  };
+
+  const openEditModal = () => {
+    setEditName(eventData.eventname || '');
+    setEditModalVisible(true);
+  };
+
+  const handleEditEvent = async () => {
+    if (!editName.trim()) { message.warning('모임 이름을 입력해주세요'); return; }
+    setEditSaving(true);
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const uuid = urlParams.get('key');
+      await axios.patch(`/api/events/${uuid}?action=edit`, {
+        kakaoId: userInfo.id.toString(),
+        name: editName.trim(),
+      });
+      await fetchEventData();
+      setEditModalVisible(false);
+      message.success('모임 이름이 수정됐어요');
+    } catch (err) {
+      message.error('수정에 실패했어요');
+    } finally {
+      setEditSaving(false);
+    }
   };
 
   const handleDeleteEvent = async () => {
@@ -830,6 +859,11 @@ function EventPage() {
             {isCreator && (
               <button className={`ep-tool-btn btn-confirm${confirmedSlots.length > 0 ? ' confirmed' : ''}`} onClick={openConfirmModal}>
                 📌 {confirmedSlots.length > 0 ? '확정 수정' : '모임 확정'}
+              </button>
+            )}
+            {isCreator && (
+              <button className="ep-tool-btn btn-orange" onClick={openEditModal}>
+                ✏️ 모임 수정
               </button>
             )}
             {isCreator && (
@@ -1480,6 +1514,30 @@ function EventPage() {
               </p>
             </div>
           )}
+        </Modal>
+
+        {/* 모임 수정 모달 */}
+        <Modal
+          title="모임 이름 수정"
+          open={editModalVisible}
+          onOk={handleEditEvent}
+          onCancel={() => setEditModalVisible(false)}
+          okText="저장"
+          cancelText="취소"
+          confirmLoading={editSaving}
+          okButtonProps={{ style: { background: 'var(--color-primary)', borderColor: '#e6ce00', color: 'var(--color-primary-text)' } }}
+        >
+          <div style={{ padding: '8px 0' }}>
+            <p style={{ color: '#555', fontSize: 13, marginBottom: 10 }}>모임 이름을 수정해요. 참여자들에게 표시되는 이름이에요.</p>
+            <Input
+              value={editName}
+              onChange={e => setEditName(e.target.value)}
+              placeholder="모임 이름"
+              maxLength={50}
+              showCount
+              onPressEnter={handleEditEvent}
+            />
+          </div>
         </Modal>
 
         {/* 모임 삭제 확인 모달 */}

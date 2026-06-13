@@ -331,6 +331,28 @@
   display: flex; align-items: center; gap: 4px;
 }
 .mk-back-btn:hover { color: var(--color-primary, #1677ff); }
+
+.mk-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+.mk-title-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.mk-btn-edit {
+  background: #fffaf0; border: 1px solid #fbd38d; color: #9c4221;
+  border-radius: var(--radius-md, 10px); padding: 6px 12px;
+  font-size: 13px; cursor: pointer; white-space: nowrap;
+}
+.mk-btn-edit:hover { background: #feebc8; }
+.mk-btn-delete-page {
+  background: #fff5f5; border: 1px solid #feb2b2; color: #c53030;
+  border-radius: var(--radius-md, 10px); padding: 6px 12px;
+  font-size: 13px; cursor: pointer; white-space: nowrap;
+}
+.mk-btn-delete-page:hover { background: #fed7d7; }
+
 .mk-summary-box {
   background: var(--color-card, #fff);
   border: 1px solid var(--color-border, #eee);

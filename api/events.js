@@ -218,9 +218,28 @@ module.exports = async (req, res) => {
     }
   }
 
-  // ── PATCH (확정 슬롯 저장) ────────────────────────────────
+  // ── PATCH ────────────────────────────────────────────────
   if (req.method === 'PATCH') {
     if (!uuid) return res.status(400).json({ error: 'uuid가 필요합니다.' });
+
+    // 모임 정보 수정 (방장)
+    if (action === 'edit') {
+      try {
+        const { kakaoId, name } = req.body;
+        if (!kakaoId || !name) return res.status(400).json({ error: '필수 값 누락' });
+        const { data: event, error: findError } = await supabase
+          .from('events').select('kakao_id').eq('uuid', uuid).single();
+        if (findError) return res.status(404).json({ error: '이벤트를 찾을 수 없습니다.' });
+        if (String(event.kakao_id) !== String(kakaoId)) return res.status(403).json({ error: '권한이 없습니다.' });
+        const { error } = await supabase.from('events').update({ name }).eq('uuid', uuid);
+        if (error) return res.status(500).json({ error: error.message });
+        return res.status(200).json({ success: true });
+      } catch (err) {
+        return res.status(500).json({ error: err.message });
+      }
+    }
+
+    // 확정 슬롯 저장 (기존 로직)
     try {
       const { confirmed_slots, kakaoId } = req.body;
 
